@@ -1,4 +1,11 @@
 /** SPIANA LA NORMAL MAP DENTRO LA CORONA DEL PASSARUOTA.
+ *
+ *  E VA A VALLE DEL PASSA-ALTO, non al suo posto: sono due difetti diversi.
+ *  Il passa-alto toglie le CRESTE LARGE — le macchie, l'ondulazione da
+ *  generatore. L'arco del passaruota invece e' una LINEA NETTA, e un
+ *  passa-alto le linee nette le CONSERVA: e' precisamente il suo mestiere.
+ *  Applicando solo il passa-alto l'arco restava, e il committente l'ha visto
+ *  di nuovo. Le due cure lavorano su bande opposte e servono tutte e due.
  *  Vedi `arco_maschera.mjs` per il perche' e per come si trova la regione.
  *  Dentro la maschera la normale torna neutra (128,128,255): quella e' una
  *  fiancata verniciata, e una fiancata verniciata non ha rilievo. Fuori non
@@ -7,7 +14,7 @@
 import sharp from 'sharp'
 
 const S = 2048
-const nor = await sharp('public/texture/auto2r_nor.webp').raw().toBuffer({ resolveWithObject: true })
+const nor = await sharp(process.argv[2] ?? 'public/texture/auto2r_nor.webp').raw().toBuffer({ resolveWithObject: true })
 const msk = await sharp('public/texture/_maschera_arco.png').raw().toBuffer({ resolveWithObject: true })
 if (nor.info.width !== S || msk.info.width !== S) throw new Error('dimensioni diverse')
 const CH = nor.info.channels, MC = msk.info.channels

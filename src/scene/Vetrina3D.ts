@@ -103,6 +103,109 @@ const ALTEZZA = 0.142
    sono le due frecce, quindi qualunque cosa debba succedere alla fine deve
    stare DENTRO il carosello. Il contatto smette di essere una cosa che
    compare e diventa una cosa a cui si arriva. */
+/**
+ * LA CARTA E' UN PEZZO DI CILINDRO, NON UN RETTANGOLO PIATTO.
+ *
+ * Le carte stanno gia' su una circonferenza — `sin`/`cos` con `RAGGIO`, e
+ * ognuna ruotata di `-a` per restare tangente. Ma erano PIANE, quindi quello
+ * che si vedeva era un poligono spezzato: tre facce dritte messe ad angolo
+ * fra loro. Il committente l'ha detto guardandole: le vuole «curve, come se
+ * seguissero un cerchio».
+ *
+ * La differenza fra un poligono e un cerchio la fa la curvatura DENTRO ogni
+ * faccia. Si prende lo stesso `RAGGIO` della disposizione e si piega la carta
+ * su quello: a quel punto le tre carte non sono piu' tre piani tangenti a una
+ * circonferenza, sono TRE ARCHI DELLA STESSA CIRCONFERENZA, e i bordi
+ * combaciano invece di formare uno spigolo.
+ *
+ * IL VERSO CONTA. Il centro dell'arco sta a `+z` rispetto alla carta (la
+ * posizione e' `RAGGIO - cos(a)·RAGGIO`, che cresce allontanandosi dal
+ * centro), quindi i bordi si spostano verso `+z`: la carta si incava verso il
+ * centro del cerchio. Con il segno invertito si otterrebbe la stessa
+ * curvatura in faccia opposta, e le carte si aprirebbero a ventaglio invece
+ * di chiudersi in un anello.
+ *
+ * VENTIQUATTRO SEGMENTI E NON QUATTRO: la corda di un arco approssimato male
+ * si vede come una piega dritta proprio dove passa il riflesso — che su uno
+ * schermo emissivo e' l'unica cosa che si guarda.
+ */
+/* IL RAGGIO DELLA CARTA E' PIU' STRETTO DI QUELLO DELLA DISPOSIZIONE, e non
+   e' un'incoerenza: e' una misura.
+   Piegandola sul raggio della circonferenza (2,70) la freccia dell'arco viene
+   di TRE CENTIMETRI su ottanta di larghezza — geometricamente esatta e
+   otticamente invisibile: il provino era indistinguibile dalla carta piatta.
+   A 1,15 la freccia sale a sette centimetri, e a quel punto il riflesso che
+   corre sullo schermo si PIEGA, che e' l'unica cosa che dice «curvo» su una
+   superficie che emette luce propria.
+   Si perde la coincidenza esatta con la circonferenza di disposizione, e va
+   detto invece che nascosto: qui il bersaglio non e' la correttezza del
+   solido, e' che si legga come un anello. */
+const CURVA_CARTA = 0.95
+
+/**
+ * IL MATERIALE DELLA CARTA, con la caduta angolare di uno schermo.
+ *
+ * PERCHE' SERVE. Le carte sono `MeshBasicMaterial`: non illuminate e non
+ * tone-mappate, perche' sono SCHERMI e uno schermo non si spegne con la notte.
+ * Ma un materiale che non riceve luce non ha ombreggiatura, e senza
+ * ombreggiatura CURVARE UNA SUPERFICIE NON SI VEDE: il primo provino con le
+ * carte piegate era indistinguibile da quello con le carte piatte, perche'
+ * l'unico indizio rimasto era la deformazione prospettica della tessitura —
+ * che su ottanta centimetri e' niente.
+ *
+ * COSA SI AGGIUNGE. Uno schermo vero perde luminosita' guardato di taglio: e'
+ * la caduta angolare dei pannelli, e chiunque abbia guardato un televisore da
+ * un lato la conosce. Qui la si calcola dal prodotto scalare fra la normale e
+ * la direzione di vista: al centro della carta, dove la normale punta
+ * all'osservatore, resta piena; verso i bordi, dove la curvatura la fa
+ * girare, si smorza.
+ * E' quella sfumatura ai bordi a far leggere la curva. Non e' un trucco per
+ * simulare qualcosa che non c'e': la geometria E' curva, questo la mostra.
+ */
+function cartaMateriale(t: CanvasTexture) {
+  const m = new MeshBasicMaterial({
+    map: t, transparent: true, toneMapped: false,
+    depthWrite: false, depthTest: false,
+  })
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', `#include <common>
+varying vec3 vNormCarta;
+varying vec3 vVistaCarta;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+  vNormCarta = normalize( normalMatrix * normal );
+  vVistaCarta = ( modelViewMatrix * vec4( transformed, 1.0 ) ).xyz;`)
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>
+varying vec3 vNormCarta;
+varying vec3 vVistaCarta;`)
+      .replace('#include <opaque_fragment>', `
+  {
+    float faccia = abs( dot( normalize( vNormCarta ), normalize( -vVistaCarta ) ) );
+    // 0,55 e' il residuo ai bordi: a zero il bordo sparisce e la carta sembra
+    // tagliata, invece che girata
+    gl_FragColor.rgb *= mix( 0.55, 1.0, pow( faccia, 1.35 ) );
+  }
+#include <opaque_fragment>`)
+  }
+  m.customProgramCacheKey = () => 'cartaCurva'
+  return m
+}
+
+
+function cartaCurva(largo: number, alto: number, raggio: number) {
+  const g = new PlaneGeometry(largo, alto, 24, 1)
+  const pos = g.attributes.position
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i)
+    // la freccia dell'arco: quanto quel punto rientra rispetto alla corda
+    pos.setZ(i, raggio - Math.sqrt(Math.max(0, raggio * raggio - x * x)))
+  }
+  pos.needsUpdate = true
+  g.computeVertexNormals()
+  return g
+}
+
 const CARTE = LAVORI.length + 1
 /** l'indice della carta del contatto: l'ultima */
 const CONTATTO = LAVORI.length
@@ -192,7 +295,7 @@ export class Vetrina3D {
       t.magFilter = LinearFilter
 
       const m = new Mesh(
-        new PlaneGeometry(LARGO, LARGO / RAPPORTO),
+        cartaCurva(LARGO, LARGO / RAPPORTO, CURVA_CARTA),
         // NON ILLUMINATO E NON TONE-MAPPATO: sono schermi, cioe' emettono.
         // Un pannello che si spegne insieme alla notte e' la cosa meno
         // credibile che ci sia — e' la stessa regola del quadro strumenti.
@@ -206,10 +309,7 @@ export class Vetrina3D {
            per schivare la plancia sarebbe stato il rimedio sbagliato: lo
            avrebbe portato sotto la testata, cioe' avrebbe scambiato un
            sovrapposto con un altro. */
-        new MeshBasicMaterial({
-          map: t, transparent: true, toneMapped: false,
-          depthWrite: false, depthTest: false,
-        }),
+        cartaMateriale(t),
       )
       m.name = i === CONTATTO ? 'CARTA_CONTATTO' : 'LAVORO_' + LAVORI[i].codice
       m.renderOrder = 20

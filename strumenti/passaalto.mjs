@@ -32,7 +32,7 @@ import sharp from 'sharp'
 const SIGMA = Number(process.argv[2] ?? 11)
 const TIENI = Number(process.argv[3] ?? 1.0)   // quanto del dettaglio stretto si conserva
 const SRC = 'public/texture/auto2r_nor.webp'
-const DST = 'public/texture/auto2r_nor2.webp'
+const DST = process.argv[4] ?? 'public/texture/_nor_passaalto.png'
 
 const { data, info } = await sharp(SRC).raw().toBuffer({ resolveWithObject: true })
 const S = info.width, CH = info.channels
@@ -55,7 +55,7 @@ for (let i = 0; i < S * S; i++) {
   scartoDopo += Math.abs(X - 128) + Math.abs(Y - 128)
 }
 await sharp(out, { raw: { width: S, height: S, channels: 3 } })
-  .webp({ quality: 92 }).toFile(DST)
+  .png().toFile(DST)
 const n = S * S
 console.log(`sigma ${SIGMA} px  (su ${S}: la banda tolta e' piu' larga di ~${(SIGMA * 2 * 3.24).toFixed(0)} mm sulla carrozzeria)`)
 console.log(`scarto medio dal piatto:  prima ${(scartoPrima / n / 2).toFixed(2)}  dopo ${(scartoDopo / n / 2).toFixed(2)} livelli`)
