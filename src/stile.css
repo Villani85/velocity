@@ -744,6 +744,110 @@ body {
   white-space: nowrap;
 }
 
+/* ------------------------------------------------------- modalita' lettura */
+
+/* LO STESSO DOCUMENTO, APERTO.
+   «STUDIO» apriva la cima della pagina. Adesso apre QUESTO — e la cosa
+   importante non e' come si vede: e' che non c'e' una seconda copia. Il
+   contenuto e' quello che gia' serviva ai motori di ricerca, ai lettori di
+   schermo e a chi arriva senza WebGL. Due copie divergono al primo ritocco, e
+   in questo progetto e' gia' successo con la lista dei lavori.
+   Qui si annullano una per una le righe che lo nascondevano. */
+:root[data-lettura] .documento {
+  position: fixed;
+  inset: 0;
+  width: auto; height: auto;
+  clip-path: none;
+  white-space: normal;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 90;
+  background: rgba(6, 7, 10, 0.965);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  padding: clamp(64px, 9vh, 110px) clamp(22px, 6vw, 64px) clamp(80px, 12vh, 140px);
+  color: rgba(226, 228, 234, 0.9);
+  animation: letturaEntra .42s cubic-bezier(.22,.61,.36,1);
+}
+
+/* la misura di riga: sopra i 70 caratteri la lettura si sfilaccia, ed e' un
+   testo che deve reggere novanta secondi */
+:root[data-lettura] .documento > * { max-width: 68ch; margin-inline: auto; }
+:root[data-lettura] .documento p { line-height: 1.66; margin: 0 0 1.1em; }
+
+@keyframes letturaEntra { from { opacity: 0; transform: translateY(10px); } }
+
+/* il corpo non scorre dietro: aprire un documento e trovarsi la scena che si
+   muove sotto e' il difetto piu' comune delle finestre sovrapposte */
+:root[data-lettura] body { overflow: hidden; }
+
+.lettura__chiudi {
+  position: fixed;
+  top: clamp(14px, 2.4vh, 26px);
+  right: clamp(14px, 2.4vw, 30px);
+  z-index: 2;
+  width: 44px; height: 44px;      /* 44 e' il minimo tattile, non un'estetica */
+  display: grid; place-items: center;
+  font: inherit; font-size: 15px; line-height: 1;
+  color: rgba(242, 240, 234, 0.72);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(150, 175, 210, 0.18);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.lettura__chiudi:hover,
+.lettura__chiudi:focus-visible {
+  color: var(--bianco);
+  border-color: var(--accento);
+  background: rgba(255, 255, 255, 0.09);
+}
+/* fuori dalla lettura non deve esistere: nel ripiego il documento E' la
+   pagina, e non c'e' niente da chiudere */
+:root:not([data-lettura]) .lettura__chiudi { display: none; }
+
+/* le tre cifre misurate */
+.metodo__cifre {
+  display: grid;
+  gap: clamp(14px, 2vh, 22px);
+  margin: clamp(26px, 4vh, 40px) auto clamp(30px, 5vh, 48px);
+  padding: clamp(20px, 3vh, 30px) clamp(18px, 3vw, 30px);
+  border: 1px solid rgba(150, 175, 210, 0.14);
+  border-radius: 4px;
+}
+.metodo__cifre div { display: grid; gap: 4px; }
+.metodo__cifre dt {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(200, 206, 218, 0.5);
+}
+.metodo__cifre dd { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.metodo__cifre strong {
+  font-family: var(--titolo, inherit);
+  font-size: clamp(22px, 3.4vw, 30px);
+  font-weight: 600;
+  color: var(--bianco, #f2f0ea);
+  font-variant-numeric: tabular-nums;
+}
+.metodo__cifre dd span { font-size: 13px; color: rgba(200, 206, 218, 0.62); }
+
+/* prima e dopo, affiancate dove c'e' spazio e impilate dove non ce n'e' */
+.metodo__coppia { display: grid; gap: 10px; }
+.metodo__coppia img {
+  width: 100%; height: auto; display: block;
+  border-radius: 3px;
+  border: 1px solid rgba(150, 175, 210, 0.10);
+}
+@media (min-width: 780px) {
+  .metodo__coppia { grid-template-columns: 1fr 1fr; }
+  .metodo__coppia figcaption { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-lettura] .documento { animation: none; }
+}
+
 /* ------------------------------------------------------------------ vetro */
 
 /* IL VETRO — quasi trasparente, con un bordo luminoso e un alone.

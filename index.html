@@ -302,7 +302,7 @@
       <source type="image/webp" media="(max-width: 700px)" srcset="/poster/hero_verticale.webp" />
       <source type="image/avif" srcset="/poster/hero_orizzontale.avif" />
       <img src="/poster/hero_orizzontale.webp" width="1400" height="875" loading="lazy" decoding="async"
-           alt="Una supercar nera ferma su un piedistallo di pietra chiara, davanti a una villa moderna con le vetrate accese e la piscina illuminata di sera." />
+           alt="Una hypercar nera lucida ferma su un podio circolare di marmo scuro, davanti a una villa moderna con le vetrate accese e la piscina illuminata di sera." />
     </picture>
     <figcaption data-t="docDidascalia">La prima inquadratura dell'esperienza, renderizzata dalla stessa scena in tre dimensioni.</figcaption>
   </figure>
@@ -317,6 +317,49 @@
     <p class="statica__occhiello" data-t="docOcchiello">Giuseppe Villani — Freelance Creative Developer</p>
     <p data-t="docStudio1">VELOCITY esplora come 3D realtime, movimento e interfaccia possano vivere nello stesso spazio: non una pagina con delle animazioni sopra, ma uno spazio in cui si entra, governato dallo scorrimento di chi guarda.</p>
     <p data-t="docStudio2">Questa pagina esiste in due forme.</p>
+  
+    <!-- IL METODO — ed e' la ragione per cui questa sezione esiste.
+         «STUDIO» rimandava alla cima della pagina, e il commento in
+         `Ancore.ts` lo difendeva: «quella riga E' lo studio». Non reggeva alla
+         prova dei fatti — due paragrafi che dicono COSA il sito esplora, non
+         COME. Intanto in `docs/` c'era l'argomento piu' forte del progetto, e
+         non lo apriva nessuno.
+         Sta qui, nel documento statico, e non e' un ripiego: e' il canale che
+         legge un motore di ricerca, un lettore di schermo e chi arriva senza
+         WebGL. La modalita' lettura lo apre anche a chi l'esperienza ce l'ha. -->
+    <h2 data-t="docMetodoTitolo">Il metodo</h2>
+    <p class="statica__forte" data-t="docMetodo1">Non si dichiara niente che non sia stato misurato.</p>
+
+    <dl class="metodo__cifre">
+      <div>
+        <dt data-t="docCifra1t">Fairness della carrozzeria</dt>
+        <dd><strong>0,840 → 0,341 mm</strong> <span data-t="docCifra1d">residuo da fit quadrico locale, −59%</span></dd>
+      </div>
+      <div>
+        <dt data-t="docCifra2t">La carrozzeria completa</dt>
+        <dd><strong>667 kB</strong> <span data-t="docCifra2d">106.736 triangoli, compressi con meshopt</span></dd>
+      </div>
+      <div>
+        <dt data-t="docCifra3t">Metriche costruite e buttate</dt>
+        <dd><strong>6</strong> <span data-t="docCifra3d">perché misuravano rumore, non forma</span></dd>
+      </div>
+    </dl>
+
+    <p data-t="docMetodo2">Chiunque può costruire una metrica. La parte difficile è buttarla quando smette di reggere. Il conteggio delle ondulazioni per vertice dava sempre lo stesso numero su qualunque modello, anche dopo aver spostato i vertici di nove millimetri: era un pavimento di rumore, non una misura. Una maschera che doveva leggere i pixel della vettura leggeva il vuoto intorno, e dava numeri plausibili per ore. Un misuratore non era ripetibile: tre esecuzioni identiche davano scuri al 27, al 57 e al 37 per cento.</p>
+
+    <figure class="statica__figura metodo__coppia">
+      <img src="/studio/fiancata_prima.webp" alt="" width="816" height="576" loading="lazy" decoding="async" />
+      <img src="/studio/fiancata_dopo.webp" alt="" width="816" height="576" loading="lazy" decoding="async" />
+      <figcaption data-t="docFig1">A sinistra, la fiancata con le mappe come sono uscite dal generatore: un arco che disegna il passaruota, una macchia a metà fianco, una cucitura dietro. A destra, le stesse mappe dopo un passa-alto e una maschera locale. Il segno non era un rilievo: era dipinto nell&rsquo;albedo, e l&rsquo;ho scoperto solo spegnendo una mappa alla volta.</figcaption>
+    </figure>
+
+    <figure class="statica__figura metodo__coppia">
+      <img src="/studio/ruota_prima.webp" alt="" width="700" height="700" loading="lazy" decoding="async" />
+      <img src="/studio/ruota_dopo.webp" alt="" width="700" height="700" loading="lazy" decoding="async" />
+      <figcaption data-t="docFig2">A sinistra la ruota generata: 28.700 triangoli, e una circonferenza che non è una circonferenza. A destra la ruota costruita in codice. Una carrozzeria è superficie libera e non si scrive a mano; una ruota è un solido di rivoluzione — è fatta di cerchi, e un cerchio scritto in codice è esatto per costruzione. Pesa 297 kB in meno.</figcaption>
+    </figure>
+
+    <p data-t="docMetodo3">Le trappole che costano davvero non danno errore. Un materiale con anisotropia senza tangenti compila e non disegna: la scena diventa nera in silenzio, e il primo sintomo è una statistica perfettamente formata. Una mappa di occlusione legge un secondo insieme di coordinate che il modello non ha, e semplicemente non compare. Un compressore di geometrie butta i nomi delle mesh anche quando gli si chiede di tenerli. Ognuna di queste è costata ore, e ognuna è scritta nel repository con il numero che l&rsquo;ha smascherata.</p>
   </section>
 
   <section id="lavori" class="statica__blocco">

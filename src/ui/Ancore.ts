@@ -53,7 +53,38 @@
 const DOVE: Record<string, number> = {
   lavori: 0.952,
   contatto: 1.0,
-  studio: 0,
+}
+
+/**
+ * STUDIO NON E' PIU' UN PUNTO DELLA CORSA, E' UN DOCUMENTO CHE SI APRE.
+ *
+ * Era `studio: 0`, cioe' la cima della pagina, e il commento lo difendeva:
+ * «quella riga E' lo studio, e mandare STUDIO a meta' racconto vorrebbe dire
+ * inventare una sezione che il sito non ha». Il ragionamento era onesto e la
+ * conclusione sbagliata: la sezione non andava inventata, andava SCRITTA — e
+ * il materiale c'era gia' tutto, in `docs/`, dove non lo apriva nessuno.
+ *
+ * IL CONTENUTO NON SI DUPLICA. Sta dentro `<main class="documento">`, che
+ * esiste da sempre per i motori di ricerca, per i lettori di schermo e per chi
+ * arriva senza WebGL. Scriverne una seconda copia dentro l'esperienza sarebbe
+ * stato l'errore che questo progetto ha gia' fatto e gia' pagato con la lista
+ * dei lavori: due copie divergono al primo ritocco e nessuno se ne accorge.
+ * Quindi si apre QUELLO, e chi legge senza WebGL lo trova senza fare niente.
+ */
+function apriLettura() {
+  const doc = document.querySelector<HTMLElement>('.documento')
+  if (!doc) return
+  document.documentElement.dataset.lettura = 'si'
+  doc.scrollTop = 0
+  // il fuoco entra nel documento: chi naviga da tastiera si trova DENTRO
+  // quello che ha appena aperto, non dietro
+  const chiudi = doc.querySelector<HTMLElement>('.lettura__chiudi')
+  chiudi?.focus()
+}
+
+function chiudiLettura() {
+  delete document.documentElement.dataset.lettura
+  document.querySelector<HTMLElement>('a[href="#studio"]')?.focus()
 }
 
 /** quanto dura il viaggio, in secondi */
@@ -62,12 +93,32 @@ const DURATA = 1.9
 export function montaAncore() {
   let attivo = 0
 
+  /* IL BOTTONE DI CHIUSURA SI COSTRUISCE QUI, non sta nell'HTML.
+     Nel documento statico servito a un motore di ricerca o a chi non ha WebGL
+     un bottone «chiudi» non ha senso: li' il documento E' la pagina, non c'e'
+     niente da chiudere. Esiste solo quando esiste la modalita' lettura, cioe'
+     quando c'e' del JavaScript che l'ha aperta. */
+  const doc = document.querySelector<HTMLElement>('.documento')
+  if (doc && !doc.querySelector('.lettura__chiudi')) {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'lettura__chiudi'
+    b.setAttribute('aria-label', 'Chiudi e torna all’esperienza')
+    b.textContent = '✕'
+    b.addEventListener('click', chiudiLettura)
+    doc.prepend(b)
+  }
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.documentElement.dataset.lettura) chiudiLettura()
+  })
+
   addEventListener('click', (e) => {
     // il ripiego ha il documento vero sotto gli occhi: li' non si tocca niente
     if (document.documentElement.dataset.ripiego) return
     const a = (e.target as HTMLElement | null)?.closest?.('a[href^="#"]')
     if (!(a instanceof HTMLAnchorElement)) return
     const nome = a.getAttribute('href')?.slice(1) ?? ''
+    if (nome === 'studio') { e.preventDefault(); apriLettura(); return }
     const meta = DOVE[nome]
     if (meta === undefined) return
 

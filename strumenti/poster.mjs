@@ -23,9 +23,11 @@
  */
 import { chromium } from 'file:///C:/Users/Giuseppe/hce-audio-rec/node_modules/playwright/index.mjs'
 const q = Number(process.argv[2] ?? 0.06)
-const nome = 'hero_social'
+const nome = process.argv[3] ?? 'hero_social'
+const LARG = Number(process.argv[4] ?? 1200)
+const ALT  = Number(process.argv[5] ?? 630)
 const b = await chromium.launch({ args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--force-device-scale-factor=1'] })
-const p = await b.newPage({ viewport:{width:1200,height:630}, deviceScaleFactor:1 })
+const p = await b.newPage({ viewport:{width:LARG,height:ALT}, deviceScaleFactor:1 })
 // TUTTE LE ATTESE A DUE MINUTI. Il valore di serie e' 30 s, e uno screenshot
 // di questa scena — 460k triangoli, ventidue luci, una passata di riflesso e
 // una di grading — puo' superarli quando la macchina sta anche generando
@@ -78,7 +80,7 @@ await p.evaluate(() => window.fissaQualita('alto'))
    COLORE: i segni cotti nella normal map su una vernice nera si intuiscono,
    su una bianca gridano. Collaudare solo sulla finitura di partenza vuol dire
    scoprire i difetti dal committente. */
-const FIN = process.argv[3]
+const FIN = process.argv[6]
 if (FIN !== undefined) {
   await p.evaluate((i) => {
     const c = document.querySelectorAll('.comandi__campione')

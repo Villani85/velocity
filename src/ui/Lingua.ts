@@ -343,6 +343,38 @@ export const D: Record<string, Voce> = {
     it: 'Questa pagina esiste in due forme. Quella completa \u00e8 una scena in tre dimensioni calcolata mentre la si guarda — si gira intorno a un\u2019automobile, si entra dentro un gruppo ottico, si esce dall\u2019altra parte alla guida. Quella che stai leggendo \u00e8 la stessa cosa detta a parole, e c\u2019\u00e8 perch\u00e9 un\u2019esperienza che si pu\u00f2 avere in un modo solo non \u00e8 un lavoro finito.',
     en: 'This page exists in two forms. The full one is a three-dimensional scene computed while you watch it — you circle a car, you go inside a headlight, you come out the other side driving. The one you are reading is the same thing said in words, and it exists because an experience you can only have one way is not finished work.',
   },
+  /* IL METODO — le voci della sezione STUDIO.
+     Vanno qui e non nel solo HTML per la ragione di sempre: `applica()` scrive
+     `textContent` su ogni `[data-t]`, quindi un paragrafo senza chiave in
+     inglese resta in italiano e nessuno se ne accorge finche' non lo legge un
+     inglese. */
+  docMetodoTitolo: { it: 'Il metodo', en: 'The method' },
+  docMetodo1: {
+    it: 'Non si dichiara niente che non sia stato misurato.',
+    en: 'Nothing is claimed here that has not been measured.',
+  },
+  docCifra1t: { it: 'Fairness della carrozzeria', en: 'Body surface fairness' },
+  docCifra1d: { it: 'residuo da fit quadrico locale, −59%', en: 'local quadric-fit residual, −59%' },
+  docCifra2t: { it: 'La carrozzeria completa', en: 'The complete body' },
+  docCifra2d: { it: '106.736 triangoli, compressi con meshopt', en: '106,736 triangles, meshopt-compressed' },
+  docCifra3t: { it: 'Metriche costruite e buttate', en: 'Metrics built and thrown away' },
+  docCifra3d: { it: 'perché misuravano rumore, non forma', en: 'because they measured noise, not shape' },
+  docMetodo2: {
+    it: 'Chiunque può costruire una metrica. La parte difficile è buttarla quando smette di reggere. Il conteggio delle ondulazioni per vertice dava sempre lo stesso numero su qualunque modello, anche dopo aver spostato i vertici di nove millimetri: era un pavimento di rumore, non una misura. Una maschera che doveva leggere i pixel della vettura leggeva il vuoto intorno, e dava numeri plausibili per ore. Un misuratore non era ripetibile: tre esecuzioni identiche davano scuri al 27, al 57 e al 37 per cento.',
+    en: 'Anyone can build a metric. The hard part is throwing it away when it stops holding. Counting normal ripples per vertex returned the same number on every model, even after moving the vertices by nine millimetres: it was a noise floor, not a measurement. A mask meant to read the car’s pixels was reading the empty space around them, and gave plausible numbers for hours. One measuring tool was not repeatable: three identical runs reported 27%, 57% and 37% dark pixels.',
+  },
+  docFig1: {
+    it: 'A sinistra, la fiancata con le mappe come sono uscite dal generatore: un arco che disegna il passaruota, una macchia a metà fianco, una cucitura dietro. A destra, le stesse mappe dopo un passa-alto e una maschera locale. Il segno non era un rilievo: era dipinto nell’albedo, e l’ho scoperto solo spegnendo una mappa alla volta.',
+    en: 'Left, the flank with the maps as the generator produced them: an arc drawing the wheel arch, a blotch mid-panel, a seam behind. Right, the same maps after a high-pass and a local mask. The mark was not relief — it was painted into the albedo, and I only found that by switching off one map at a time.',
+  },
+  docFig2: {
+    it: 'A sinistra la ruota generata: 28.700 triangoli, e una circonferenza che non è una circonferenza. A destra la ruota costruita in codice. Una carrozzeria è superficie libera e non si scrive a mano; una ruota è un solido di rivoluzione — è fatta di cerchi, e un cerchio scritto in codice è esatto per costruzione. Pesa 297 kB in meno.',
+    en: 'Left, the generated wheel: 28,700 triangles, and a circle that is not a circle. Right, the wheel built in code. A car body is free-form surface and you do not write it by hand; a wheel is a solid of revolution — it is made of circles, and a circle written in code is exact by construction. It weighs 297 kB less.',
+  },
+  docMetodo3: {
+    it: 'Le trappole che costano davvero non danno errore. Un materiale con anisotropia senza tangenti compila e non disegna: la scena diventa nera in silenzio, e il primo sintomo è una statistica perfettamente formata. Una mappa di occlusione legge un secondo insieme di coordinate che il modello non ha, e semplicemente non compare. Un compressore di geometrie butta i nomi delle mesh anche quando gli si chiede di tenerli. Ognuna di queste è costata ore, e ognuna è scritta nel repository con il numero che l’ha smascherata.',
+    en: 'The traps that really cost you do not raise errors. A material with anisotropy but no tangents compiles and draws nothing: the scene goes black in silence, and the first symptom is a perfectly formed statistic. An occlusion map reads a second UV set the model does not have, and simply never appears. A geometry compressor drops mesh names even when told to keep them. Each of these cost hours, and each is written down in the repository together with the number that exposed it.',
+  },
   docLavori: { it: 'Lavori', en: 'Work' },
   docLavoriForte: { it: 'Un lavoro solo, e ci sei dentro.', en: 'One piece of work, and you are inside it.' },
   docQuestoSito: { it: '2026 — questo sito', en: '2026 — this site' },
