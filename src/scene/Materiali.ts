@@ -923,7 +923,14 @@ export function scocca() {
     envMapIntensity: 1.55,
   })
   m.color.setRGB(zero.tinta[0], zero.tinta[1], zero.tinta[2])
-  const col = sua('/texture/auto2r_col.webp')
+/* LA MAPPA DI COLORE CON L'ARCO TOLTO — vedi `strumenti/leviga_arco_col.mjs`.
+     Il segno sopra la ruota resisteva sia al passa-alto sia alla levigatura
+     delle NORMALI, e la ragione e' che non era un rilievo: era DIPINTO qui.
+     La prova: azzerando `m.map` la fiancata diventa pulita di colpo.
+     Ecco perche' su una vernice chiara gridava e su una nera si intuiva
+     appena — e' una riga scura, e il contrasto lo decide cio' che le sta
+     intorno. L'originale resta su disco. */
+  const col = sua('/texture/auto2r_col2.webp')
   col.colorSpace = SRGBColorSpace
   m.map = col
   /* LA ORM RICOSTRUITA — vedi `strumenti/orm_nuova.mjs` e il §0 di

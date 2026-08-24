@@ -150,8 +150,12 @@ export function materialiRuota(): MaterialiRuota {
      (0,91/0,92/0,92 nelle tabelle di Filament, cioe' rosso appena piu' alto
      del blu). Qui la si accentua quel tanto che basta a bilanciare la
      temperatura della chiave. */
-  cerchio.color.setRGB(0.615, 0.600, 0.575)
-  cerchio.envMapIntensity = 0.34
+  cerchio.color.setRGB(0.655, 0.640, 0.612)
+  /* 0,50: dentro il passaruota della vettura NERA la ruota posteriore restava
+     un disco senza disegno — «mancano i raggi». L'ambiente e' l'unica luce che
+     arriva li' dentro, e la sua intensita' e' il solo modo di farla entrare
+     senza tornare a un materiale che emette. */
+  cerchio.envMapIntensity = 0.50
   cerchio.name = 'CERCHIO_VERO'
 
   /* IL DISCO FRENO sta in ombra dietro le razze e non deve competere con
@@ -165,9 +169,19 @@ export function materialiRuota(): MaterialiRuota {
      acciaio levigato dalle pastiglie ma coperto di polvere di frenata: circa
      meta' metallo, che e' esattamente cio' che serve perche' raccolga la luce
      ambiente e si legga anche in ombra. */
-  const disco = new MeshStandardMaterial({ roughness: 0.34, metalness: 0.52 })
-  disco.color.setRGB(0.345, 0.350, 0.358)
-  disco.envMapIntensity = 0.78
+/* IL DISCO SCENDE A 0,145, e la ragione e' un errore che avevo appena fatto.
+     L'avevo schiarito a 0,345 perche' «non si vedeva», e il risultato e' che
+     fra le razze e' comparsa una superficie chiara e piatta: il committente
+     l'ha letta come vernice bianca, non come un freno. Aveva ragione — un
+     disco freno non e' chiaro, e' acciaio sporco di polvere di frenata, e
+     quello che lo fa RICONOSCERE non e' la luminosita': e' lo scalino di buio
+     fra il suo bordo e il cerchio, e le gole sulla pista.
+     Un pezzo dentro una cavita' si legge per CONTRASTO CON CIO' CHE HA
+     INTORNO, non per quanto e' acceso. Schiarirlo finche' non si vede vuol
+     dire trasformarlo in un tappo chiaro. */
+  const disco = new MeshStandardMaterial({ roughness: 0.38, metalness: 0.55 })
+  disco.color.setRGB(0.145, 0.148, 0.155)
+  disco.envMapIntensity = 0.55
   disco.name = 'DISCO_FRENO'
 
   /* IL BUIO DEL PASSARUOTA. Quasi nero e completamente opaco: e' l'unica
@@ -277,10 +291,25 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
      passaruota. E' quella SCALA DI PROFONDITA' a leggere «meccanica»; un
      piano solo, a qualunque colore lo si metta, legge «tappo». */
 
-  // 1. il buio in fondo: e' il passaruota, e non deve restituire niente
-  const buio = new Mesh(new CylinderGeometry(0.236, 0.236, 0.004, 32), M.cavita)
+  /* 1. IL BUIO — E' UNA CANNA, NON UN TAPPO.
+     Prima era un disco piatto arretrato di dodici centimetri, e chiudeva
+     soltanto la vista FRONTALE: guardando la ruota di sbieco — cioe' quasi
+     sempre, perche' la camera gira intorno — la linea di vista passava oltre
+     il suo bordo e fra le razze ricompariva la carrozzeria. Su una vernice
+     chiara era un lampo bianco dentro il cerchio.
+     Un tappo chiude un buco; una ruota non e' un buco, e' un VANO. Serve la
+     parete laterale: un cilindro aperto che va dal filo del cerchio fino in
+     fondo, piu' il fondo stesso. Cosi' non c'e' nessun angolo da cui si veda
+     attraverso. */
+  const canna = new Mesh(new CylinderGeometry(0.238, 0.238, 0.150, 40, 1, true), M.cavita)
+  canna.rotation.x = Math.PI / 2
+  canna.position.z = faccia - 0.058 * verso
+  canna.name = 'CAVITA_RUOTA'
+  g.add(canna)
+
+  const buio = new Mesh(new CylinderGeometry(0.240, 0.240, 0.004, 32), M.cavita)
   buio.rotation.x = Math.PI / 2
-  buio.position.z = faccia - 0.125 * verso
+  buio.position.z = faccia - 0.130 * verso
   buio.name = 'CAVITA_RUOTA'
   g.add(buio)
 
@@ -289,7 +318,7 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
      bordo e il cerchio a dire «freno serio». Lucido, perche' un disco in uso
      e' levigato dalle pastiglie e riflette a specchio sulla pista di
      frenata. */
-  const disco = new Mesh(new CylinderGeometry(0.208, 0.208, 0.020, 48), M.disco)
+  const disco = new Mesh(new CylinderGeometry(0.184, 0.184, 0.020, 48), M.disco)
   disco.rotation.x = Math.PI / 2
   disco.position.z = faccia - 0.062 * verso
   disco.name = 'DISCO_FRENO'
@@ -299,7 +328,7 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
      si modellano — a questa dimensione sarebbero decine di pezzi per niente:
      si suggeriscono con due gole concentriche, che e' cio' che l'occhio
      riconosce come «disco lavorato» a sessanta pixel di distanza. */
-  for (const r of [0.150, 0.186]) {
+  for (const r of [0.128, 0.164]) {
     const gola = new Mesh(new RingGeometry(r - 0.006, r + 0.006, 48), M.cavita)
     gola.position.z = faccia - 0.062 * verso + 0.011 * verso
     gola.rotation.y = verso < 0 ? Math.PI : 0
