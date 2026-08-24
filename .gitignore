@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.tmp/
+docs/video/*.webm
+docs/provini/
+asset/
+
+# le build di prova di `strumenti/carico.mjs`
+dist_carico/
+dist_carico_mappa/

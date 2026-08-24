@@ -1,0 +1,3212 @@
+/* ============================================================ I CARATTERI
+
+   DUE FACCE, UNA FONDERIA INDIPENDENTE, TRE RUOLI.
+
+   `Clash Display` e `Switzer` sono tutte e due della Indian Type Foundry,
+   libere per uso commerciale, servite da Fontshare e scaricate in casa da
+   `strumenti/font.mjs`. Vengono dalla stessa mano e dalla stessa idea di
+   grotesk: non e' un accostamento fra due caratteri, e' una famiglia.
+
+   PERCHE' NON PIU' INTER. Inter e' un carattere ottimo e non caratterizza: e'
+   stato disegnato per essere invisibile nelle interfacce, ci riesce benissimo,
+   e su un sito il cui argomento e' il craft l'invisibilita' e' esattamente cio'
+   che non serve. La revisione lo dice senza giri: «nessun carattere
+   caratterizzante, nessun sistema tipografico — e' il segnale piu' veloce che
+   un giurato usa per separare un professionista da un dilettante».
+
+   E PERCHE' IL MONOSPAZIO SPARISCE. La stessa revisione: «la dashboard usa un
+   font tecnico completamente diverso che non dialoga con nient'altro». Vero. Un
+   monospazio in mezzo a un grotesk e' una terza voce, e ne bastano due.
+   Switzer in maiuscolo, spaziato largo e con le cifre TABULARI fa lo stesso
+   mestiere — dice «strumento» — parlando la lingua del resto della pagina. Le
+   cifre tabulari non sono un vezzo: un tachimetro con i numeri di larghezza
+   diversa balla a ogni aggiornamento.
+
+   I TRE RUOLI, e ognuno ha un mestiere solo:
+
+     --tipoInsegna   Clash Display, solo i titoli grandi. Aste tagliate dritte,
+                     contro-forme strette: a corpo grande e' un'insegna, a corpo
+                     piccolo sarebbe illeggibile. Per questo fa una cosa sola.
+     --tipoRacconto  Switzer, tutto il testo che si legge.
+     --tipoMisura    Switzer, maiuscolo e tabulare, tutto quello che misura.
+
+   IL RIPIEGO E' CALIBRATO SULLE METRICHE. Con `swap` il browser disegna subito
+   con il carattere di sistema e sostituisce quando il vero e' arrivato: senza
+   calibratura quel cambio sposta ogni riga di qualche pixel e si vede saltare
+   tutta la pagina. */
+
+@font-face { font-family: 'Clash Display'; font-style: normal; font-weight: 600; font-display: swap; src: url('/font/clash-display-600.woff2') format('woff2'); }
+@font-face { font-family: 'Switzer'; font-style: normal; font-weight: 400; font-display: swap; src: url('/font/switzer-400.woff2') format('woff2'); }
+@font-face { font-family: 'Switzer'; font-style: normal; font-weight: 500; font-display: swap; src: url('/font/switzer-500.woff2') format('woff2'); }
+@font-face { font-family: 'Switzer'; font-style: normal; font-weight: 600; font-display: swap; src: url('/font/switzer-600.woff2') format('woff2'); }
+@font-face { font-family: 'Switzer'; font-style: normal; font-weight: 700; font-display: swap; src: url('/font/switzer-700.woff2') format('woff2'); }
+
+@font-face {
+  font-family: 'Switzer ripiego';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 104%;
+  ascent-override: 96%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Clash ripiego';
+  src: local('Arial Narrow'), local('Arial'), local('Liberation Sans');
+  size-adjust: 98%;
+  ascent-override: 100%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --tipoInsegna: 'Clash Display', 'Clash ripiego', system-ui, sans-serif;
+  --tipoRacconto: 'Switzer', 'Switzer ripiego', system-ui, -apple-system, sans-serif;
+  --tipoMisura: 'Switzer', 'Switzer ripiego', system-ui, sans-serif;
+}
+
+/* CHI MISURA HA LE CIFRE TABULARI E LA SPAZIATURA LARGA. E' quello che
+   distingue una riga tecnica da una riga di testo quando la famiglia e' la
+   stessa: non il disegno delle lettere, il loro comportamento. */
+.spina__numero,
+.spina__etichetta,
+.spina__didascalia,
+.spina__coda,
+.rotaia__etichetta,
+.comandi,
+.controllo__parola,
+.controllo__esito,
+.controllo__scrivi,
+.controllo__occhiello,
+.controllo__posta,
+.voci__occhiello,
+.testa {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * LA TIPOGRAFIA E' RESPONSIVE PER RICOMPOSIZIONE, NON PER RIDUZIONE.
+ *
+ * Un titolo che su un telefono e' lo stesso titolo rimpicciolito non e'
+ * responsive: e' lo stesso errore in scala. Su uno schermo verticale
+ * cambiano il numero di righe che stanno in campo, quanto testo si legge
+ * senza saltare, e soprattutto DOVE puo' stare senza coprire il soggetto —
+ * che qui e' un'auto larga quattro metri e mezzo.
+ *
+ * Quindi il corpo si lega alla larghezza con `clamp`, ma il POSIZIONAMENTO
+ * cambia per davvero: sul desktop il testo sta in basso a sinistra accanto
+ * al soggetto; sul telefono sta in basso e il soggetto si arretra.
+ *
+ * E IL CORPO SI LEGA ANCHE ALL'ALTEZZA. Questa e' la correzione del 20
+ * agosto. La larghezza da sola sbaglia in silenzio su tutto cio' che e'
+ * basso: un telefono girato non entrava in nessuna regola per telefono —
+ * 844px sono larghi — e si prendeva 62px di titolo su 390px di schermo,
+ * misurati, il 36,3% dell'altezza per due righe. Il soggetto sta al centro
+ * del fotogramma: quanto lo copre il testo e' un fatto VERTICALE, e una
+ * misura che guarda solo `vw` non lo puo' vedere. Da qui i `min(vw, vh)`
+ * qui sotto, ognuno con la sua soglia calcolata.
+ *
+ * OGNI NUMERO DI QUESTO FOGLIO E' MISURATO da `strumenti/tipografia.mjs`:
+ * rettangolo del titolo in percentuale del viewport, trabocchi, e quanta
+ * parte del riquadro del soggetto finisce sotto le lettere, su tre formati
+ * e cinque beat. I confronti citati nei commenti vengono da li'.
+ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --nero: #08090b;
+  --bianco: #f2f0ea;
+
+  /* LA PAGINA, LA CORNICE, LA SCHEDA.
+
+     `--pagina` e' il colore della superficie su cui la scena e' appoggiata.
+     Non e' il nero della scena: se lo fosse, il bordo non si vedrebbe e la
+     scheda non esisterebbe. Serve uno scarto — poco, ma dichiarato.
+
+     `--cornice` e' quanto pagina resta intorno. Cresce con la finestra ma si
+     ferma: oltre una certa misura il margine smette di essere una cornice e
+     diventa uno spreco.
+
+     `--scheda` e' quanto e' alta la scheda. Il resto e' la fascia del testo.
+     0,66 non e' scelto a caso: e' quanto serve perche' nell'abitacolo la
+     scheda ritagli la fotografia sopra il cruscotto, cioe' butti fuori dal
+     bordo basso proprio la fascia nera senza niente dentro. Sotto 0,60 si
+     perde anche il cofanetto e non si capisce piu' di essere dentro
+     un'automobile; sopra 0,72 il cruscotto rientra in campo. */
+  /* UN CENTIMETRO VERO, e non un numero in pixel che gli somiglia.
+
+     `1cm` in CSS sono 37,8 pixel esatti su qualunque schermo: e' una delle
+     poche unita' assolute che il browser garantisce. Su un telefono pero'
+     trentotto pixel per parte sono un quinto della larghezza, quindi si
+     prende il minore fra il centimetro e il 3,2% della dimensione piu'
+     piccola dello schermo. Su un desktop vince il centimetro, su un telefono
+     vince la percentuale. */
+  --bordo: min(1cm, 3.2vmin);
+  --pagina: #101216;
+  --cornice: clamp(12px, 1.5vw, 26px);
+  /* 60 e non 66. IL CONTO, perche' non e' un gusto:
+
+     a 1200x750 la fascia del testo e' 750 - 18 di cornice - la scheda - 22 di
+     stacco. Con 66vh restavano 215 pixel, e il titolo da solo ne chiede 167 su
+     due righe, l'occhiello 32, il sommario 77: 276. Sessanta pixel fuori dal
+     fondo, e infatti nel provino «pagine.» era tagliato a meta'.
+
+     Con 60vh la fascia sale a 260 e il titolo scende a 132 (vedi
+     `.voci__titolo`): 241 dentro 260. Il conto torna con venti pixel di
+     margine, che e' quanto serve perche' non torni a rompersi al primo
+     ritocco. */
+  --scheda: 60vh;
+  --raggio: clamp(10px, 1.1vw, 20px);
+  /* AMBRA E NON ARANCIONE. #ffb347 era saturo abbastanza da leggersi come un
+     colore di sistema — quello degli avvisi. #d8a258 e' la luce di una lampada
+     dietro un vetro, che e' esattamente quello che c'e' nella fotografia. */
+  --accento: #d8a258;
+  --tenue: rgba(242, 240, 236, 0.62);
+  --presenza: 1;
+
+  /* IL MARGINE CONOSCE IL NOTCH. `viewport-fit=cover` in index.html porta il
+     documento sotto gli angoli arrotondati e sotto la tacca: senza `env()`
+     un telefono in orizzontale mangia la prima lettera di ogni riga. Si
+     prende il piu' grande fra il margine tipografico e i due inserti, e si
+     applica simmetrico: la tacca sta da una parte sola, ma un blocco con
+     20px a sinistra e 47px a destra si legge come un errore, non come una
+     scelta. Su un desktop `env()` vale 0 e il valore resta quello di prima. */
+  /* IL MARGINE PARTE DA DENTRO LA CORNICE. Sommarci `--bordo` non e' un
+     dettaglio: senza, la testata e il testo finirebbero SOTTO la fascia di
+     vetro, che e' sfocata — si leggerebbero come attraverso un vetro
+     smerigliato. */
+  --margine: calc(var(--bordo) + max(
+    clamp(20px, 4.5vw, 64px),
+    env(safe-area-inset-left, 0px),
+    env(safe-area-inset-right, 0px)
+  ));
+
+  /* IL FONDO E' UN OSTACOLO MISURATO, NON UN GUSTO.
+     Sul telefono sotto il testo non c'e' il bordo dello schermo: c'e' la
+     barra del browser, che compare quando si scorre verso l'alto — cioe'
+     esattamente mentre si torna indietro nel percorso. Un elemento in
+     `position: fixed` si posiziona sul viewport GRANDE, quindi le ultime
+     righe finiscono dietro la barra e nessuno le vede.
+     `100lvh - 100svh` e' quella barra, dichiarata dal browser: 0 su un
+     desktop, ~75px su Safari iOS, ~56px su Chrome Android.
+     `max()` e non somma, perche' i due ostacoli non convivono: quando la
+     barra e' in campo copre gia' la zona dell'indicatore di home, e
+     sommarli riserverebbe 110px per un ingombro che ne fa 75. */
+  --ostacolo: env(safe-area-inset-bottom, 0px);
+  --fondo: calc(var(--bordo) + clamp(28px, 6vh, 72px) + var(--ostacolo));
+}
+
+@supports (height: 100svh) {
+  :root { --ostacolo: max(env(safe-area-inset-bottom, 0px), calc(100lvh - 100svh)); }
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--pagina);
+  color: var(--bianco);
+  font-family: var(--tipoRacconto);
+  overflow-x: hidden;
+  /* niente rimbalzo elastico: lo scorrimento QUI e' il comando della
+     scena, e un rimbalzo alla fine muove la regia senza che nessuno
+     l'abbia chiesto */
+  overscroll-behavior-y: none;
+}
+
+/* IL TELAIO E' TORNATO A PIENO SCHERMO, e la nota di come ci ero arrivato
+   vale piu' del codice che l'ha sostituito.
+
+   Il committente aveva portato dei riferimenti chiamandoli «impattanti» e
+   dicendo: usano il doppio bordo. Ho letto «doppio bordo» come una CORNICE —
+   la scena rimpicciolita dentro una scheda, con la pagina intorno — e l'ho
+   costruita. La risposta e' stata immediata e giusta: «sono sovrapposti, non
+   riduce l'immagine principale», «ha ridotto lo schermo grande».
+
+   In quei riferimenti l'immagine grande resta grande. Il doppio bordo sono le
+   SCHEDE che ci stanno SOPRA: rettangoli piu' piccoli, con un bordo sottile e
+   gli angoli tondi, appoggiati sull'immagine a pieno campo. Il bordo non serve
+   a contenere la scena, serve a staccare da lei quello che ci si appoggia.
+
+   E' un errore che vale la pena tenere scritto perche' e' l'errore tipico di
+   chi guarda un riferimento cercando la regola invece di guardare cosa fa: due
+   composizioni opposte — restringere l'immagine, oppure appoggiarci sopra —
+   possono descriversi tutte e due con le stesse tre parole. */
+#tela {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+.telaio { display: contents; }
+
+/* la corsa: e' lei a dare al documento un'altezza da scorrere. Sei beat,
+   sette schermate: il rapporto fra quanto si scorre e quanto succede e'
+   una decisione di ritmo, non un dettaglio tecnico. */
+/* 1000 SCHERMATE, e la terza revisione di questo numero.
+   700 all'inizio, 850 quando e' nato il settimo beat, mille adesso che il
+   settimo beat contiene una storia di nove atti. Il conto, beat per beat:
+   hero 130, superficie 210, avvicinamento 190, ottica 115, abitacolo 80,
+   corsa 90, contatto 185. Tutti uguali a prima tranne l'ultimo, che era 59.
+   Vedi la nota sui confini in `core/Regia.ts`. */
+#corsa { height: 1000vh; }
+
+/* IL VELO SOTTO IL TESTO.
+   Un titolo bianco sopra una scena che cambia luminosita' a ogni beat e'
+   leggibile finche' la scena e' scura, e sparisce quando si accende. Il
+   velo e' una sfumatura dal basso, quasi invisibile, che garantisce il
+   contrasto senza fare da riquadro: un riquadro direbbe "qui c'e'
+   un'etichetta", una sfumatura non dice niente. */
+.velo {
+  /* Corto e leggero. Non deve piu' garantire il contrasto del testo — quello
+     adesso ce l'ha la scheda che gli sta sotto — deve solo impedire che il
+     bordo basso della scena finisca di taglio contro il fondo pagina. */
+  position: fixed;
+  inset: auto 0 0 0;
+  /* 26vh e 0,42 in fondo: il velo era tarato quando il testo gli stava sopra.
+     Adesso il testo ha la sua ombra portata e la sfumatura di margine, e il
+     velo serve solo a chiudere il bordo basso — tenerlo alto e denso vuol dire
+     annerire l'unica fascia di plancia che si e' scelto di mostrare. */
+  height: 26vh;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    rgba(6, 7, 9, 0.42) 0%,
+    rgba(6, 7, 9, 0.14) 55%,
+    rgba(6, 7, 9, 0) 100%);
+}
+
+/* ------------------------------------------------------------------ voci */
+
+.voci {
+  /* IL TESTO STA SULLA PAGINA, non sopra la scena.
+
+     Si aggancia al bordo BASSO della scheda invece che al fondo della finestra:
+     la distanza fra l'immagine e il suo titolo e' una relazione, quella fra il
+     titolo e il bordo dello schermo non e' niente. Cambiando `--scheda` il
+     testo segue da solo.
+
+     E si allinea al margine della scheda, non a quello della finestra: due
+     bordi verticali a pochi pixel l'uno dall'altro si leggono come un errore
+     di stampa. */
+  /* LA SCHEDA SOVRAPPOSTA — il «doppio bordo» dei riferimenti, letto bene.
+
+     Un rettangolo piu' piccolo appoggiato sull'immagine a pieno campo, con un
+     bordo sottile e gli angoli tondi. Il bordo e' quello che fa il lavoro: due
+     superfici scure una sull'altra si confondono, e basta un capello chiaro
+     lungo il perimetro perche' l'occhio le separi e legga la scheda come una
+     cosa POGGIATA. Senza, e' solo testo su una macchia.
+
+     E il fondo sfocato non e' un vezzo di sistema operativo: e' cio' che rende
+     leggibile il testo sopra una scena che cambia luminosita' a ogni tempo
+     senza doverla annerire tutta con un velo alto mezza pagina — che e'
+     esattamente il rettangolo piatto che il committente aveva indicato.
+
+     `right: auto` e larghezza a contenuto: la scheda finisce dove finisce il
+     testo. Tirata da bordo a bordo tornerebbe a essere una fascia. */
+  /* IL LATO LO DECIDE IL RACCONTO, non il foglio di stile: `Voci.ts` scrive
+     `data-lato` e qui si traduce in un bordo. Il testo deve stare dove non c'e'
+     il soggetto, e dove non c'e' il soggetto cambia a ogni tempo. */
+  position: fixed;
+  z-index: 3;
+  left: var(--margine);
+  right: auto;
+  /* sopra la fascia tecnica, che sta in fondo e non si sposta: senza questo
+     scarto gli inviti ci finivano sopra */
+  bottom: calc(var(--fondo) + clamp(30px, 4.4vh, 56px));
+  top: auto;
+  /* LA COLONNA CRESCE COL TITOLO, e prima non lo faceva.
+     Era `min(36ch, 36vw)`. Su ogni desktop vinceva `36ch`, che sono 363 pixel
+     a qualunque larghezza di finestra — perche' il `ch` guarda il corpo della
+     RADICE, non quello del titolo. Cosi' a 1920 il titolo arrivava a 108 px
+     dentro una colonna larga sempre 363: «SI ATTRAVERSANO.» ne chiede 461 e
+     andava a capo dopo «SI».
+     E' la parola su cui si regge il concetto del sito, spezzata a meta', sul
+     primo fotogramma che qualcuno vede. Misurato da `strumenti/titolo.mjs`, a
+     quattro formati su sette — non l'aveva vista nessuno perche' i provini si
+     guardavano a 1200 e a 390, gli unici due dove ci sta.
+     42vw cresce insieme al titolo, che e' 7,4vw: il rapporto fra i due resta
+     costante a ogni larghezza, quindi o ci sta sempre o non ci sta mai. Il
+     tetto di 760 px serve agli schermi molto larghi, dove il titolo smette di
+     crescere (si ferma a 108) e la colonna continuerebbe. E il `max-width: 52%`
+     qui sotto resta a guardia: la colonna non puo' invadere la meta' che non
+     le appartiene.
+     Il paragrafo sotto non ne risente: ha una sua misura di lettura
+     (`.voci__riga`, 42ch) e resta stretto com'era. */
+  width: clamp(320px, 42vw, 760px);
+  pointer-events: none;
+  opacity: var(--presenza);
+
+  /* NIENTE SCHEDA, NIENTE RIQUADRO, NIENTE BORDO.
+
+     Ci ero arrivato per la strada giusta — i riferimenti hanno tutti un
+     riquadro sopra l'immagine — e se ne va per la ragione giusta: li' sotto
+     c'e' UN SOGGETTO SOLO, un'automobile, e qualunque rettangolo abbastanza
+     grande da contenere il titolo e' abbastanza grande da coprirla. Nei
+     riferimenti il riquadro sta sopra un paesaggio, dove non c'e' niente da
+     coprire.
+
+     Il contrasto lo fanno l'ombra portata sulle lettere e la sfumatura
+     fotografica dal margine (vedi `.velo--destra`). Una sfumatura non ha
+     bordi, quindi non e' un elemento: e' un cambio di esposizione, e l'occhio
+     non la conta fra le cose sullo schermo. */
+  transform: translateY(calc((1 - var(--presenza)) * 22px));
+  transition: opacity .18s linear;
+  /* 52% e non 46ch: i fatti stanno in basso a destra, e con una misura in
+     caratteri il titolo ci finiva SOPRA appena il corpo cresceva. Una
+     larghezza in percentuale non puo' invadere la meta' che non le
+     appartiene, qualunque sia la dimensione del testo. */
+  max-width: 52%;
+}
+
+/* L'UNICO COLORE DEL SITO.
+
+   Tutto qui dentro sta fra il nero e il bianco, con dentro il blu della sera:
+   e' coerente e finisce per essere anche un po' inerte. I riferimenti che il
+   committente ha portato — quelli che ha chiamato «impattanti» — hanno tutti la
+   stessa struttura: una scheda su una pagina, e UN colore vivo che stacca.
+   Non due, non una tavolozza: uno.
+
+   Qui l'ambra non e' scelta a caso e non e' arrivata da fuori: e' il colore
+   della luce che esce dalle vetrate della villa nella fotografia, e piu' avanti
+   e' il colore delle spie all'accensione. Un accento preso dalla scena si lega
+   a quello che si guarda; un accento preso da una tavolozza resta appiccicato. */
+/* L'UNICO COLORE DEL SITO.
+
+   Tutto qui dentro sta fra il nero e il bianco, con dentro il blu della sera:
+   e' coerente e finisce per essere anche un po' inerte. I riferimenti che il
+   committente ha portato — quelli che ha chiamato «impattanti» — hanno tutti la
+   stessa struttura: una scheda su una pagina, e UN colore vivo che stacca.
+   Non due, non una tavolozza: uno.
+
+   Qui l'ambra non e' scelta a caso e non e' arrivata da fuori: e' il colore
+   della luce che esce dalle vetrate della villa nella fotografia, e piu' avanti
+   e' il colore delle spie all'accensione. Un accento preso dalla scena si lega
+   a quello che si guarda; un accento preso da una tavolozza resta appiccicato. */
+.voci__occhiello {
+  /* l'occhiello e' il primo a entrare e l'ultimo a uscire: e' l'etichetta del
+     capitolo, e un'etichetta che arriva dopo il titolo che etichetta e' in
+     ritardo su se stessa */
+  opacity: clamp(0, calc(var(--presenza) * 2.2), 1);
+  transform: translateY(calc((1 - var(--presenza)) * 6px));
+  color: var(--accento);
+  font-size: clamp(10px, 1.05vw, 12px);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  margin-bottom: clamp(10px, 1.6vh, 18px);
+}
+
+.voci__titolo {
+  /* da 38px a 108px: il salto e' grande apposta. Un titolo che su un
+     desktop grande resta medio e' la ragione per cui tanti siti 3D
+     sembrano un salvaschermo con una didascalia.
+     IL CORPO GUARDA ANCHE L'ALTEZZA, e questo e' nuovo. Con la sola
+     larghezza, un telefono girato — 844x390, che non entra in nessuna
+     regola per telefono perche' e' largo — prendeva 62px di titolo su 390px
+     di schermo: misurato, il 36,3% dell'altezza per due righe, con 29px di
+     respiro sotto. Il termine verticale corregge proprio quel caso.
+     13,4vh e non un numero tondo: 7,4vw e 13,4vh si incontrano a rapporto
+     1,81, quindi su ogni 16:10 e ogni 16:9 continua a decidere la
+     larghezza — 1600x1000 resta a 108px e 1280x800 a 95px, identici a
+     prima — e il termine verticale comincia a comandare solo oltre, che e'
+     esattamente dove il viewport e' basso. */
+  font-size: clamp(38px, min(7.4vw, 13.4vh), 108px);
+  line-height: 0.94;
+  /* ZERO E NON -0,03em, e il numero apparteneva a un altro carattere.
+     Meno tre centesimi era la taratura giusta per Inter, che a corpo grande si
+     allarga. Clash Display e' gia' stretto di suo — e' proprio la sua cifra, le
+     contro-forme serrate — e togliergli altro spazio fa toccare le lettere:
+     nel provino si leggeva «SITICHENON».
+     E' la trappola classica del cambio di carattere: i valori di spaziatura
+     non si portano dietro, perche' descrivono il disegno di quelle lettere li'
+     e non una preferenza estetica. */
+  letter-spacing: 0;
+  /* E LO SPAZIO FRA LE PAROLE SI ALLARGA. Portata la spaziatura fra le lettere
+     a zero, il titolo leggeva «SITICHENON»: non erano le lettere a toccarsi,
+     era lo SPAZIO. Clash Display ha uno spazio stretto — coerente con le sue
+     contro-forme serrate, e giusto a corpo di testo — che a centotto pixel
+     sparisce. Diciotto centesimi di em lo rimettono dov'era.
+     Sono due manopole diverse e vengono confuse di continuo: `letter-spacing`
+     governa il ritmo dentro la parola, `word-spacing` la separazione fra le
+     parole. Su un'insegna la seconda conta piu' della prima. */
+  word-spacing: 0.18em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+/* LA MASCHERINA. Il taglio sta sull'esterno, il movimento sull'interno.
+
+   `overflow: clip` e non `hidden`: `hidden` crea un contesto di scorrimento, e
+   su un elemento che poi qualcuno mette a fuoco col tasto di tabulazione il
+   browser lo SCORRE per portarcelo — la riga si sposta di qualche pixel e non
+   torna piu' a posto. `clip` taglia e basta.
+
+   `padding-bottom` e margine negativo perche' le lettere con la coda — la g di
+   «pagine», la p di «progetto» — scendono sotto la linea di base, e una
+   mascherina stretta gliela taglia. Si allarga il taglio in basso e si toglie
+   lo spazio guadagnato con un margine negativo, cosi' la riga occupa la stessa
+   altezza di prima. */
+.voci__titolo .mascherina {
+  display: block;
+  overflow: clip;
+  padding-bottom: .12em;
+  margin-bottom: -.12em;
+}
+
+/* IL RITARDO NON E' UN RITARDO: E' UNA SOGLIA SU `--presenza`.
+
+   La riga zero comincia a 0, la uno a 0,16, la due a 0,32; ognuna copre 0,58 di
+   corsa. Sono tre curve sullo stesso valore invece di tre cronometri, e la
+   differenza si vede tornando indietro: con i cronometri le righe rientrerebbero
+   tutte insieme, con le soglie escono nell'ordine inverso a quello in cui sono
+   entrate. Lo scorrimento comanda, anche all'indietro. */
+.voci__titolo .mascherina i {
+  --p: clamp(0, calc((var(--presenza) - var(--i) * 0.16) / 0.58), 1);
+  display: block;
+  font-style: normal;
+  transform: translateY(calc((1 - var(--p)) * 108%));
+}
+
+.voci__titolo span { display: block; }
+
+.voci__riga {
+  /* il sommario entra per ultimo, a titolo gia' fermo: e' il commento di
+     quello che si e' appena letto, e leggerli insieme li mette in
+     concorrenza */
+  opacity: clamp(0, calc((var(--presenza) - 0.42) / 0.5), 1);
+  margin-top: clamp(12px, 2vh, 22px);
+  font-size: clamp(14px, 1.35vw, 19px);
+  line-height: 1.45;
+  color: var(--tenue);
+  max-width: 42ch;
+}
+
+/* i fatti: il contrappeso al titolo. Riga fitta, corpo piccolo, molta
+   spaziatura fra le lettere — deve leggersi come una targa, non come una
+   frase. E allineati in BASSO come il titolo: due pesi sulla stessa linea
+   d'appoggio si leggono come una composizione, sfalsati come un incidente.
+   ATTENZIONE A DOVE STANNO DAVVERO: il commento originale diceva "in basso
+   a destra" intendendo il bordo destro dello schermo, e non e' mai stato
+   vero — vedi qui sotto. Stanno in fondo alla COLONNA del testo, appoggiati
+   sulla riga del titolo. E' la composizione che si vede nei provini ed e'
+   quella su cui e' tarato il 52% di `.voci`; qui viene solo dichiarata
+   invece che ottenuta per sbaglio. */
+.voci__fatti {
+  /* IN ALTO A DESTRA, SOTTO LA NAVIGAZIONE.
+
+     Erano in basso, sul lato opposto al titolo: giusto finche' il titolo stava
+     a sinistra e stretto. Da quando il blocco puo' stare a destra e largo
+     mezza pagina, i due si sovrapponevano — nel provino «three.js» cadeva
+     dentro la parola «Non».
+
+     In alto lo spazio e' garantito da un'altra regola invece che dalla
+     fortuna: quella e' la fascia della testata, e li' la scena non ci mette
+     mai niente. */
+  position: fixed;
+  right: var(--margine);
+  top: calc(var(--margine) + clamp(30px, 4.6vh, 56px));
+  z-index: 3;
+  display: grid;
+  grid-auto-flow: column;
+  gap: clamp(14px, 1.8vw, 30px);
+  text-align: right;
+  pointer-events: none;
+  transition: opacity .2s linear;
+}
+.voci__fatti dt {
+  font-size: 10px;
+  letter-spacing: .18em;
+  color: rgba(242, 240, 236, 0.42);
+  margin-bottom: 4px;
+}
+.voci__fatti dd {
+  font-size: clamp(13px, 1.15vw, 16px);
+  letter-spacing: .01em;
+}
+
+/* ------------------------------------------------------------ intestazione */
+
+/* LO SCHERMO IN CIMA ALLA SCHEDA.
+
+   La testata e' bianca e sta sopra la scena. Finche' la scena era un cortile
+   notturno andava bene; da quando dietro c'e' una villa con le vetrate accese,
+   «GIUSEPPE VILLANI» cade su un intonaco bianco illuminato e sparisce.
+
+   Una sfumatura corta e non un riquadro: un riquadro direbbe «qui c'e' una
+   barra», e la barra diventerebbe un elemento in piu' da guardare. La
+   sfumatura non si vede — si vede solo che il testo si legge. */
+.testa::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: clamp(64px, 12vh, 130px);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(6, 7, 9, 0.62) 0%,
+    rgba(6, 7, 9, 0.28) 45%,
+    rgba(6, 7, 9, 0) 100%);
+}
+
+.testa {
+  position: fixed;
+  top: var(--margine);
+  left: var(--margine);
+  right: var(--margine);
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: clamp(11px, 1.05vw, 13px);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.testa__nome { font-weight: 600; }
+.testa__ruolo { color: var(--tenue); margin-left: .8em; font-weight: 400; }
+.testa nav { display: flex; gap: clamp(14px, 2vw, 30px); }
+.testa a { color: var(--tenue); text-decoration: none; }
+.testa a:hover { color: var(--bianco); }
+
+/* --------------------------------------------------------------- segnavia */
+
+/* NOTA: oggi nessuno costruisce questo elemento — non e' in `index.html` e
+   non lo crea nessun modulo. Le regole restano perche' il segnavia e' nel
+   piano, ma finche' non esiste non occupa spazio e il testo puo' scendere
+   fin dove scende. Se torna, va rimesso in conto nel fondo di `.voci`. */
+.segnavia {
+  position: fixed;
+  left: var(--margine);
+  /* stesso ostacolo del testo: una barra di avanzamento nascosta dietro la
+     barra del browser e' il caso peggiore di tutti — indica un progresso e
+     non si vede */
+  bottom: calc(clamp(10px, 2vh, 18px) + var(--ostacolo));
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: .18em;
+  color: rgba(242, 240, 236, 0.38);
+  pointer-events: none;
+}
+.segnavia__pista { width: clamp(60px, 12vw, 140px); height: 1px; background: rgba(242,240,236,.18); }
+.segnavia__barra { display: block; height: 100%; background: var(--accento); width: 0; }
+
+/* ------------------------------------------------------- telefono e tablet */
+
+/* LA REGOLA SCATTA SU DUE CONDIZIONI, e la seconda mancava.
+   `max-width: 820px` non vede un tablet in verticale largo di piu': un
+   834x1194 restava sull'impaginato da desktop, cioe' titolo a min(7,4vw)
+   dentro una colonna larga il 52% — 62px di corpo in 434px di colonna, e
+   "non è la porta." andava a capo da solo producendo la terza riga che il
+   testo non aveva chiesto. `max-aspect-ratio: 4/5` prende tutto cio' che e'
+   piu' alto che largo in modo netto, che e' la vera condizione: quando lo
+   schermo e' verticale non esiste un "accanto" dove mettere le cose. */
+@media (max-width: 820px), (max-aspect-ratio: 4/5) {
+  .voci {
+    /* LARGHEZZA PIENA, e `width` non `max-width`.
+       La regola del desktop dice `width: min(36ch, 36vw)`, e una larghezza
+       dichiarata batte un `max-width: none` — quindi su un telefono il blocco
+       restava largo trentasei per cento di 390 pixel, cioe' centoquaranta. Nel
+       provino «SI ATTRAVERSANO.» era tagliato a «SI ATTRAVERSAI».
+       E il lato non conta piu': su una colonna sola non ci sono due meta' fra
+       cui scegliere. */
+    width: auto;
+    left: var(--margine);
+    right: var(--margine);
+    text-align: left;
+    max-width: none;
+    /* ERA 96px FISSI, e 96px non sanno niente di dove si sta.
+       Il fondo ora e' base + ostacolo: 39px di base a 844px d'altezza, piu'
+       la barra del browser quando c'e'. Su un iPhone con la barra in campo
+       fa 113px — piu' di prima, che e' il punto — e senza barra ne fa 73.
+       La base scende da 96 a 39 perche' i 96 servivano a compensare a
+       occhio l'ingombro che adesso e' dichiarato. */
+    bottom: calc(clamp(30px, 4.6vh, 44px) + var(--ostacolo));
+  }
+
+  /* 11px e non 10: l'occhiello ha .22em di spaziatura, e a 10px su uno
+     schermo tenuto a trenta centimetri le lettere staccate diventano segni
+     separati invece che una parola. Costa 1,3px d'altezza. */
+    /* 13 e non 12: e' l'unico numero del blocco di testo che portava
+       informazione e stava sotto la soglia. A 390 il clamp usciva a 12,48. */
+    .voci__occhiello { font-size: clamp(13px, 3.4vw, 14px); }
+
+  /* 10,4vw resta la misura del telefono in piedi: a 390px fa 40,6px, cioe'
+     quello che c'era (41px) — la misura dice che il corpo NON era il
+     problema, lo era dove finiva il blocco. Cambia il termine verticale:
+     5,4vh comincia a decidere sotto 782px d'altezza, cioe' su un 375x667,
+     dove il titolo scende da 39 a 36px, e su un 320x568, dove arriva al
+     fondo di 32px. Erano i due formati che stavano peggio — blocco al 37,7%
+     dell'altezza contro il 31,6% di un 390x844 — e sono gli unici su cui il
+     corpo cala: a 390x844 resta 41px, identico a prima. */
+  .voci__titolo { font-size: clamp(32px, min(10.4vw, 5.4vh), 58px); }
+
+  /* 15px e' il minimo sotto cui su un telefono si legge stringendo gli
+     occhi. Erano 14. Costa una riga in piu' solo nel beat con la frase piu'
+     lunga, e quella riga adesso c'e' dove metterla. */
+  .voci__riga { max-width: none; font-size: clamp(15px, 3.9vw, 17px); }
+
+  /* I DATI: UNA FILA SOLA, SULLO STESSO ASSE DEL TITOLO.
+     Il difetto misurato: `max-width: 42%` restava ereditato dal desktop e
+     su 350px di colonna ne lasciava 147, quindi le quattro voci si
+     spezzavano in DUE bande; e `justify-content: flex-end` le allineava a
+     destra mentre il titolo e' allineato a sinistra. Partivano da x=61 con
+     il titolo a x=20: due assi diversi a quattro centimetri di distanza.
+     Griglia a quattro colonne e non flex con `wrap`: la griglia non puo'
+     andare a capo, quindi il caso goffo non esiste piu' invece di essere
+     reso meno probabile. Misurate, le quattro voci fanno 167px di contenuto
+     su uno schermo da 320px e 180px su uno da 390: con lo scarto minimo di
+     10px restano sotto i 200, e la colonna piu' stretta che si incontra ne
+     offre 280. Il margine e' di ottanta pixel, non di uno.
+     `space-between` e non `flex-start`: distese da bordo a bordo si leggono
+     come la targa che devono essere, ammucchiate a sinistra come una lista
+     interrotta. */
+  .voci__fatti {
+    position: static;
+    max-width: none;
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    justify-content: space-between;
+    column-gap: clamp(10px, 3vw, 22px);
+    margin-top: clamp(14px, 2.6vh, 24px);
+  }
+  .voci__fatti dt, .voci__fatti dd { white-space: nowrap; }
+
+  /* E FUORI DALLA HERO ESCONO DAL FLUSSO.
+     Qui i dati sono in flusso, e finora venivano solo portati a opacita' 0:
+     restavano quindi ~110px di blocco vuoto sotto il testo, che spingevano
+     titolo e riga PIU' IN ALTO, cioe' addosso al soggetto. Nel provino di
+     `accensione` il titolo cadeva sul volante mentre gli ultimi 200px dello
+     schermo erano neri e vuoti. `display: none` e non `visibility: hidden`
+     perche' serve togliere l'ingombro, non solo l'inchiostro.
+     Non fa scatto: al confine fra hero e orbita la presenza vale gia' 0
+     (l'uscita finisce a locale 0,96 e il beat cambia a 1), quindi si
+     spengono mentre sono invisibili — nei due sensi di marcia. */
+  .voci:not([data-tempo='hero']) .voci__fatti { display: none; }
+
+  .testa nav { display: none; }
+}
+
+/* ------------------------------------------------------- movimento ridotto */
+
+/* MENO MOVIMENTO, NON MENO SITO.
+   Chi chiede `reduce` non chiede un sito ridotto: chiede che non si muova
+   niente per conto suo. Qui la distinzione e' netta e si puo' fare riga per
+   riga.
+   VIA le TRANSIZIONI. Una transizione e' l'unica cosa in questo livello che
+   ha un orologio proprio: la presenza cambia perche' si e' scorso, ma poi i
+   180 ms scorrono da soli, e se si e' fermi il testo continua a cambiare.
+   Toglierla non toglie niente — l'opacita' resta agganciata al progresso,
+   quindi segue lo scorrimento in modo ancora piu' stretto di prima.
+   VIA lo SPOSTAMENTO. I 22px di salita sono decorazione: il testo dice le
+   stesse parole fermo. E' movimento puro, ed e' proprio cio' che disturba
+   chi ha attivato la preferenza.
+   RESTA TUTTO IL RESTO: le stesse parole, negli stessi beat, con la stessa
+   dissolvenza legata al progresso. Non si perde una voce.
+   E i dati avevano una transizione PROPRIA che la vecchia regola non
+   toccava: era scritta solo su `.voci`, e i .3s di `.voci__fatti`
+   sopravvivevano alla preferenza. */
+@media (prefers-reduced-motion: reduce) {
+  .voci { transition: none; transform: none; }
+  .voci__fatti { transition: none; }
+}
+
+/* --------------------------------------------------------------- pannello */
+
+#hud {
+  position: fixed; right: 14px; top: 14px; z-index: 4;
+  padding: 8px 12px; border: 1px solid #2a2e33; background: #0d0f12cc;
+  font: 11px/1.5 var(--tipoMisura); letter-spacing: .06em;
+  white-space: pre; pointer-events: none; color: #9aa2ab;
+}
+#hud.is-nascosto { display: none; }
+
+/* ------------------------------------------------------------- documento */
+
+/* IL DOCUMENTO C'E' E NON SI VEDE. Non `display:none`, che lo toglierebbe
+   anche agli screen reader: e' fuori campo ma leggibile da chi legge il
+   codice, dai motori, e da chi naviga con la tastiera. */
+/* NASCOSTO ALLA VISTA, NON AL LETTORE.
+   La ricetta e' quella canonica e ogni riga serve: un pixel per un pixel
+   perche' `display: none` lo toglierebbe anche ai lettori di schermo,
+   `clip-path` perche' e' l'unico ritaglio che non lascia trapelare i
+   discendenti, `white-space: nowrap` perche' senza, il testo va a capo dentro
+   il pixel e alcuni lettori lo annunciano una parola per riga. */
+.documento {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ vetro */
+
+/* IL VETRO — quasi trasparente, con un bordo luminoso e un alone.
+
+   Il fondo e' 0,14 di nero e non 0,42: la scena si vede attraverso — il
+   riflesso della piscina, i fari che passano — e il riquadro smette di essere
+   una targa appoggiata e diventa un VETRO.
+
+   A tenerlo leggibile a quel punto non e' piu' il fondo, sono tre cose insieme:
+
+     la SFOCATURA toglie il dettaglio sotto le lettere lasciando i valori: il
+     testo ha contro una superficie morbida invece che il montante di
+     un'automobile;
+
+     la SATURAZIONE compensa quello che la sfocatura spegne — senza, un vetro
+     sopra una scena colorata la fa sembrare lavata;
+
+     il CONTRASTO abbassato chiude un poco la forbice fra il punto piu' chiaro e
+     il piu' scuro di cio' che sta sotto, che e' esattamente il motivo per cui
+     un titolo bianco su una scena molto contrastata sparisce a tratti.
+
+   IL BORDO LUMINOSO non e' un contorno: e' un riflesso. Un pannello di vetro
+   preso di sbieco raccoglie la luce sullo spigolo alto e la perde su quello
+   basso, e sono due dichiarazioni diverse — una riga chiara dentro il bordo
+   superiore, un contorno tenue tutt'intorno. Un bordo uniforme legge come una
+   cornice disegnata; questo legge come uno spessore.
+
+   E L'ALONE. Non e' un'ombra: un'ombra sta sotto e allontana. L'alone e' luce
+   che esce da DIETRO i bordi, come fa un pannello illuminato da dietro, e tiene
+   il riquadro attaccato alla scena invece di staccarlo. Due passate: una fredda
+   e larga, che e' la sera, e una calda e stretta in basso, che e' la luce della
+   villa. */
+.vetro {
+  border: 1px solid rgba(242, 240, 236, 0.10);
+  border-radius: clamp(12px, 1.1vw, 20px);
+  background: rgba(9, 11, 15, 0.14);
+  backdrop-filter: blur(26px) saturate(1.25) contrast(0.92);
+  -webkit-backdrop-filter: blur(26px) saturate(1.25) contrast(0.92);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 1px 0 rgba(255, 255, 255, 0.14) inset,
+    0 0 54px 4px rgba(120, 170, 235, 0.10),
+    0 22px 54px -18px rgba(255, 179, 71, 0.16);
+}
+
+/* ------------------------------------------------- dove sta il blocco di testo */
+
+.voci[data-lato="destra"] {
+  left: auto;
+  right: var(--margine);
+  /* allineato a destra come il suo bordo: un blocco appoggiato al margine
+     destro con il testo che parte da sinistra lascia una frangia irregolare
+     proprio contro il bordo, ed e' la cosa che si nota di piu' */
+  text-align: right;
+}
+.voci[data-lato="destra"] .voci__riga { margin-left: auto; }
+
+.testa p.vetro, .testa nav.vetro {
+  padding: clamp(7px, 0.9vh, 11px) clamp(12px, 1.2vw, 20px);
+  border-radius: 999px;
+}
+.testa nav.vetro { gap: clamp(12px, 1.7vw, 26px); }
+
+
+/* ------------------------------------------------------- la cornice di pagina */
+
+/* LA FASCIA DI VETRO LUNGO IL PERIMETRO.
+
+   Il ritaglio a ciambella si fa con DUE maschere sovrapposte in esclusione: una
+   grande quanto tutto l'elemento, una grande quanto il suo riquadro interno. Il
+   risultato e' che resta acceso solo cio' che sta in una e non nell'altra —
+   cioe' la fascia. E' l'unico modo di avere una sfocatura di sfondo SOLO sul
+   bordo: `border` non la accetta, e un `box-shadow` interno non sfoca niente.
+
+   `padding` e non `inset`: e' il `padding` a decidere quanto e' larga la
+   ciambella, perche' la seconda maschera si aggancia al riquadro del contenuto.
+
+   Il fondo e' appena piu' denso di quello delle pastiglie (0,22 contro 0,14):
+   la cornice sta sopra il bordo del fotogramma, dove l'immagine e' quasi sempre
+   piu' scura, e con lo stesso valore delle pastiglie sparirebbe. */
+.cornice {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  padding: var(--bordo);
+  background: rgba(9, 11, 15, 0.22);
+  backdrop-filter: blur(22px) saturate(1.2);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  /* il buco della ciambella prende lo stesso raggio del filo, se no agli
+     angoli resta un quarto di quadrato di vetro fuori dal tondo */
+  border-radius: calc(var(--bordo) + clamp(14px, 1.5vw, 24px));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* IL FILO LUMINOSO che chiude la cornice verso dentro.
+
+   E' un elemento a parte perche' quello sopra e' bucato al centro, e tutto
+   quello che gli si mette dentro sparisce con il buco.
+
+   Un filo e non un bordo: un pixel, e sopra un alone. Un contorno piu' spesso
+   diventerebbe una cornice da quadro — qui invece deve leggersi come lo
+   SPIGOLO di un pannello di vetro illuminato da dietro, e uno spigolo non ha
+   spessore, ha luce. */
+/* IL SECONDO FILO, appena fuori dal primo. E' il «doppio bordo» dei
+   riferimenti preso alla lettera: due righe sottili a pochi pixel l'una
+   dall'altra leggono come uno spessore lavorato, una sola legge come un
+   contorno disegnato. Piu' tenue della prima di due terzi — se pesassero
+   uguale diventerebbero una riga spessa. */
+.cornice__filo::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 1px solid rgba(216, 162, 88, 0.16);
+  border-radius: calc(clamp(14px, 1.5vw, 24px) + 7px);
+}
+
+.cornice__filo {
+  position: fixed;
+  inset: var(--bordo);
+  z-index: 6;
+  pointer-events: none;
+  /* PIU' ARROTONDATA E PIU' MARCATA, su richiesta — e sono due manopole
+     separate che vanno mosse insieme, se no il risultato e' sbilenco.
+
+     Il raggio passa da 7 a 22 pixel. Sotto i dieci un angolo tondo si legge
+     come un errore di antialiasing; da venti in su si legge come una scelta, e
+     rima con le pastiglie della testata, che sono pillole intere.
+
+     «Marcata» non vuol dire piu' spessa: una cornice piu' spessa mangia
+     immagine. Vuol dire piu' CONTRASTATA. Il filo sale da 0,13 a 0,30 di
+     opacita', e sotto gli si mette una riga scura — due fili accostati, uno
+     chiaro e uno scuro, sono come si disegna uno spigolo da sempre: il chiaro
+     e' la luce che ci batte, lo scuro e' l'ombra che proietta. Uno solo resta
+     un contorno. */
+  /* IL FILO E' AMBRA, non avorio.
+     E' la stessa luce della gola della piattaforma, ed e' quello che lega la
+     cornice alla scena invece di lasciarla un contorno per conto suo: quando
+     due segni lontani hanno lo stesso colore l'occhio li legge come un sistema
+     solo. Il committente l'ha mostrato in un fotomontaggio — bordo dorato,
+     piattaforma dorata — e ha ragione: con il filo bianco la cornice sembrava
+     la finestra di un lettore, con l'ambra sembra il progetto. */
+  border: 1px solid rgba(216, 162, 88, 0.42);
+  border-radius: clamp(14px, 1.5vw, 24px);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 0 26px 1px rgba(216, 162, 88, 0.30),
+    0 0 70px 6px rgba(216, 162, 88, 0.10),
+    inset 0 0 80px -20px rgba(216, 162, 88, 0.30);
+}
+
+/* ------------------------------------------------------------ i cinque effetti */
+
+/* Tutti partono dalla stessa base: la riga sta dentro una mascherina che
+   taglia, e `--p` e' la sua corsa personale, sfalsata dal numero di riga. Cio'
+   che cambia e' COME la riga percorre quella corsa. */
+
+/* 1. TAGLIO — un fascio di luce attraversa le lettere e le accende.
+
+   Le lettere non sono bianche: sono ritagliate su un gradiente che scorre. La
+   banda chiara si sposta da fuori a sinistra a fuori a destra mentre la riga
+   entra, e dove passa il bianco diventa ambra. E' il faro che passa, ed e' il
+   soggetto di tutto il sito.
+
+   `-webkit-text-fill-color` sta dentro un `@supports` con una ricaduta a
+   colore pieno: se il ritaglio sul testo non funziona, senza ricaduta il
+   titolo resterebbe INVISIBILE. E' il difetto piu' brutto che possa avere un
+   effetto tipografico, perche' non lascia niente al posto suo. */
+.voci[data-effetto="taglio"] .mascherina i {
+  --sweep: calc(var(--p) * 150% - 25%);
+  color: var(--bianco);
+}
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .voci[data-effetto="taglio"] .mascherina i {
+    background-image: linear-gradient(104deg,
+      var(--bianco) 0%,
+      var(--bianco) calc(var(--sweep) - 14%),
+      #fff2d8 calc(var(--sweep) - 4%),
+      var(--accento) var(--sweep),
+      #fff2d8 calc(var(--sweep) + 4%),
+      var(--bianco) calc(var(--sweep) + 14%),
+      var(--bianco) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+/* 2. GIRO — le righe arrivano di taglio e si mettono in piano.
+
+   Ventotto gradi sull'asse verticale, con una prospettiva corta perche' la
+   deformazione si veda: e' lo stesso movimento che sta facendo la vettura
+   sotto, e le due rotazioni si accompagnano. `transform-origin` a sinistra e
+   non al centro, se no la riga ruota su se stessa come un'insegna e il
+   movimento diventa un effetto invece che un accompagnamento. */
+.voci[data-effetto="giro"] .mascherina i {
+  transform:
+    perspective(760px)
+    rotateY(calc((1 - var(--p)) * -28deg))
+    translateX(calc((1 - var(--p)) * -6%))
+    translateY(calc((1 - var(--p)) * 108%));
+  transform-origin: 0% 50%;
+}
+
+/* 3. RISUCCHIO — il testo arriva da lontano e viene tirato dentro.
+
+   Parte grande e sfocato e si stringe a fuoco: e' quello che fa la camera in
+   questo tempo, che si infila dentro l'ottica del faro. La sfocatura e'
+   piccola — sei pixel — perche' su un titolo di questo corpo bastano: piu' in
+   la' diventa illeggibile prima ancora di essere entrato, e un testo che si
+   deve aspettare per leggere e' un testo che non si legge. */
+.voci[data-effetto="risucchio"] .mascherina i {
+  transform:
+    scale(calc(1 + (1 - var(--p)) * 0.32))
+    translateY(calc((1 - var(--p)) * 60%));
+  filter: blur(calc((1 - var(--p)) * 6px));
+  opacity: clamp(0, calc(var(--p) * 1.6), 1);
+  transform-origin: 0% 50%;
+}
+
+/* 4. AVVIO — si accende a scatti, come una strumentazione.
+
+   Non e' una dissolvenza: e' una scala a gradini. `steps()` non serve, basta
+   una funzione che salta — qui e' un seno campionato sulla corsa, cosi' i
+   tremolii cadono sempre negli stessi punti e non dipendono dal tempo. Un
+   tremolio legato al tempo, su una pagina che si scorre avanti e indietro, si
+   scollega dallo scorrimento e legge come un difetto del monitor.
+
+   E arriva caldo prima di arrivare bianco: una lampada che si accende passa
+   dall'arancione al bianco mentre il filamento sale di temperatura. */
+.voci[data-effetto="avvio"] .mascherina i {
+  --scatto: calc(0.62 + 0.38 * max(0, sin(var(--p) * 34)));
+  opacity: clamp(0, calc(var(--p) * 2.4 * var(--scatto)), 1);
+  color: color-mix(in oklab, var(--accento) calc((1 - var(--p)) * 70%), var(--bianco));
+  transform: translateY(calc((1 - var(--p)) * 108%));
+}
+
+/* 5. SCIA — arriva sfilacciato dalla velocita' e si ricompone.
+
+   Tre copie fantasma alla sinistra delle lettere, che rientrano mentre la riga
+   si ferma. Sono ombre e non elementi: una scia fatta con tre copie del nodo
+   costerebbe tre volte il disegno del testo, e questa non costa niente perche'
+   il motore la calcola insieme al resto.
+
+   Vanno tutte da UNA parte sola. Una scia simmetrica non e' una scia: e' una
+   sfocatura, e dice «fuori fuoco» invece che «in corsa». */
+.voci[data-effetto="scia"] .mascherina i {
+  --s: calc(1 - var(--p));
+  transform: translate(calc(var(--s) * 8%), calc(var(--s) * 108%));
+  text-shadow:
+    calc(var(--s) * -26px) 0 calc(var(--s) * 10px) rgba(190, 220, 255, calc(var(--s) * 0.55)),
+    calc(var(--s) * -62px) 0 calc(var(--s) * 22px) rgba(150, 190, 240, calc(var(--s) * 0.30)),
+    calc(var(--s) * -110px) 0 calc(var(--s) * 40px) rgba(120, 170, 235, calc(var(--s) * 0.16));
+}
+
+/* ------------------------------------------------- il testo si legge da solo */
+
+/* Senza riquadro sotto, la leggibilita' la fa l'ombra portata: una stretta e
+   nera che stacca dai valori vicini, una larga e morbida che fa da alone. Su un
+   titolo bianco sopra una scena scura non si vede; si vede solo che il titolo
+   non sparisce piu' quando sotto passa una vetrata accesa. */
+.voci__titolo, .voci__riga, .voci__occhiello {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 6px 28px rgba(0, 0, 0, 0.42);
+}
+/* DUE ECCEZIONI, e sono per due ragioni diverse.
+
+   Sulla SCIA l'ombra e' gia' l'effetto: sommarci quella di leggibilita' la
+   sporca e basta.
+
+   Sul TAGLIO e' peggio che inutile, e' un difetto: le lettere sono ritagliate
+   su un gradiente, quindi il loro riempimento e' TRASPARENTE — e un'ombra
+   dietro un vetro si vede attraverso il vetro. Nel provino il titolo bianco
+   veniva fuori grigio, e sembrava un problema di colore. */
+.voci[data-effetto="scia"] .mascherina i,
+.voci[data-effetto="taglio"] .mascherina i { text-shadow: none; }
+
+/* IL FILETTO CHE CRESCE sotto l'occhiello: un movimento, non un oggetto. Nel
+   fotogramma fermo e' quasi niente, in movimento e' il segnale che qualcosa sta
+   cominciando. Ed e' l'unico posto, con l'occhiello, dove entra l'ambra. */
+.voci__occhiello::after {
+  content: '';
+  display: block;
+  height: 1px;
+  margin-top: clamp(8px, 1.2vh, 14px);
+  width: calc(var(--presenza) * 100%);
+  background: linear-gradient(to right,
+    var(--accento) 0%,
+    rgba(255, 179, 71, 0.15) 62%,
+    rgba(255, 179, 71, 0) 100%);
+}
+.voci[data-lato="destra"] .voci__occhiello::after {
+  margin-left: auto;
+  background: linear-gradient(to left,
+    var(--accento) 0%,
+    rgba(255, 179, 71, 0.15) 62%,
+    rgba(255, 179, 71, 0) 100%);
+}
+
+
+/* ---------------------------------------------------- la sfumatura del margine */
+
+/* Sostituisce il riquadro. Piu' densa contro il bordo dove sta il testo,
+   trasparente verso il centro dove sta il soggetto. Nessun contorno, nessuna
+   forma riconoscibile: esiste solo perche' le lettere abbiano qualcosa di
+   scuro sotto, e sparisce prima di arrivare alla vettura. */
+/* LE DUE SFUMATURE LATERALI SONO SPENTE, E IL LORO MESTIERE E' PASSATO ALLO
+   SHADER.
+
+   Restano nel documento perche' servono ancora al RIPIEGO — la pagina statica
+   non ha nessuno shader e li' una sfumatura in CSS e' l'unico modo di dare un
+   fondo al testo. Nell'esperienza invece sono a zero.
+
+   Perche' se ne vanno. Erano una rampa lineare dal margine: moltiplicano tutto
+   per lo stesso fattore, quindi due fondi che stanno a 119 e a 2 restano nello
+   stesso RAPPORTO. Schiacciavano il bordo, dove il fondo era gia' scuro, e
+   lasciavano scoperta proprio la fascia chiara in mezzo — misurato, non
+   dedotto: `strumenti/stacco.mjs`.
+   Ed erano un foglio grigio appoggiato sopra l'immagine, cioe' un elemento in
+   piu' sullo schermo. Quello che c'e' adesso in `post/Grado.ts` non e' un
+   oggetto: e' un cambio di esposizione sull'immagine finita, e comprime SOLO
+   l'alto — il fondo scuro resta dov'e' e quello chiaro scende verso di lui. */
+.velo--destra, .velo--sinistra {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: min(46vw, 780px);
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .25s linear;
+}
+:root[data-ripiego] .velo--destra,
+:root[data-ripiego] .velo--sinistra {
+  opacity: calc(var(--presenzaVelo, 0) * var(--questoLato, 0));
+}
+.velo--destra {
+  --questoLato: var(--veloDx, 0);
+  right: 0;
+  background: linear-gradient(to left,
+    rgba(6, 7, 9, 0.72) 0%,
+    rgba(6, 7, 9, 0.40) 42%,
+    rgba(6, 7, 9, 0) 100%);
+}
+.velo--sinistra {
+  --questoLato: var(--veloSx, 0);
+  left: 0;
+  background: linear-gradient(to right,
+    rgba(6, 7, 9, 0.72) 0%,
+    rgba(6, 7, 9, 0.40) 42%,
+    rgba(6, 7, 9, 0) 100%);
+}
+
+/* --------------------------------------------------------- la tipografia hero */
+
+.voci[data-lato="destra"] {
+  left: auto;
+  right: var(--margine);
+  /* ALLINEATO A SINISTRA anche quando il blocco sta a destra: incolonnare
+     occhiello, titolo, sommario e inviti sullo stesso filo verticale e' cio'
+     che fa leggere il gruppo come un sistema. Allineandolo a destra la frangia
+     irregolare cadrebbe proprio dove l'occhio comincia a leggere. */
+  text-align: left;
+}
+
+/* IL MAIUSCOLO E' SOLO DELLA HERO, e la distinzione conta.
+
+   Il titolo d'apertura e' un'insegna: tre righe corte, tutte maiuscole, e' il
+   nome del posto in cui si e' appena entrati. Gli altri quattro sono FRASI —
+   «Puoi girarci intorno.», «Dentro c'e' un motore.» — e una frase in maiuscolo
+   smette di essere detta e comincia a essere gridata.
+
+   E c'e' un motivo pratico che vale da solo: in maiuscolo le lettere accentate
+   perdono leggibilita' a corpo piccolo, e queste frasi ne sono piene — «È qui
+   che finiscono», «c'è un motore». */
+.voci[data-effetto="taglio"] .voci__titolo {
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.voci__titolo {
+  /* L'INSEGNA. E' l'unico posto del sito dove Clash Display ha il permesso di
+     entrare: tre righe corte, corpo grandissimo, ed e' li' che il suo carattere
+     — le aste tagliate dritte, le contro-forme strette — smette di essere un
+     dettaglio e diventa la firma. Sotto i quaranta pixel non ci va mai. */
+  font-family: var(--tipoInsegna);
+  /* IL CORPO SCENDE PERCHE' IL TITOLO E' CAMBIATO, non per ripiego.
+
+     «Non progetto / pagine.» erano due righe di minuscolo, quattro parole:
+     centootto pixel ci stavano. «SITI CHE NON / SI GUARDANO. / SI ATTRAVERSANO.»
+     sono tre righe di MAIUSCOLO e sei parole, e il maiuscolo e' largo circa un
+     quinto in piu' a parita' di corpo. Allo stesso corpo la riga piu' lunga
+     usciva dallo schermo — nel provino si leggeva «SI ATTRAVE».
+
+     Il conto: la riga piu' lunga e' sedici caratteri maiuscoli, che a questo
+     peso stanno in circa 9,2 volte il corpo. Perche' ci stiano in 33vw il corpo
+     non puo' superare 3,6vw. Poi la terza riga cresce del cinque per cento — e'
+     quella che porta il senso — e il conto va rifatto su di lei: 3,6 / 1,05 =
+     3,43, meno un margine perche' «ATTRAVERSANO.» ha il punto fermo che nel
+     provino era rimasto fuori. Da li' il 3,12 qui sotto, con il termine
+     verticale a fare da rete sugli schermi bassi. */
+  /* 2,78 e non 3,12: su una finestra stretta e alta il termine verticale non
+     interviene — 6vh di un viewport alto e' un numero grande — e comandava il
+     vw, che a 3,12 mandava «SI ATTRAVERSANO.» fuori dal blocco. La riga andava
+     a capo e il punto fermo restava fuori dallo schermo. */
+  font-size: clamp(20px, min(2.78vw, 6.0vh), 54px);
+  line-height: 0.91;
+}
+/* la terza riga cresce del cinque per cento: e' quella che porta il senso, e
+   cinque per cento e' quanto basta perche' si senta il peso senza che si veda
+   la differenza di corpo */
+.voci__titolo .mascherina:nth-child(3) { font-size: 1.05em; }
+
+.voci__occhiello {
+  letter-spacing: .18em;
+}
+
+.voci__riga {
+  max-width: 46ch;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(242, 240, 234, 0.76);
+}
+
+/* ---------------------------------------------------------------- gli inviti */
+
+/* `[hidden]` DA SOLO NON BASTA quando c'e' un `display` dichiarato.
+
+   L'attributo `hidden` funziona attraverso una regola del foglio di stile del
+   browser — `[hidden] { display: none }` — che ha la stessa specificita' di
+   qualunque regola di classe e perde contro quella scritta dopo. Con
+   `display: flex` qui sotto, gli inviti restavano visibili in tutti i tempi:
+   nel provino «ESPLORA I LAVORI» compariva anche dentro l'abitacolo, dove non
+   ha nessun senso. */
+.voci__inviti[hidden] { display: none; }
+
+.voci__inviti {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: clamp(22px, 3.2vh, 38px);
+  pointer-events: auto;
+  opacity: clamp(0, calc((var(--presenza) - 0.55) / 0.45), 1);
+}
+
+.invito {
+  /* 14 px e non 11: e' la chiamata all'azione della prima schermata, cioe' il
+     collegamento piu' importante del sito, e su un telefono usciva a undici
+     pixel — sotto qualunque soglia di leggibilita' e, con il riempimento che
+     aveva, con un bersaglio piu' basso di quanto serva a un dito. */
+  font-size: clamp(14px, 1.05vw, 16px);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* IL PRIMO INVITO E' L'UNICA SUPERFICIE PIENA DI TUTTA LA PAGINA.
+
+   Tutto il resto e' testo su fotografia. Un solo rettangolo pieno, chiaro, in
+   mezzo a una pagina fatta di trasparenze, non ha bisogno di nient'altro per
+   essere il punto in cui si clicca: e' l'unico. Aggiungerci un'ombra o un
+   contorno vorrebbe dire spiegare una cosa che si e' gia' capita. */
+/* L'INVITO NON E' PIU' UNA PASTIGLIA BIANCA PIENA.
+   Il bianco pieno era l'unica superficie opaca della pagina, e funzionava
+   finche' la pagina non aveva un accento. Adesso ce l'ha — la gola della
+   piattaforma, il filo della cornice — e una macchia bianca in mezzo a un
+   sistema ambra e' l'unica cosa che non appartiene. Contorno d'oro e fondo
+   quasi trasparente: si legge come un pulsante lo stesso, perche' e' l'unica
+   cosa della pagina che ha un bordo chiuso intorno. */
+.invito--pieno {
+  display: inline-flex;
+  align-items: center;
+  gap: .7em;
+  height: 48px;
+  padding: 0 26px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 162, 88, 0.55);
+  background: rgba(216, 162, 88, 0.07);
+  color: var(--bianco);
+  font-weight: 600;
+  box-shadow: 0 0 22px -4px rgba(216, 162, 88, 0.35);
+}
+.invito--pieno span { font-size: 1.15em; line-height: 1; }
+
+/* IL SECONDO E' SUBORDINATO, e si vede da come e' fatto: nessun contenitore,
+   solo un filo sotto. Due pulsanti pieni affiancati sono due prime scelte,
+   cioe' nessuna prima scelta. */
+.invito--filo {
+  color: var(--bianco);
+  font-weight: 500;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(242, 240, 234, 0.32);
+}
+
+/* ------------------------------------------------------- la testata, piu' tenue */
+
+/* «Non utilizzare il grande pill beige attuale»: aveva ragione. Il fondo delle
+   pastiglie era chiaro quanto la villa dietro, quindi non staccava — sembrava
+   una macchia beige invece che un vetro. Nero al 26%, filo bianco al 9%, e la
+   sfocatura fa il resto. */
+.testa p.vetro, .testa nav.vetro {
+  /* 0,46 e non 0,26. Il fondo della villa e' intonaco bianco illuminato: sotto
+     un vetro poco denso e molto saturo diventa BEIGE, e la pastiglia si legge
+     come una macchia color sabbia invece che come vetro scuro. Piu' nero, e la
+     saturazione riportata a uno: qui non c'e' colore da salvare, c'e' colore da
+     togliere. */
+  background: rgba(6, 7, 9, 0.46);
+  backdrop-filter: blur(20px) saturate(0.9);
+  -webkit-backdrop-filter: blur(20px) saturate(0.9);
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.10) inset,
+    0 0 30px 2px rgba(120, 170, 235, 0.07);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+/* ============================================================ strato informativo
+
+   Due elementi soli, e ognuno ha un mestiere che nessun altro fa.
+
+   LA ROTAIA dice dove si e' dentro il viaggio. Non e' una barra di
+   scorrimento: una barra dice quanta pagina resta, questa dice in quale dei
+   cinque posti si e'. Ha senso solo perche' i posti esistono davvero.
+
+   LA SCHEDA dice cosa si sta guardando, con numeri veri. E' ancorata a un punto
+   del mondo — la bocca del faro — quindi si muove con l'automobile invece di
+   stare incollata a un angolo.
+
+   Quello che NON c'e', ed e' una scelta: nessun riquadro dietro la headline.
+   Un titolo dentro un rettangolo e' un titolo imprigionato. I riquadri
+   lavorano intorno al messaggio principale, mai addosso. */
+
+/* ------------------------------------------------------------------ rotaia */
+
+.rotaia {
+  position: fixed;
+  left: clamp(20px, 3.4vw, 56px);
+  top: 24vh;
+  bottom: 18vh;
+  z-index: 4;
+  width: 1px;
+  pointer-events: none;
+}
+
+/* la pista: un capello. Piu' spessa diventerebbe un elemento da guardare, e
+   non e' il suo mestiere — il suo mestiere e' far vedere il nodo che si muove */
+.rotaia__pista {
+  position: absolute;
+  inset: 0;
+  background: rgba(242, 240, 234, 0.20);
+}
+
+/* il segno che avanza: cresce con il progresso vero, non a scatti da un nodo
+   all'altro. Fra due tappe c'e' comunque movimento, ed e' quel movimento a
+   dire che l'indicatore e' vivo */
+.rotaia__corsa {
+  position: absolute;
+  left: 0; top: 0; width: 100%;
+  height: calc(var(--corsa, 0) * 100%);
+  background: linear-gradient(to bottom,
+    rgba(216, 162, 88, 0.15) 0%,
+    var(--accento) 100%);
+}
+
+.rotaia__nodo {
+  position: absolute;
+  left: 50%;
+  width: 4px; height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(242, 240, 234, 0.32);
+  transition: width .28s ease, height .28s ease, margin .28s ease,
+              background-color .28s ease, box-shadow .28s ease;
+}
+.rotaia__nodo.e-passato { background: rgba(216, 162, 88, 0.55); }
+.rotaia__nodo.e-attivo {
+  width: 8px; height: 8px; margin: -4px 0 0 -4px;
+  background: var(--accento);
+  /* l'alone e' piccolo e basso di proposito: un nodo che brilla troppo diventa
+     una spia di allarme invece che una posizione */
+  box-shadow: 0 0 10px 1px rgba(216, 162, 88, 0.45);
+}
+
+/* l'etichetta sta in fondo e ruotata: verticale perche' la rotaia e'
+   verticale, e un testo orizzontale appeso a una linea verticale forma una
+   L che tira l'occhio piu' della linea stessa */
+.rotaia__etichetta {
+  position: absolute;
+  left: 14px;
+  bottom: 0;
+  transform-origin: 0 100%;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  display: flex;
+  gap: .9em;
+  align-items: baseline;
+}
+.rotaia__indice { color: var(--accento); font-weight: 600; }
+.rotaia__nome { color: rgba(242, 240, 234, 0.58); }
+
+/* ------------------------------------------------------------------- spina */
+
+/* LA SPINA TECNICA — tipografia, una linea, un rombo. Nient'altro.
+
+   Il riquadro che c'era prima e' sparito, e con lui il fondo, il bordo, il
+   raggio e l'ombra. Il motivo sta per esteso in `ui/Spina.ts`; in due parole:
+   un rettangolo sopra il render dice «ho appoggiato una scheda sulla
+   macchina», mentre una riga che arriva a toccare il faro dice che quel dato
+   appartiene all'oggetto.
+
+   La leggibilita' non la fa piu' un fondo: la fa un gradiente locale che si
+   spegne del tutto entro centosessanta pixel e che non si deve percepire come
+   elemento. Se lo si nota, e' troppo. */
+.spina {
+  position: fixed;
+  left: 0; top: 0;
+  z-index: 4;
+  width: 232px;
+  padding: 0 18px 0 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .32s ease;
+  will-change: transform;
+}
+.spina.e-viva { opacity: 1; }
+
+.spina::before {
+  content: '';
+  position: absolute;
+  inset: -26px -40px -26px -30px;
+  z-index: -1;
+  background: radial-gradient(120% 100% at 22% 50%,
+    rgba(4, 6, 12, 0.22) 0%,
+    rgba(4, 6, 12, 0.13) 46%,
+    rgba(4, 6, 12, 0) 100%);
+}
+
+.spina__etichetta {
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--accento);
+  margin-bottom: 12px;
+}
+
+/* IL NUMERO E' L'UNICA COSA GRANDE DELLA PAGINA dopo il titolo, e deve
+   restarlo: e' il dato, ed e' anche la prova. Tabulare perche' nel secondo
+   tempo diventa un tempo per fotogramma che cambia a ogni aggiornamento, e
+   senza cifre di larghezza fissa ballerebbe. */
+.spina__numero {
+  font-size: clamp(38px, 3.2vw, 56px);
+  font-weight: 550;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--bianco);
+  font-variant-numeric: tabular-nums;
+}
+.spina__numero[hidden] { display: none; }
+
+.spina__didascalia {
+  margin-top: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 234, 0.86);
+}
+.spina__coda {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 234, 0.58);
+}
+.spina__coda[hidden] { display: none; }
+
+/* IL DISEGNO. Un SVG grande quanto la finestra, che non intercetta niente e non
+   ha nessun fondo: esiste solo per contenere due segni. */
+.spina__disegno {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .32s ease;
+}
+.spina__disegno.e-viva { opacity: 1; }
+
+/* un capello: al 30% di avorio si vede che c'e' e non si guarda. Piu' marcata
+   diventerebbe un elemento grafico, e a quel punto tanto valeva il riquadro. */
+.spina__tratto {
+  fill: none;
+  stroke: rgba(242, 240, 234, 0.30);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.spina__rombo {
+  fill: rgba(242, 240, 234, 0.72);
+}
+
+/* sul telefono lo strato informativo si riduce a UNO. Due elementi flottanti su
+   una colonna da 390 pixel non sono un secondo livello di lettura: sono
+   ingombro. Resta la rotaia, che e' quella che dice dove si e'. */
+@media (max-width: 720px) {
+  .spina, .spina__disegno { display: none; }
+  .rotaia { left: 14px; top: 20vh; bottom: 22vh; }
+  /* undici e non dieci: e' l'unica cosa che dice dove si e', e sul telefono e'
+     anche l'unica interfaccia permanente oltre alla testata */
+  .rotaia__etichetta { font-size: 11px; }
+}
+
+
+/* ---------------------------------------------------------------- comandi */
+
+/* I COMANDI — l'unica cosa cliccabile della prima schermata oltre all'invito.
+
+   Stanno in basso a destra, sotto il blocco del testo, e non hanno nessun
+   riquadro intorno: un pannello di comandi dentro una scheda tornerebbe a
+   essere un'interfaccia appoggiata sopra la scena, che e' il difetto gia'
+   corretto due volte in questa pagina. Sono etichette e campioni, e basta. */
+.comandi {
+  position: fixed;
+  right: var(--margine);
+  bottom: calc(var(--bordo) + clamp(18px, 2.4vh, 34px));
+  z-index: 4;
+  display: flex;
+  gap: clamp(18px, 2.4vw, 40px);
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity .38s ease, transform .38s ease;
+}
+.comandi.e-vivo {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.comandi__riga { display: flex; align-items: center; gap: 10px; }
+
+/* I COMANDI SONO L'UNICA COSA DEL SITO CHE UN FILMATO NON POTREBBE FARE, e
+   fino a ieri erano anche la piu' piccola e la piu' pallida.
+   Nove pixel al quarantadue per cento di opacita' non sono un comando: sono una
+   didascalia. E la finitura e il luogo sono le due sole prove interattive che
+   la scena e' calcolata e non registrata — chi non ci clicca non ha visto la
+   dimostrazione, e chi non li vede non ci clicca.
+   Undici pixel al cinquantotto: restano etichette, smettono di essere un
+   sussurro. La regola nuova del progetto — niente testo funzionale sotto quindici
+   pixel — qui non si applica alla lettera perche' sono etichette e non
+   informazione, ma il salto di contrasto le porta comunque sopra la soglia in
+   cui si notano. */
+.comandi__voce {
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 234, 0.58);
+  margin-right: 4px;
+}
+
+/* IL CAMPIONE E' UN CERCHIO PIENO col colore vero della finitura, non
+   un'etichetta con scritto il nome. Una vernice si sceglie guardandola: quattro
+   nomi in fila sarebbero quattro parole da leggere per una decisione che
+   l'occhio prende da solo. Il nome resta nell'etichetta accessibile. */
+/* IL CAMPIONE CRESCE, E SOPRATTUTTO CRESCE IL SUO BERSAGLIO.
+   Venti pixel di cerchio erano venti pixel di area toccabile: sotto la meta'
+   dei quarantaquattro che servono a un dito, e su un telefono voleva dire
+   sbagliare una volta su due. Il cerchio va a ventisei — abbastanza da far
+   vedere il colore, che e' il suo unico mestiere — e il bersaglio si allarga a
+   quarantaquattro con un'area trasparente intorno, senza spostare di un pixel
+   quello che si vede.
+   E' lo stesso principio del filetto ambra sotto il luogo scelto: la cosa che
+   si vede e la cosa che si tocca non devono avere la stessa misura. */
+.comandi__campione {
+  position: relative;
+  width: 26px; height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(242, 240, 234, 0.34);
+  background: var(--tinta);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.comandi__campione::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+}
+.comandi__campione:hover { transform: scale(1.12); }
+/* lo scelto si segna con un anello STACCATO, non con un bordo piu' spesso: su
+   un campione di venti pixel un bordo mangia il colore che si sta scegliendo */
+.comandi__campione.e-scelto {
+  border-color: var(--accento);
+  box-shadow: 0 0 0 3px rgba(216, 162, 88, 0.22);
+}
+
+/* E I LUOGHI DIVENTANO LEGGIBILI. Dieci pixel al cinquanta per cento su un
+   fondo che cambia a ogni tempo: sono le quattro parole piu' difficili da
+   leggere di tutto il sito, e sono anche quattro pulsanti.
+   Tredici al settantadue, con dodici pixel di riempimento verticale che portano
+   il bersaglio a quarantaquattro. Quello scelto resta in avorio pieno con il
+   filetto ambra: era gia' giusto, adesso si vede anche il contrasto con gli
+   altri tre. */
+.comandi__vista {
+  padding: 14px 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 234, 0.72);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color .2s ease, border-color .2s ease;
+}
+.comandi__vista:hover { color: rgba(242, 240, 234, 0.85); }
+.comandi__vista.e-scelto {
+  color: var(--bianco);
+  border-bottom-color: var(--accento);
+}
+
+/* SUL TELEFONO I COMANDI RESTANO TUTTI E DUE, e va spiegato perche' ci ho
+   ripensato.
+   Prima la riga dei luoghi spariva sotto i 720 pixel, con una motivazione che
+   sembrava buona: quattro nomi accanto a quattro campioni non ci stanno su una
+   colonna da 390, e fra i due comandi quello che dimostra di piu' e' la
+   vernice, perche' cambia il MATERIALE e non l'inquadratura.
+   Il difetto e' nella premessa: non ci stanno ACCANTO. Ci stanno benissimo
+   SOTTO. E l'obiezione a cui questi comandi rispondono — «tanto valeva un
+   video» — sul telefono e' piu' forte che altrove, perche' li' un video
+   scrubbato e' proprio quello che fanno tutti. Togliere meta' della prova dove
+   serve di piu' era il modo piu' rapido di darla vinta all'obiezione. */
+@media (max-width: 720px) {
+  .comandi { flex-direction: column; align-items: flex-start; gap: 9px; }
+  /* l'etichetta «LUOGO» se ne va, non i luoghi: su una colonna la seconda riga
+     e' gia' letta come una seconda famiglia, e la parola ruberebbe la meta'
+     della larghezza che serve ai nomi */
+  .comandi__riga:last-child .comandi__voce { display: none; }
+  /* I QUATTRO LUOGHI SU UNA RIGA SOLA, e per farceli stare si stringe quello
+     che si puo' stringere senza toccare il corpo.
+     Con l'a-capo il pannello dei comandi diventava alto centosessantadue pixel
+     su ottocentoquarantaquattro, e su un telefono quella e' una fetta che
+     serve altrove: sotto ci stanno i tre schermi dei lavori, e sopra la
+     testata. Tre elementi che si contendono la stessa fascia sono uno di
+     troppo, e il piu' comprimibile e' questo.
+     Restano quattro parole leggibili a dodici pixel: si accorcia la spaziatura
+     fra le lettere e fra le voci, non il corpo. */
+  .comandi__riga { flex-wrap: nowrap; }
+  .comandi__riga:last-child { gap: 7px; }
+  .comandi__vista { letter-spacing: 0.04em; padding: 15px 2px; }
+  /* SUL TELEFONO NON SI STRINGONO: si stringe la spaziatura fra le lettere e
+     si accorcia il riempimento, ma il corpo resta dodici. Un comando che su un
+     telefono diventa piu' piccolo che su un desktop e' un comando progettato
+     al contrario — sul telefono si tocca, e per toccare bisogna vedere. */
+  /* E QUI IL RIEMPIMENTO L'AVEVO SCELTO GUARDANDO, non contando: con 11 px il
+     luogo veniva alto 38, sei meno di quanto serve. Il conto e' semplice e va
+     fatto — corpo 12 per un'interlinea di 1,2 fa 14,4, quindi il riempimento
+     deve valere almeno 15 per parte. */
+  .comandi__vista { font-size: 12px; letter-spacing: 0.08em; padding: 15px 4px; }
+  .comandi__voce { font-size: 11px; letter-spacing: 0.12em; }
+  .comandi__campione { width: 26px; height: 26px; }
+  /* E SALGONO IN ALTO, sotto la testata.
+     In fondo davano contro l'invito: il blocco del testo arriva fin giu' e
+     «FINITURA» ci finiva sotto. In alto c'e' l'unica fascia libera di tutta la
+     colonna — quella fra la testata e l'inizio della fotografia — e i comandi
+     sono anche la prima cosa che vale la pena scoprire. */
+  .comandi {
+    /* IL BORDO DESTRO C'E' ANCORA, e senza usciva dallo schermo.
+       Con `right: auto` il blocco cresceva a piacere verso destra: a 360, con i
+       nomi dei luoghi portati a dodici pixel, arrivava a 365 su una finestra
+       larga 360. Dichiarando tutti e due i bordi il blocco e' un contenitore
+       con una larghezza vera, e i quattro luoghi vanno a capo invece di uscire.
+       E' lo stesso difetto della pastiglia del nome, e la stessa cura: quando
+       si allarga il contenuto bisogna dire fin dove puo' arrivare. */
+    right: var(--margine);
+    left: calc(var(--margine) + 20px);
+    bottom: auto;
+    /* E ADESSO NON E' PIU' UN NUMERO: e' l'altezza vera della testata piu'
+       diciotto pixel d'aria. Il numero scritto a mano si e' rotto due volte —
+       54 e poi 72 — e la seconda volta i comandi coprivano il menu per
+       duecentosessantacinque pixel. Non e' che i numeri fossero sbagliati: erano
+       giusti il giorno in cui li ho misurati, e descrivevano un elemento che
+       qualcun altro avrebbe cambiato. Vedi `avvio.ts`, dove la testata dichiara
+       la propria altezza. Il ripiego di 92 serve solo per l'istante fra il
+       primo disegno e la prima misura. */
+    top: calc(var(--margine) + var(--testaAltezza, 92px) + 18px);
+    /* E PRENDONO IL VETRO DELLA TESTATA, ma solo sul telefono.
+     *
+     * Sul desktop i comandi stanno in basso a destra, sopra il lastricato in
+     * ombra, e non hanno nessun bisogno di un fondo: sono etichette e
+     * campioni, e un pannello li' tornerebbe a essere un'interfaccia
+     * appoggiata sulla scena — il difetto gia' corretto due volte.
+     *
+     * Sul telefono cadono in alto, sopra la villa, che e' la zona PIU' CHIARA
+     * di tutto il sito: vetrate accese, marmo, il riflesso della piscina.
+     * Nel provino «PISCINA» e «TRAMONTO» in grigio chiaro su quel fondo erano
+     * illeggibili. Non e' una questione di gusto: un comando che non si legge
+     * non e' un comando.
+     *
+     * Il vetro e' lo STESSO delle due pastiglie della testata — stessa
+     * ricetta, stesso raggio — perche' li' sopra ce ne sono gia' due: una
+     * terza della stessa famiglia si legge come parte del gruppo, una
+     * qualunque altra cosa si legge come un elemento nuovo. */
+    padding: 10px 14px 11px;
+    border: 1px solid rgba(242, 240, 236, 0.10);
+    border-radius: clamp(12px, 1.1vw, 20px);
+    background: rgba(9, 11, 15, 0.30);
+    backdrop-filter: blur(26px) saturate(1.25) contrast(0.92);
+    -webkit-backdrop-filter: blur(26px) saturate(1.25) contrast(0.92);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+      0 1px 0 rgba(255, 255, 255, 0.14) inset;
+  }
+}
+
+
+/* ------------------------------------------------- la testata sul telefono */
+
+/* A 390 PIXEL LE DUE PASTIGLIE NON CI STANNO, e nel provino «CONTATTO» era
+   tagliato a «CONT». Non e' un problema di margini: e' che il contenuto
+   dichiarato chiede piu' larghezza di quella che c'e'.
+
+   Si stringe quello che si puo' stringere senza perdere informazione — corpo,
+   spaziatura fra le lettere, riempimento, distanza fra le voci — e il ruolo va
+   a capo sotto il nome invece di stargli accanto. Nessuna voce sparisce: un
+   menu che perde una voce su un telefono e' un menu rotto, non un menu
+   adattato. */
+@media (max-width: 720px) {
+  /* NOVE PIXEL ERANO TROPPO POCHI, E I BERSAGLI ERANO MENO DI UN QUARTO.
+     Misurato da `strumenti/telefono_audit.mjs` su tre telefoni e otto tempi:
+     corpo 9 px, e i tre collegamenti del menu grandi 36x11, 38x11 e 55x11
+     contro i quarantaquattro per lato che serve un dito. I due della lingua
+     erano 10x11 — un decimo dell'area necessaria.
+     Undici e mezzo di corpo, e soprattutto un riempimento verticale che porta
+     ogni voce a quarantaquattro: la pastiglia cresce di dieci pixel in tutto e
+     il menu smette di essere una fila di bersagli da sbagliare. */
+  /* IL BERSAGLIO SI DICHIARA, NON SI CALCOLA COL RIEMPIMENTO.
+     Ho provato prima con `padding: 12px`: il conto tornava sulla carta —
+     11,5 di corpo per 1,2 di interlinea piu' 24 fa 38 — e sbagliava di sei,
+     perche' l'altezza di riga vera di un elemento in linea non e' quella che
+     si calcola a mano. Con `min-height: 44px` e un `inline-flex` che centra, il
+     numero e' quello dichiarato e non dipende piu' dal carattere, dal peso o
+     dall'interlinea che qualcuno cambiera' fra sei mesi.
+     E il corpo torna a 11: a 11,5 la pastiglia del nome usciva dallo schermo
+     di sei pixel a 390 — misurato, non stimato. */
+  .testa { font-size: 11px; letter-spacing: .05em; }
+  .testa p.vetro { padding: 7px 11px; min-height: 40px; }
+  .testa nav.vetro { padding: 0 8px; min-height: 44px; gap: 2px; }
+  .testa nav.vetro a,
+  .testa__lingua button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 7px;
+  }
+  /* IT ed EN sono due sigle da due lettere: alte quarantaquattro lo erano gia',
+     larghe quindici e venti no. Un bersaglio stretto e alto e' comodo quanto
+     uno basso e largo, cioe' per niente — un polpastrello e' tondo. */
+  .testa__lingua button { min-width: 40px; }
+  .testa__ruolo { display: block; margin-left: 0; }
+
+  /* DUE RIGHE INVECE DI DUE PASTIGLIE SCHIACCIATE.
+     Misurato a quattro formati di telefono (`.tmp/testa_mobile.mjs`): fra le
+     due pastiglie restavano ZERO pixel, il nome andava a capo dentro la sua e
+     il menu pure. Tre voci, la lingua e il nome del mestiere in 350 pixel non
+     ci stanno, e la parola FREELANCE — che su desktop e' la mezza riga con il
+     miglior rapporto costo/beneficio della pagina — qui ha peggiorato le cose.
+     Le due strade erano togliere qualcosa o dare un'altra riga. Togliere non
+     si puo': un menu che perde una voce su un telefono e' un menu rotto, non
+     un menu adattato (ed e' scritto qui sopra). Quindi si avvolge — e con
+     `flex-wrap` non e' una seconda impaginazione da mantenere: se ci stanno
+     restano affiancate, se non ci stanno il menu scende e si allinea a destra.
+     Il conto verticale regge: la testata passa dal 7% al 10% dell'altezza,
+     contro un tetto del 18%.
+     E dentro le pastiglie niente va piu' a capo: `nowrap` sul nome e sul
+     ruolo. Un nome proprio spezzato in due righe e' la prima cosa che si nota
+     e l'ultima che si perdona. */
+  .testa { flex-wrap: wrap; row-gap: 8px; align-items: flex-start; }
+  .testa__nome, .testa__ruolo { white-space: nowrap; }
+  /* IN LINEA E CON L'ARIA, non a capo. Con `display: block` (la regola qui
+     sopra, che questa sostituisce) il ruolo scendeva sotto il nome e la
+     pastiglia diventava alta il doppio; senza margine i due si toccavano e si
+     leggeva GIUSEPPE VILLANIFREELANCE. Su una riga sola, adesso che il menu
+     sta sotto, lo spazio in larghezza c'e'. */
+  .testa__ruolo { display: inline; margin-left: .7em; }
+  /* e il menu non si spezza: le tre voci piu' la lingua sono 200 pixel su 350
+     disponibili, e andavano a capo solo perche' nessuno glielo aveva impedito */
+  .testa nav.vetro { margin-left: auto; flex-wrap: nowrap; white-space: nowrap; }
+  /* IL LATO NON ESISTE SU UNA COLONNA SOLA, e va detto QUI e non piu' su:
+     la regola `[data-lato="destra"]` sta dopo nel foglio e vincerebbe la
+     cascata, riportando il blocco a `left: auto`. Nel provino il titolo era
+     tagliato prima a destra e, dopo la prima correzione, a sinistra: due
+     sintomi opposti dello stesso difetto, cioe' una regola scritta nel punto
+     sbagliato. */
+  .voci, .voci[data-lato="destra"] {
+    left: calc(var(--margine) + 20px);
+    right: var(--margine);
+    width: auto;
+    text-align: left;
+  }
+  /* venti pixel in piu' a sinistra: e' dove passa l'etichetta ruotata della
+     rotaia, e senza quello spazio le lettere si attraversano */
+}
+
+
+/* -------------------------------------- il testo dei tempi interni sale in alto */
+
+/* IL QUADRO SI E' PRESO IL FONDO, E IL TESTO DEVE SGOMBRARE.
+ *
+ * Nei due tempi dentro l'abitacolo il testo stava in basso a destra. Era il
+ * posto giusto finche' il quadro strumenti occupava un terzo del cruscotto:
+ * il commento in `Voci.ts` lo dice ancora, «il quadro sta a sinistra del
+ * centro». Poi il quadro e' stato allargato a tutto il riquadro — richiesta
+ * esplicita, e a ragione — e adesso arriva al sessantotto per cento della
+ * larghezza. Il titolo cadeva esattamente sopra la colonna di destra, quella
+ * del parziale e del totalizzatore: nel provino «E adesso la guidi tu.» si
+ * legge sovrapposto a «128.4 km».
+ *
+ * Non si restringe il quadro per fare posto alla scritta: il quadro e' il
+ * soggetto di questi due tempi. Si sposta la scritta.
+ *
+ * PERCHE' PROPRIO IN ALTO A DESTRA.
+ *
+ * E' l'unica zona scura larga che resta. Sopra il parabrezza, a destra, c'e'
+ * la massa del retrovisore e del padiglione: nero, ferma, e gia' scurita
+ * dalla sfumatura di `.velo--destra`. A sinistra c'e' il cielo, che e' chiaro,
+ * e sotto c'e' la strada, che e' chiara pure lei — testo bianco su tutte e
+ * due sarebbe illeggibile.
+ *
+ * E l'ordine di lettura ci guadagna: si entra dal parabrezza, si legge la
+ * frase, si scende sul quadro. Prima si leggeva il quadro e la frase gli
+ * stava addosso.
+ *
+ * Solo da schermo largo: sul telefono il quadro e' piccolo e in alto, e il
+ * testo sotto ci sta gia' — la `min-width` tiene le due impaginazioni separate
+ * invece di correggerne una con l'altra. */
+@media (min-width: 821px) {
+  /* E dal settimo tempo anche `contatto`: da quando il quadro si prende tutta
+     la larghezza, il testo in basso a destra gli finisce dentro — nel provino
+     «Forse conviene accostare.» cadeva sopra il tachimetro. */
+  .voci[data-tempo="accensione"],
+  .voci[data-tempo="velocita"],
+  .voci[data-tempo="contatto"],
+  .voci[data-tempo="accensione"][data-lato="destra"],
+  .voci[data-tempo="velocita"][data-lato="destra"],
+  .voci[data-tempo="contatto"][data-lato="destra"] {
+    /* sotto le pastiglie della testata, che stanno a `--bordo` piu' la loro
+       altezza: quindici unita' di viewport verticale le scavalcano a tutti i
+       formati provati, dal 16:10 al 32:9 del committente */
+    top: calc(var(--bordo) + clamp(96px, 15vh, 170px));
+    bottom: auto;
+    /* il blocco e' piu' stretto: qui non deve reggere il confronto con niente,
+       deve solo stare dentro la massa scura del padiglione */
+    /* La stessa correzione della colonna principale, per la stessa ragione:
+       `30ch` guarda il corpo della radice e non quello del titolo, quindi non
+       cresceva mai. A 1920 «c'e' un motore.» chiede 303 px e ne aveva 302,8 —
+       un pixel, e la riga andava a capo.
+       Allargarlo non sposta niente di quello che si vede: il blocco e'
+       allineato a DESTRA e ancorato al margine destro, quindi una riga corta
+       occupa gli stessi pixel dentro una scatola larga o stretta. Cambia solo
+       che non e' costretta a spezzarsi. La massa scura del padiglione, che e'
+       la ragione per cui questo blocco e' piu' stretto degli altri, resta
+       quella che era. */
+    /* E PIU' STRETTO DI PRIMA, perche' la misura ha mostrato che non stava
+       dentro la massa scura come credeva di fare.
+       `strumenti/stacco.mjs` con il riquadro disegnato sopra il provino
+       (`.tmp/dove2.mjs`) non lascia dubbi: a 1400 il blocco andava da 861 a
+       1309 e il bordo del padiglione sta a 895, quindi le prime lettere di
+       ogni riga — la D di «Dentro», la E di «E adesso» — cadevano sul cielo
+       chiaro mentre il resto stava sul nero. Fondo a 87 sotto la prima sillaba
+       e a 0 sotto le altre: e' il valore peggiore di tutto il sito.
+       Il testo qui e' allineato a SINISTRA anche se il blocco sta a destra (e
+       la ragione sta scritta piu' su: incolonnare occhiello, titolo e sommario
+       sullo stesso filo). Quindi l'unico modo di spostare le lettere verso il
+       nero e' stringere il blocco: il suo bordo destro non si muove, il
+       sinistro rientra. A 24vw il blocco parte da 973, cioe' ottanta pixel
+       dentro il padiglione. */
+    width: clamp(300px, 24vw, 420px);
+    max-width: 40%;
+  }
+}
+
+
+/* ============================================================ IL RIPIEGO */
+
+/* QUANDO L'ESPERIENZA NON PARTE, LA PAGINA NON DIVENTA VUOTA: DIVENTA UNA
+   PAGINA.
+
+   `data-ripiego` sulla radice porta la CAUSA e non un booleano — vedi
+   `src/core/Ripiego.ts` — e da qui in poi il foglio di stile puo' trattare in
+   modo diverso chi ha chiesto meno movimento da chi non ha potuto averlo.
+
+   NIENTE `display: none` SUL TELAIO. Dentro ci sta la testata, che nel ripiego
+   serve piu' che mai: e' l'unica navigazione che resta. Sparisce quello che
+   dipende dalla scena — la tela, i veli, la corsa da sette schermate, la
+   cornice di vetro — e la testata torna nel flusso del documento. */
+:root[data-ripiego] #tela,
+:root[data-ripiego] .velo,
+:root[data-ripiego] .velo--sinistra,
+:root[data-ripiego] .velo--destra,
+:root[data-ripiego] .cornice,
+:root[data-ripiego] .cornice__filo,
+:root[data-ripiego] #hud { display: none; }
+
+/* la corsa e' l'altezza da scorrere dell'esperienza: senza esperienza sono
+   sette schermate di vuoto in fondo alla pagina */
+:root[data-ripiego] #corsa { display: none; }
+
+:root[data-ripiego] .testa {
+  position: static;
+  margin: 0 auto;
+  padding: clamp(18px, 3.4vw, 34px) 0 0;
+  max-width: 78ch;
+  width: calc(100% - clamp(22px, 6vw, 64px));
+}
+
+:root[data-ripiego] .documento {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  display: block;
+  max-width: 78ch;
+  /* il margine orizzontale e' lo stesso della testata, cosi' i due filetti
+     verticali invisibili — bordo del testo e bordo del menu — coincidono */
+  margin: 0 auto;
+  padding: clamp(26px, 5vw, 56px) clamp(11px, 3vw, 32px) clamp(80px, 14vh, 140px);
+}
+
+/* ------------------------------------------------------- il poster statico */
+
+.statica__figura { margin: 0 0 clamp(30px, 5vh, 56px); }
+
+.statica__figura picture { display: block; }
+
+.statica__figura img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* lo stesso raggio e lo stesso filo della cornice dell'esperienza: e' la
+     sola cosa che dice, senza scriverlo, che questa pagina e' l'altra faccia
+     di quella — e non un ripiego preso da un'altra parte */
+  border-radius: clamp(10px, 1.2vw, 18px);
+  box-shadow:
+    0 0 0 1px rgba(216, 162, 88, 0.22),
+    0 26px 60px -30px rgba(0, 0, 0, 0.9);
+}
+
+.statica__figura figcaption {
+  margin-top: 12px;
+  font-size: clamp(11px, 1.5vw, 12.5px);
+  letter-spacing: 0.04em;
+  color: rgba(242, 240, 234, 0.42);
+}
+
+/* ------------------------------------------------------------ il contenuto */
+
+.statica__blocco { margin: 0 0 clamp(38px, 7vh, 72px); }
+
+:root[data-ripiego] .documento h1 {
+  /* 4.6vw e non un corpo fisso: e' la stessa scala del titolo
+     dell'esperienza, che e' la ragione per cui le due pagine si somigliano
+     anche senza avere niente in comune */
+  font-size: clamp(28px, 4.6vw, 46px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+
+:root[data-ripiego] .documento h2 {
+  font-size: clamp(11px, 1.5vw, 12.5px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accento);
+  margin: 0 0 16px;
+  /* il filetto sotto il titolo di sezione e' lo stesso segno dell'occhiello
+     nell'esperienza: una riga sottile che nasce e muore nel buio */
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(216, 162, 88, 0.20);
+}
+
+.statica__occhiello {
+  font-size: clamp(11px, 1.5vw, 12.5px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accento);
+  margin: 0 0 26px;
+}
+
+:root[data-ripiego] .documento p {
+  font-size: clamp(15px, 1.9vw, 17px);
+  line-height: 1.62;
+  color: rgba(242, 240, 234, 0.74);
+  margin: 0 0 15px;
+  max-width: 62ch;
+}
+
+.statica__forte {
+  font-size: clamp(20px, 3vw, 28px) !important;
+  line-height: 1.24;
+  color: var(--bianco) !important;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 22px !important;
+}
+
+/* ------------------------------------------------------ le quattro ottiche */
+
+/* LA FILA DI GRUPPI OTTICI, e nel ripiego e' una lista.
+   Nell'esperienza il faro e' il punto da cui si entra in un lavoro; qui non
+   c'e' nessun faro da attraversare, quindi resta la sostanza: quattro righe,
+   una accesa e tre no. La riga accesa ha il filo ambra a sinistra, che e' lo
+   stesso segno con cui la rotaia marca il tempo in cui si e'. */
+.statica__ottiche {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  border-top: 1px solid rgba(150, 175, 210, 0.12);
+}
+
+.statica__ottiche li {
+  display: grid;
+  grid-template-columns: 3.4em 1fr auto;
+  gap: 14px;
+  align-items: baseline;
+  padding: 15px 0 15px 14px;
+  border-bottom: 1px solid rgba(150, 175, 210, 0.12);
+  border-left: 2px solid transparent;
+  color: rgba(242, 240, 234, 0.34);
+  font-size: clamp(13px, 1.7vw, 15px);
+}
+
+.statica__ottiche li.e-acceso {
+  border-left-color: var(--accento);
+  color: rgba(242, 240, 234, 0.92);
+}
+
+.statica__codice {
+  font-family: var(--tipoMisura);
+  font-size: 0.86em;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.statica__nome { letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+
+.statica__stato {
+  font-size: 0.82em;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: 0.62;
+  text-align: right;
+}
+
+/* ------------------------------------------------------------- il contatto */
+
+.statica__contatto {
+  font-family: var(--tipoMisura);
+  font-size: clamp(15px, 2.4vw, 20px) !important;
+  color: rgba(242, 240, 234, 0.86) !important;
+  letter-spacing: 0.02em;
+}
+
+.statica__contatto a {
+  color: var(--bianco);
+  text-decoration: none;
+  /* LA SOTTOLINEATURA E' LA STRADA, ed e' l'unica citazione del finale
+     dell'esperienza che questa pagina si concede: una riga ambra sotto
+     l'indirizzo, che nella versione completa e' la linea di mezzeria che si e'
+     appena finito di guidare. Qui non si trasforma in niente — non c'e'
+     niente in cui trasformarsi — ma il segno e' lo stesso. */
+  border-bottom: 1px solid var(--accento);
+  padding-bottom: 3px;
+  transition: border-color .2s ease, color .2s ease;
+}
+.statica__contatto a:hover,
+.statica__contatto a:focus-visible { border-bottom-color: var(--bianco); }
+
+/* -------------------------------------------------- il pulsante di rientro */
+
+.statica__forza {
+  margin-top: clamp(40px, 8vh, 80px) !important;
+  padding-top: 22px;
+  border-top: 1px solid rgba(150, 175, 210, 0.12);
+  font-size: 13px !important;
+}
+
+.statica__forza button {
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 234, 0.82);
+  background: none;
+  border: 1px solid rgba(216, 162, 88, 0.34);
+  border-radius: 999px;
+  padding: 11px 22px;
+  cursor: pointer;
+  transition: border-color .2s ease, color .2s ease;
+}
+.statica__forza button:hover,
+.statica__forza button:focus-visible {
+  border-color: var(--accento);
+  color: var(--bianco);
+}
+
+.statica__perche {
+  display: block;
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgba(242, 240, 234, 0.38);
+}
+
+/* IL FUOCO DA TASTIERA SI VEDE, E DAPPERTUTTO.
+   Il contorno di serie del browser su un fondo quasi nero e' quasi invisibile,
+   e toglierlo senza rimpiazzarlo — che e' quello che fa il novanta per cento
+   dei reset — su un sito dove l'unica navigazione alternativa e' la tastiera
+   significa renderlo inutilizzabile. */
+:focus-visible {
+  outline: 2px solid var(--accento);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+
+/* ============================================================== IL FINALE */
+
+/* LA STRADA DIVENTA IL CONTATTO.
+   Il perche' di ogni scelta sta in `src/ui/Finale.ts`; qui ci sono le misure.
+
+   IL BLOCCO E' CENTRATO SULLA RIGA, non sulla pagina, ed e' la ragione per cui
+   e' costruito come una griglia di tre righe con quella di mezzo alta zero: la
+   riga cade esattamente a meta' altezza della finestra — dove la camera in
+   bolla mette l'orizzonte — e la domanda e l'invito le stanno sopra e sotto
+   senza spostarla. Impaginandolo in modo normale, un capoverso in piu' nella
+   domanda avrebbe spostato la riga di venti pixel e lo scambio con WebGL si
+   sarebbe visto. */
+.finale {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  /* LA RIGA DI MEZZO E' ALTA ZERO, E LA PRIMA E' ALTA QUANTO L'ORIZZONTE.
+     `--orizzonte` lo scrive `core/Esperienza.ts` a ogni fotogramma del finale,
+     proiettando il punto di fuga vero della strada. Non e' un valore tarato:
+     e' la stessa geometria che disegna la riga dentro WebGL, consegnata al
+     foglio di stile perche' ne disegni una identica sopra. Il 50% di scorta
+     serve solo al primo fotogramma, prima che l'esperienza abbia scritto. */
+  grid-template-rows: var(--orizzonte, 50%) 0 1fr;
+  align-items: center;
+  justify-items: center;
+  padding: 0 var(--margine);
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+}
+
+.finale.e-vivo { opacity: 1; }
+/* il collegamento e' l'unica cosa cliccabile, e solo quando c'e' */
+.finale.e-vivo a.finale__invito { pointer-events: auto; }
+
+/* --------------------------------------------------------------- la riga */
+
+/* LA RIGA E' LARGA TUTTA LA FINESTRA E SI APRE CON `scaleX`, non con `width`.
+   `width` fa rifare l'impaginazione a ogni fotogramma, e questo elemento sta
+   sopra una scena che sta gia' usando tutto il budget: sarebbe l'unico pezzo
+   del finale a costare qualcosa. `scaleX` sta sul compositore e non tocca
+   niente.
+
+   `transform-origin: center` perche' la riga nasce dal punto di fuga, che sta
+   in mezzo — si apre da li' verso i due bordi, come si aprirebbe una strada
+   percorsa al contrario. */
+.finale__riga {
+  grid-row: 2;
+  align-self: center;
+  width: 100%;
+  height: 1px;
+  transform-origin: center;
+  transform: scaleX(0);
+  /* SFUMA AI DUE ESTREMI e non finisce netta contro il bordo dello schermo.
+     Una riga che tocca il bordo dice «questo elemento e' largo quanto la
+     finestra»; una che si spegne prima dice «questa cosa continua oltre», che
+     e' l'unica delle due letture compatibile con una strada. */
+  background: linear-gradient(to right,
+    rgba(216, 162, 88, 0) 0%,
+    rgba(216, 162, 88, 0.92) 22%,
+    rgba(255, 226, 178, 1) 50%,
+    rgba(216, 162, 88, 0.92) 78%,
+    rgba(216, 162, 88, 0) 100%);
+  /* l'alone e' l'unica sorgente rimasta nel fotogramma, e sta sotto la riga
+     invece che intorno: una riga con un alone simmetrico e' un neon, una con
+     l'alone che scende e' una luce che illumina un piano */
+  box-shadow: 0 1px 26px 1px rgba(216, 162, 88, 0.28), 0 0 3px rgba(255, 226, 178, 0.5);
+}
+
+/* NEL RIPIEGO IL FINALE NON ESISTE: non c'e' nessuna strada che possa
+   diventare una riga, e la stessa domanda sta gia' nel documento, in una
+   sezione con un titolo vero. */
+:root[data-ripiego] .finale { display: none; }
+
+
+/* ------------------------------------------------------ l'interruttore lingua */
+
+.testa__lingua {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  /* lo stacco dal menu e' piu' largo dello spazio fra le voci: sono due
+     famiglie diverse — quelle portano da qualche parte, questo cambia questa
+     pagina — e la distanza e' l'unico modo di dirlo senza un separatore */
+  margin-left: clamp(6px, 1.1vw, 16px);
+  color: rgba(242, 240, 234, 0.28);
+}
+
+.testa__lingua button {
+  font: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(242, 240, 234, 0.55);
+  transition: color .18s ease;
+}
+.testa__lingua button:hover { color: rgba(242, 240, 234, 0.9); }
+/* quella attiva non e' cliccabile: un pulsante che non fa niente e' peggio di
+   un pulsante che non c'e' */
+.testa__lingua button[aria-current='true'] {
+  color: var(--bianco);
+  cursor: default;
+}
+
+/* SOTTO I 400 PIXEL L'INTERRUTTORE VA A CAPO, e non si stringe.
+   Misurato: a 390 la pastiglia del menu arriva a 388 su 390 — due pixel, cioe'
+   gia' un caso limite — e a 360 «EN» finisce sedici pixel oltre il bordo, a
+   320 ne escono quattro voci su cinque.
+   La correzione ovvia sarebbe stringere il corpo e la spaziatura finche' ci
+   sta. E' quella sbagliata: a 320 pixel servirebbe un corpo da otto, cioe'
+   illeggibile, e si sposta soltanto il punto in cui si rompe. Il menu va a
+   capo — la pastiglia diventa di due righe, come quella del nome accanto, che
+   e' gia' di due righe da quando esiste la versione telefono. */
+@media (max-width: 720px) {
+  .testa__lingua { margin-left: 8px; gap: 4px; }
+}
+
+/* LA SOGLIA E' SCESA DA 400 A 340, e non e' un ritocco: e' che il menu ha
+   cambiato riga. Il ragionamento qui sopra e' giusto e resta valido — a 360
+   «EN» finiva sedici pixel oltre il bordo — ma era misurato quando la
+   pastiglia del menu divideva la riga con quella del nome e aveva centottanta
+   pixel. Da quando il menu sta su una riga sua ne ha trecentocinquanta, e le
+   tre voci piu' la lingua ne chiedono duecento: a 390 ci stanno comodamente su
+   una riga.
+   La soglia e' salita da 340 a 380 perche' a 360 la pastiglia del NOME usciva
+   dallo schermo di tredici pixel — misurato, non stimato: da 32 a 373 su una
+   finestra larga 360. Il nome e il ruolo su una riga sola chiedono 341 pixel, e
+   a 360 non ce ne sono. Sotto i 380 il ruolo torna sotto il nome. */
+@media (max-width: 380px) {
+  .testa nav.vetro { flex-wrap: wrap; row-gap: 3px; justify-content: flex-end; }
+  /* CINQUE PIXEL, e sono tutta la differenza fra una riga e due.
+     A 360 i quattro luoghi ne chiedono 282 e il loro contenitore ne ha 277.
+     Non si tocca il corpo — dodici pixel sono gia' il minimo per una cosa che
+     si tocca col dito — si toglie l'aria: lo spazio fra le voci da sette a
+     quattro, e i venti pixel di rientro a sinistra scendono a dodici, che sono
+     ancora abbastanza per l'etichetta ruotata della rotaia.
+     Sono numeri piccoli e una misura precisa: e' il modo in cui si guadagna
+     spazio senza rendere niente meno leggibile. */
+  .comandi { left: calc(var(--margine) + 12px); }
+  .comandi__riga:last-child { gap: 4px; }
+  .comandi__vista { padding: 15px 1px; }
+  /* e sotto i 340 anche il ruolo torna sotto il nome: `nowrap` su
+     «FREELANCE CREATIVE DEVELOPER» fa una pastiglia larga 330 pixel, che a 320
+     esce dallo schermo — misurato, la parola DEVELOPER era tagliata a meta'.
+     Qui la riga in piu' costa meno di una parola tagliata. */
+  .testa__ruolo { display: inline; margin-left: .7em; white-space: normal; }
+  .testa__lingua {
+    flex-basis: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}
+
+
+/* ========================================================== IL CONTROLLO */
+
+/* IL FINALE: la volante ferma l'automobile e chiede i documenti.
+   Il perche' di ogni atto sta in `src/ui/Controllo.ts`; qui ci sono le misure.
+
+   TUTTO E' PILOTATO DA `q` E NIENTE E' UNA TRANSIZIONE CSS. E' il vincolo che
+   rende questo finale una dimostrazione e non un effetto: risalendo lo
+   scorrimento la scena si riavvolge, la volante torna indietro e il cruscotto
+   si riaccende. Con una transizione il ritorno sarebbe uno stato diverso
+   dall'andata, e un finale percorribile in un verso solo lo puo' fare anche un
+   filmato. */
+.controllo {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 0 var(--margine);
+  pointer-events: none;
+  opacity: 0;
+  text-align: center;
+}
+.controllo.e-vivo { opacity: 1; }
+.controllo.e-vivo a.controllo__scrivi { pointer-events: auto; }
+
+/* ------------------------------------------------------------- la parola */
+
+/* «DOCUMENTI.» — E LA VOCE E' TUTTA LA DIFFERENZA.
+   C'era, in questo stesso posto, un «Dove andiamo da qui?» a corpo ottanta:
+   titolo umanista, morbido, centrato. E' stato bocciato in tre parole — «la
+   scritta piu' brutta» — e la bocciatura era giusta: era un manifesto messo in
+   mezzo a un'esperienza.
+   Questa e' della stessa grandezza e fa il mestiere opposto. Maiuscolo,
+   monospaziato, spaziato larghissimo, una parola sola: non parla a chi legge,
+   INTIMA. La spaziatura si stringe mentre arriva — una cosa che si mette a
+   fuoco — ed e' l'unico movimento che si concede. */
+.controllo__parola {
+  /* e l'intimazione della pattuglia, che e' l'altra insegna del sito */
+  font-family: var(--tipoInsegna);
+  grid-area: 1 / 1;
+  margin: 0;
+  /* LA PAROLA SCENDE SUL PANNELLO, e non e' una rifinitura: e' il difetto piu'
+     grosso che restava nel finale.
+     Il commento in «ui/Quadro.ts» lo dichiarava gia' — «nella finestra morta,
+     sullo schermo, resta il pannello vuoto e acceso: e' li' che sopra compare
+     la parola» — ma la parola stava dove la mette la griglia di `.controllo`,
+     cioe' al centro della finestra, e il pannello comincia piu' sotto. Nel
+     provino del beat si vedeva il risultato: l'intimazione sospesa a mezz'aria
+     e, sotto di lei, mezzo schermo di cornice vuota. Un vuoto grande cosi' non
+     e' una pausa, e' un buco.
+     Adesso la parola si porta al centro VERO del pannello, misurato: cima piu'
+     mezza altezza, meno il cinquanta per cento da cui parte la griglia. Le due
+     variabili le scrive `core/Esperienza.ts` proiettando il pannello a ogni
+     fotogramma, quindi il conto resta giusto anche quando il pannello si
+     ritira o cambia il formato dello schermo — che e' precisamente il motivo
+     per cui qui non c'e' nessun numero scritto a mano. */
+  transform: translateY(calc(
+    (var(--quadroCimaVh, 52) + var(--quadroAltezzaVh, 44) * 0.5 - 50) * 1vh));
+  font-family: var(--tipoMisura);
+  /* IL CORPO SI ADATTA ALLA FRASE, e prima era una misura sola.
+     Andava bene per una parola di nove caratteri; «WHAT ARE YOU CARRYING?» ne
+     ha ventuno e a settantasei pixel con questa spaziatura non ci sta su nessuno
+     schermo. `--lunga` la scrive `ui/Controllo.ts` quando compone la frase: e'
+     il numero di caratteri, e il corpo ci si divide.
+     Non e' un ripiego per una traduzione lunga: e' che questa riga e' l'unica
+     del sito il cui contenuto puo' cambiare di lunghezza — e una misura fissa
+     su un contenuto variabile e' una promessa che prima o poi si rompe. */
+  font-size: clamp(20px, min(6.2vw, 9vh) * (11 / max(var(--lunga, 11), 11)), 76px);
+  font-weight: 600;
+  /* LA SPAZIATURA la scrive `ui/Controllo.ts` come NUMERO in `--parolaSpazio`,
+     e a trasformarlo in em e' questa riga: cosi' su uno schermo stretto la
+     media query qui sotto puo' ridurla, cosa che con uno stile in linea sarebbe
+     stata impossibile. Si stringe mentre la parola entra — una spaziatura che
+     si chiude e' un'intimazione che si mette a fuoco. */
+  letter-spacing: calc(var(--parolaSpazio, 0.30) * 1em);
+  color: var(--bianco);
+  opacity: 0;
+  /* lo spazio a destra compensa la spaziatura dell'ultimo carattere, se no la
+     parola risulta spostata a sinistra di mezza lettera */
+  padding-left: 0.5em;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.9);
+}
+
+/* ------------------------------------------------------------- lo scanner */
+
+/* LA RIGA CHE LEGGE. Attraversa la fascia del quadro una volta sola, dall'alto
+   al basso, mentre la scheda dei lavori e' gia' scritta. E' l'unico momento in
+   cui il sito si comporta come una macchina che verifica invece che come una
+   che racconta — e dura quattro decimi. */
+/* LA RIGA CHE LEGGE, E ATTRAVERSA IL PANNELLO — non il centro dello schermo.
+ *
+ * Nella prima stesura era centrata in verticale e passava trenta punti
+ * percentuali sopra le credenziali: attraversava il vuoto, e il verdetto
+ * arrivava senza che niente fosse stato controllato.
+ *
+ * Adesso nasce sul bordo alto del quadro strumenti e scende fino a quello
+ * basso. Le due coordinate le scrive `core/Esperienza.ts` a ogni fotogramma
+ * proiettando il pannello vero — non sono valori tarati, sono la stessa
+ * geometria che disegna il pannello, consegnata al foglio di stile. E' la
+ * stessa ricetta di `--orizzonte`, per la stessa ragione: una riga del
+ * documento che deve stare esattamente sopra un oggetto in tre dimensioni non
+ * puo' indovinare dove sta. L'altezza arriva senza unita' e si moltiplica per
+ * `1vh` in `ui/Controllo.ts`: una percentuale dentro `translateY` si riferisce
+ * all'altezza dell'ELEMENTO, che qui e' due pixel.
+ *
+ * NASCE STRETTA E SI ALLARGA. Una riga che compare gia' lunga e' un elemento
+ * che si accende; una che si apre dal centro e' un raggio che sta partendo. Il
+ * secondo lo fa una macchina che legge. */
+.controllo__scanner {
+  position: fixed;
+  left: 4%;
+  right: 4%;
+  top: var(--quadroCima, 54%);
+  height: 2px;
+  opacity: 0;
+  transform-origin: center;
+  background: linear-gradient(to right,
+    rgba(216, 162, 88, 0) 0%,
+    rgba(255, 226, 178, 0.95) 50%,
+    rgba(216, 162, 88, 0) 100%);
+  box-shadow: 0 0 26px 3px rgba(216, 162, 88, 0.50);
+}
+
+/* --------------------------------------------------------------- l'esito */
+
+/* IL VERDETTO HA IL DOPPIO DEL PESO DI PRIMA.
+   Non grande come DOCUMENTI — l'intimazione deve restare la piu' forte — ma
+   nemmeno una didascalia: e' la risposta alla domanda che ha tenuto in
+   sospeso per cinque secondi, e passava come una riga di stato. */
+/* E ADESSO E' UN TIMBRO, PERCHE' UNA RIGA D'AMBRA NON BASTAVA.
+ *
+ * Il fermo immagine del committente lo dice meglio di qualunque descrizione:
+ * «TUTTO IN REGOLA» era una riga d'ambra spaziata larghissima appoggiata in
+ * mezzo al fotogramma piu' affollato di tutto il sito — il carosello dei
+ * lavori sopra, il cruscotto acceso sotto, la strada e la volante dietro. Il
+ * corpo c'era, il colore c'era, e non arrivava lo stesso, per una ragione che
+ * non e' di dimensione: NON AVEVA UN PIANO SUO. Un testo che galleggia sopra
+ * tre livelli tutti accesi si legge come una didascalia di quei livelli, e una
+ * didascalia non e' un verdetto.
+ *
+ * Quattro cose, e nessuna e' un effetto:
+ *
+ *  1. IL PIANO. Uno pseudo-elemento con una sfumatura scura che abbassa il
+ *     fondo dietro la parola e si spegne prima di essere un riquadro. E' lo
+ *     stesso mestiere — e lo stesso disegno — dello scrim di `.spina::before`
+ *     e di quello di `.testa::before`: non si deve percepire come elemento, si
+ *     deve percepire solo che il testo si stacca. Se lo si nota, e' troppo.
+ *     Da desktop la sua coda arriva a sfiorare il bordo dei pannelli sopra e
+ *     quello del cruscotto sotto, e va bene cosi': li abbassa, non li copre —
+ *     e' proprio il lavoro per cui esiste.
+ *  2. I DUE FILETTI. Chiudono la parola sopra e sotto e ARRIVANO PRIMA di lei
+ *     (i tempi stanno in `ui/Controllo.ts`). Hanno la stessa sfumatura e lo
+ *     stesso alone di `.controllo__scanner`, e si aprono dal centro con lo
+ *     stesso gesto: sono quella riga che finisce di leggere e si deposita. E'
+ *     l'unico modo perche' il verdetto sia la CONCLUSIONE del controllo e non
+ *     la riga che viene dopo.
+ *  3. IL CORPO SALE dal vecchio tetto di 46px, e la spaziatura scende da 0,24
+ *     a 0,17em: a corpo grande una spaziatura da etichetta si legge lettera
+ *     per lettera invece che come una parola sola. Resta comunque sotto
+ *     DOCUMENTI — l'intimazione deve restare la voce piu' forte del finale.
+ *  4. L'ALONE D'AMBRA, corto. E' l'unico bagliore narrativo del sito: qui
+ *     l'ambra non e' un colore d'accento, e' la luce che il timbro lascia.
+ */
+.controllo__esito {
+  /* QUANTO E' LARGA LA FESSURA IN CUI CI STA, misurato a 1200x750 sul
+     fotogramma acceso: fra il bordo basso dei pannelli del carosello e il
+     bordo alto del quadro strumenti (`--quadroCima`, 51,56%, cioe' 387px)
+     restano quarantacinque pixel, e le sole maiuscole del verdetto ne fanno
+     gia' quarantuno. Non c'e' un corpo che ci stia dentro insieme ai due
+     filetti, e rimpicciolire il verdetto finche' ci sta vuol dire tornare
+     alla riga che non arrivava. Quindi il timbro sborda — ma di poco e in
+     parti uguali sopra e sotto, che e' tutto il motivo dei numeri qui sotto:
+     centrato sulla finestra scendeva trenta pixel dentro il quadro e il
+     filetto di sotto cadeva sull'orologio del cruscotto. */
+  position: absolute;
+  /* DENTRO IL MARGINE TIPOGRAFICO, e non da bordo a bordo.
+     Con `left: 0; right: 0` il riquadro del verdetto si prendeva tutta la
+     larghezza della finestra anche dove non c'e' inchiostro, e sul telefono
+     finiva sopra `.rotaia__nome` — la sigla in verticale sul filo sinistro.
+     `strumenti/telefono_audit.mjs` l'ha vista subito («sovrapposti
+     .rotaia__nome e .controllo__esito per 15x30»), ed era un difetto vero: due
+     testi che si toccano restano due testi che si toccano anche se uno dei due
+     e' vuoto in quel punto. Il margine della pagina esiste apposta. */
+  left: var(--margine);
+  right: var(--margine);
+  /* AL CENTRO, A MENO CHE IL CRUSCOTTO NON SALGA FIN LI'.
+     `bottom` piu' `translateY(50%)` vuol dire «il CENTRO del timbro sta a
+     tanto dal fondo», ed e' la forma che permette di scegliere fra due
+     posizioni con un `max()` solo.
+     Il primo termine e' la meta' della finestra. Il secondo appoggia il bordo
+     basso del timbro al quadro strumenti misurato, come fa
+     `.controllo__invito`: `+ 0.53em + 3px` e' mezza altezza del timbro (due
+     filetti da 3px, due spazi da 0,12em e una riga da 0,82em), che serve per
+     passare da «dov'e' il bordo» a «dov'e' il centro».
+     Vince il piu' alto dei due, e cambia davvero: da desktop il quadro arriva
+     al 51,6% e fra i pannelli del carosello e il suo bordo restano
+     quarantacinque pixel, quindi comanda il cruscotto; su un telefono il
+     quadro sta al 65,7% e sopra di lui c'e' mezzo schermo vuoto, quindi
+     comanda il centro. Con il solo ancoraggio il verdetto finiva schiacciato
+     sul cruscotto del telefono avendo duecento pixel liberi sopra la testa. */
+  bottom: max(50%, calc(100% - var(--quadroCima, 52%) - 1.2vh + 0.53em + 3px));
+  transform: translateY(50%);
+  /* filetto, parola, filetto: tre righe incolonnate, che e' la forma di un
+     timbro. Il piano scuro non e' una quarta riga ma uno pseudo-elemento
+     dietro, se no la sua altezza entrerebbe nel riquadro con cui
+     `strumenti/telefono_audit.mjs` cerca le sovrapposizioni e il verdetto
+     risulterebbe grande il triplo di quello che si vede. */
+  display: grid;
+  justify-items: center;
+  gap: 0.12em;
+  margin: 0;
+  font-family: var(--tipoMisura);
+  /* il tetto era 46px e la misura era legata solo a `4vw`: su uno schermo
+     largo e basso il verdetto restava piccolo proprio dove il fotogramma e'
+     piu' pieno. Adesso guarda tutte e due le dimensioni, come il resto della
+     tipografia di questo foglio. */
+  font-size: clamp(22px, min(5.2vw, 7.6vh), 64px);
+  font-weight: 600;
+  letter-spacing: 0.17em;
+  color: var(--accento);
+  opacity: 0;
+  /* quanto e' entrata la parola dentro il timbro, e quanto sono aperti i due
+     filetti: li scrive `ui/Controllo.ts` a ogni fotogramma. Qui ci sono solo
+     i valori di riposo, per il fotogramma prima che il TypeScript parta. */
+  --esitoParola: 0;
+  --esitoFiletto: 0.05;
+}
+
+/* IL PIANO. Un'ellisse larga quanto il blocco e alta tre volte e mezzo il
+   corpo: le code sfumate arrivano ai vicini gia' quasi spente, quindi li
+   abbassano invece di coprirli.
+   Un rettangolo con un fondo pieno avrebbe risolto la leggibilita' e rotto
+   tutto il resto: sarebbe stata una targhetta appoggiata sulla scena, cioe' il
+   difetto gia' corretto tre volte in questa pagina.
+   Due sfumature sovrapposte, e l'ordine conta: l'ambra sta SOPRA lo scuro,
+   se no lo scuro se la mangia. */
+.controllo__esito::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  /* `100%` E NON `150vw`, ed e' una correzione che ha trovato l'audit del
+     telefono. Con una larghezza in `vw` il piano sbordava dal proprio blocco
+     — 585 pixel dentro un riquadro da 390 — e quello sbordo entra nello
+     `scrollWidth` del `<p>`, che e' esattamente il numero con cui si
+     riconosce un testo tagliato: «serve 488 ha 390». Nessun testo era
+     tagliato, ma un metro che grida per una sfumatura smette di essere letto.
+     Legandola al blocco il piano e' sempre il piu' largo che ci sta, e non
+     sborda mai da nessuna parte. */
+  width: min(100%, 25em);
+  height: 3.4em;
+  transform: translate(-50%, -50%);
+  /* IL PIANEROTTOLO TIENE FINO AL 40 PER CENTO, e la ragione e' che la parola
+     e' larga. Con la sfumatura che comincia a scendere subito, le lettere in
+     fondo — la T di TUTTO e la A di REGOLA — restavano appoggiate su un fondo
+     gia' quasi chiaro mentre il centro era scuro: il verdetto si staccava a
+     meta'. Un timbro non ha un centro piu' scuro dei bordi. */
+  background:
+    radial-gradient(26% 40% at 50% 50%,
+      rgba(216, 162, 88, 0.26) 0%,
+      rgba(216, 162, 88, 0.10) 48%,
+      rgba(216, 162, 88, 0) 100%),
+    radial-gradient(50% 50% at 50% 50%,
+      rgba(4, 6, 12, 0.90) 0%,
+      rgba(4, 6, 12, 0.80) 40%,
+      rgba(4, 6, 12, 0.52) 66%,
+      rgba(4, 6, 12, 0.20) 85%,
+      rgba(4, 6, 12, 0) 100%);
+}
+
+/* I DUE FILETTI — la riga dello scanner che si e' depositata.
+   Il colore, l'alone e le due code trasparenti vengono da
+   `.controllo__scanner`: se fossero diversi sarebbero due oggetti diversi, e
+   tutto il senso del gesto sta nel fatto che sia lo STESSO.
+   Cambia una cosa sola, ed e' la ragione per cui prima non si vedevano. Lo
+   scanner ha il punto luminoso solo a meta' — e' una riga che si muove, e la
+   luce ce l'ha dove sta passando. Un filetto fermo che si spegne dal centro in
+   fuori resta un fiato, e nel primo provino i due filetti erano due ombre
+   sotto la scritta invece che i suoi bordi. Qui la parte accesa e' un
+   PIANEROTTOLO che tiene dal 20 all'80 per cento e sfuma solo alle estremita':
+   e' la stessa riga dopo che si e' fermata, e una riga ferma non ha piu' un
+   punto in cui sta passando. */
+.controllo__filetto {
+  /* niente `100%`: la larghezza si lega al corpo della parola, cosi' il
+     timbro resta proporzionato a qualunque misura, e il tetto in `vw` tiene
+     i due filetti dentro lo schermo anche sul telefono */
+  width: min(74vw, 13em);
+  /* un pixel piu' dello scanner: sotto la scritta piu' pesante del finale due
+     pixel si leggono come un bordo di qualcos'altro */
+  height: 3px;
+  transform: scaleX(var(--esitoFiletto, 0.05));
+  background: linear-gradient(to right,
+    rgba(216, 162, 88, 0) 0%,
+    rgba(255, 226, 178, 0.94) 20%,
+    rgba(255, 226, 178, 0.94) 80%,
+    rgba(216, 162, 88, 0) 100%);
+  box-shadow: 0 0 20px 1px rgba(216, 162, 88, 0.52);
+}
+
+/* LA PAROLA HA UNA SUA OPACITA' perche' entra dopo il timbro: il perche' e la
+   matematica stanno in `ui/Controllo.ts`.
+   `line-height: 1` toglie l'interlinea che una riga sola non usa e che qui
+   diventerebbe aria fra la parola e i due filetti — un timbro con i bordi
+   lontani dalla scritta e' un riquadro, non un timbro.
+   Lo spazio a destra della spaziatura si compensa qui e non sul `<p>`: sul
+   `<p>` avrebbe spostato anche i due filetti, che sono simmetrici. */
+.controllo__verdetto {
+  display: block;
+  /* SOTTO L'UNO, e il numero non e' preso a caso: la frase e' tutta in
+     maiuscolo — «TUTTO IN REGOLA», «ALL IN ORDER» — quindi sotto la linea di
+     base non scende niente e l'interlinea normale sarebbe sedici pixel di aria
+     regalata dentro un riquadro che ne ha quarantacinque in tutto. 0,82 e'
+     ancora sopra l'altezza delle maiuscole di Switzer: stringe la scatola
+     senza tagliare le lettere. */
+  line-height: 0.82;
+  padding-left: 0.17em;
+  opacity: var(--esitoParola, 0);
+  /* alone CORTO, in ambra: e' la luce che il timbro lascia sul documento. La
+     seconda ombra e' quella nera di sempre, che e' quella che stacca. */
+  text-shadow: 0 0 0.34em rgba(216, 162, 88, 0.50), 0 2px 30px rgba(0, 0, 0, 0.9);
+}
+
+/* -------------------------------------------------------------- l'invito */
+
+/* E QUI LA VOCE TORNA QUELLA DI CASA. Occhiello ambra, domanda umanista su due
+   righe, invito monospaziato: e' la stessa forma dei sei tempi precedenti.
+   Dopo cinque secondi in cui il sito ha parlato come una pattuglia, tornare
+   alla propria voce e' il segnale che il controllo e' finito. */
+/* IL BLOCCO SALE, e la misura viene da un difetto visto nel provino: con
+   l'invito centrato in verticale, «SCRIVIMI» cadeva esattamente sul bordo
+   alto del quadro strumenti e si sovrapponeva all'ora. Il quadro si prende la
+   meta' bassa dello schermo; questo blocco deve stare tutto sopra. */
+.controllo__invito {
+  /* NON PIU' AL CENTRO CON UN MARGINE A OCCHIO: ANCORATO AL QUADRO VERO.
+     C'era `align-self: center` piu' `margin-bottom: 9vh`, e i nove punti erano
+     stati scelti guardando un provino da desktop. Sul telefono il cruscotto
+     occupa una fetta di schermo molto piu' alta — la fotografia dell'abitacolo
+     si ritaglia — e nove punti non bastano: nel provino del committente la
+     parola SCRIVIMI cadeva esattamente sopra l'orologio del quadro. «Questo e'
+     bruttissimo», ed era vero.
+     Il numero giusto non e' un altro numero: e' una misura. `--quadroCima` la
+     scrive `core/Esperienza.ts` a ogni fotogramma proiettando i vertici veri
+     del pannello, ed e' gia' quella che guida lo scanner. Ancorandoci il bordo
+     basso dell'invito, la distanza dal cruscotto e' la stessa su qualunque
+     schermo, e resta giusta anche il giorno in cui il quadro cambia misura. */
+  position: absolute;
+  left: var(--margine);
+  right: var(--margine);
+  bottom: calc(100% - var(--quadroCima, 54%) + 3.2vh);
+  opacity: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.controllo__occhiello {
+  margin: 0;
+  font-size: clamp(10px, 1.4vw, 12px);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accento);
+}
+
+/* `.controllo__domanda` E' STATA TOLTA, e con lei un file di carattere.
+   Vestiva il blocco «Il prossimo progetto?», sparito quando SCRIVIMI e'
+   diventato l'ultima carta del carosello: da allora quella regola esisteva
+   solo nel foglio di stile e non aveva piu' nessun elemento addosso.
+   Non era innocua. Era l'UNICA cosa in tutto il sito a chiedere Clash Display
+   nel peso 500, quindi teneva in vita una dichiarazione `@font-face` e un file
+   da quindici kilobyte che nessuno avrebbe mai scaricato — e a chi legge il
+   foglio raccontava un pezzo di sito che non esiste piu'.
+   Trovata misurando: `strumenti/famiglie.mjs` elencava «Clash Display 500 —
+   unloaded», e da li' si e' risaliti. */
+
+/* E' L'AZIONE PER CUI ESISTE TUTTO IL SITO, e sembrava una didascalia.
+   Era a corpo dodici, grigio all'86%, con un filetto sottile: piu' piccolo
+   dell'occhiello che gli sta sopra. Dopo un minuto di esperienza, la sola cosa
+   che si chiede a chi guarda non puo' essere il testo meno visibile dello
+   schermo.
+   Adesso e' avorio pieno, un terzo piu' grande, e il filetto e' spesso due
+   pixel. Niente pastiglia e niente riquadro: un pulsante disegnato
+   tornerebbe a essere un'interfaccia appoggiata sulla scena, che e' il difetto
+   gia' corretto tre volte in questa pagina. */
+/* PIU' GRANDE ANCORA, ED E' LA TERZA VOLTA CHE CRESCE.
+   E' l'azione per cui esiste tutto il sito e per tre giri di seguito e' stata
+   letta come una didascalia: a corpo dodici, poi a quindici, e ancora «troppo
+   poca autorita' visiva». Adesso e' due terzi della domanda che gli sta sopra,
+   in avorio pieno, con il filetto spesso due pixel e la spaziatura larga.
+   Niente pastiglia e niente riquadro — un pulsante disegnato tornerebbe a
+   essere un'interfaccia appoggiata sulla scena, che e' il difetto gia'
+   corretto tre volte in questa pagina — ma nessuno puo' scambiarlo per testo. */
+.controllo__scrivi {
+  font-family: var(--tipoMisura);
+  /* E CRESCE ANCORA, PER LA QUARTA VOLTA. Dodici, quindici, diciassette,
+     adesso diciannove — e il filetto passa da due pixel a tre, in avorio pieno
+     invece che in ambra. La domanda sopra («Il prossimo progetto?») e' l'unica
+     cosa del fotogramma piu' grande di questa, ed e' giusto: e' lei che apre.
+     Ma fra una domanda e la risposta da dare non ci puo' essere questo
+     dislivello, se no la risposta sembra una didascalia della domanda.
+     Niente pastiglia e niente riquadro: un pulsante disegnato tornerebbe a
+     essere interfaccia appoggiata sulla scena. Deve essere inequivocabile che
+     e' la cosa da toccare adesso, e per dirlo bastano il corpo e il filetto. */
+  font-size: clamp(19px, 3.3vw, 31px);
+  font-weight: 700;
+  letter-spacing: 0.20em;
+  color: var(--bianco);
+  text-decoration: none;
+  border-bottom: 3px solid rgba(242, 240, 234, 0.92);
+  padding-bottom: 9px;
+  transition: color .2s ease, border-color .2s ease;
+}
+
+/* l'indirizzo sotto, per chi preferisce copiarlo */
+.controllo__posta {
+  margin: 14px 0 0;
+  font-family: var(--tipoMisura);
+  font-size: clamp(11px, 1.4vw, 13px);
+  letter-spacing: 0.06em;
+  color: rgba(242, 240, 234, 0.46);
+}
+/* la freccia si sposta di quattro pixel: e' l'unico movimento al puntatore
+   che questo sito si concede, ed e' su un collegamento — cioe' su una cosa
+   che al puntatore deve rispondere per forza */
+.controllo__scrivi span {
+  color: var(--accento);
+  margin-left: 7px;
+  display: inline-block;
+  transition: transform .22s cubic-bezier(.22,.61,.36,1);
+}
+.controllo__scrivi:hover span,
+.controllo__scrivi:focus-visible span { transform: translate(4px, -4px); }
+.controllo__scrivi:hover,
+.controllo__scrivi:focus-visible { color: var(--bianco); border-bottom-color: var(--bianco); }
+
+/* senza indirizzo l'invito e' spento, non finto: vedi `ui/Contatto.ts` */
+.controllo__scrivi--muto { color: rgba(242, 240, 234, 0.32); border-bottom-color: rgba(216, 162, 88, 0.30); }
+.controllo__scrivi--muto span { color: rgba(216, 162, 88, 0.32); }
+
+@media (max-width: 720px) {
+  .controllo__parola { font-size: clamp(22px, 9vw, 40px); }
+  /* IL VERDETTO SEGUE LA PAROLA ANCHE QUI, e senza questa riga non lo faceva.
+     `min(5.2vw, 7.6vh)` su un telefono verticale vince sempre con la
+     larghezza — 390px danno venti pixel — e il verdetto finiva al minimo
+     assoluto mentre DOCUMENTI stava a trentacinque. Su uno schermo stretto la
+     misura giusta la detta la larghezza da sola, ed e' due terzi di quella
+     dell'intimazione: quindici caratteri contro dieci. */
+  .controllo__esito { font-size: clamp(20px, 6vw, 30px); }
+}
+
+
+/* ============================================================ LA VETRINA */
+
+/* I LAVORI COME RIQUADRI, con una freccia per parte.
+   Il perche' sta in `src/ui/Vetrina.ts`; qui ci sono le misure.
+
+   STA SOPRA IL QUADRO STRUMENTI, non al centro dello schermo. Durante il
+   controllo il quadro mostra il dettaglio del lavoro scelto e la vetrina
+   mostra quanti sono: sono due meta' della stessa cosa e devono stare vicine.
+   Al centro ci passano, uno dopo l'altro, la parola e l'esito. */
+.vetrina {
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* PIU' IN ALTO DI QUANTO SEMBRI NECESSARIO, e la ragione e' un difetto visto
+     nel provino: a 52% i riquadri finivano esattamente dove passa il testo
+     centrato — «TUTTO IN REGOLA» prima e «Il prossimo progetto?» dopo — e le
+     due cose si sovrapponevano. La fascia centrale dello schermo appartiene
+     alla parola; la vetrina sta sopra, nella parte di parabrezza libera. */
+  bottom: 66%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.6vw, 22px);
+  padding: 0 var(--margine);
+  opacity: 0;
+  pointer-events: none;
+}
+.vetrina.e-viva { pointer-events: auto; }
+
+/* IL NASTRO E I RIQUADRI SONO SPARITI DA QUI, e sono in `scene/Vetrina3D.ts`.
+   Restano le due frecce.
+
+   E ADESSO STANNO AI BORDI DELLO SCHERMO, non a una distanza fissa dal centro.
+   Erano tenute a `42vw` l'una dall'altra, cioe' appena fuori dal pannello
+   scelto — misura presa guardando, quando i lavori erano due e l'arco era
+   piccolo. Con dieci lavori e i pannelli larghi il doppio, quella distanza
+   cadeva esattamente SOPRA il secondo pannello: la freccia destra si leggeva
+   come un bottone appiccicato su un'anteprima.
+
+   Ai bordi non c'e' niente da misurare e non c'e' niente che possa
+   ricoprirsi, qualunque cosa faccia l'arco: e' il posto dove le frecce di un
+   carosello stanno da sempre, e ci si arriva col pollice su un telefono. */
+.vetrina { gap: 0; justify-content: space-between; }
+
+/* --------------------------------------------------------------- le frecce */
+
+/* IN AMBRA, PERCHE' SONO ATTIVE — e prima erano azzurre.
+   Il bordo stava a `rgba(150, 185, 225, 0.22)`, cioe' l'azzurro freddo con cui
+   in questa pagina sono disegnate le cose che NON si toccano: le cornici, i
+   filetti, il vetro. In tutto il resto del sito quello che risponde e' ambra —
+   l'occhiello, la freccia di SCRIVIMI, il filetto dello scanner. Due comandi
+   veri vestiti da decorazione sono due comandi che nessuno prova a premere, e
+   in questo finale sono gli unici due che ci sono. */
+.vetrina__freccia {
+  flex: 0 0 auto;
+  /* QUARANTAQUATTRO E' IL MINIMO, non trentaquattro: sono due pulsanti, e su un
+     telefono sono anche gli unici due che servono a vedere gli altri nove
+     lavori. Un bersaglio da 40x34 si sbaglia una volta su tre.
+     Il minimo e' salito a quarantasei perche' il cerchio e' cresciuto, e non
+     scendera' mai sotto quarantaquattro: la riga qui sopra e' un vincolo, non
+     una misura di gusto. */
+  width: clamp(50px, 4.2vw, 60px);
+  height: clamp(50px, 4.2vw, 60px);
+  border-radius: 999px;
+  /* E ADESSO IL BORDO E' QUASI PIENO, perche' il fondo e' cambiato sotto.
+     Lo 0,68 di ambra bastava finche' dietro le frecce c'era la strada scura.
+     Poi i riquadri dei lavori sono diventati protagonisti — larghi due terzi
+     di schermo — e dietro le frecce ci e' finita l'ANTEPRIMA DI UN SITO, che
+     puo' benissimo essere bianca: quella di «EVERY INTERFACE HAS AN INSIDE» lo
+     e'. Su bianco un'ambra tenue non si attenua, sparisce.
+     Un comando che si vede su un contenuto e non su un altro non e' un
+     comando: e' una scommessa. Da qui i tre numeri alzati insieme — bordo piu'
+     spesso e quasi pieno, fondo quasi opaco, e un filo nero esterno che stacca
+     il cerchio da QUALUNQUE cosa gli capiti dietro, chiara o scura che sia. */
+  border: 1.5px solid rgba(234, 180, 106, 0.94);
+  /* IL FONDO E' PIU' FITTO, ed e' quello che da' lo stacco vero. Il carosello
+     passa sopra il parabrezza, quindi dietro le frecce ci puo' finire di tutto
+     — l'asfalto scuro come il riflesso chiaro di un lampeggiante. Un vetro al
+     46% lasciava passare tutte e due; al 66%, con un'ombra portata sotto, il
+     cerchio resta un cerchio qualunque cosa gli passi dietro. */
+  background: rgba(6, 9, 15, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 6px 22px rgba(4, 6, 12, 0.6);
+  color: rgb(248, 214, 158);
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .2s ease, color .2s ease, opacity .2s ease,
+    background-color .2s ease, box-shadow .2s ease;
+}
+.vetrina__freccia:hover:not(:disabled),
+.vetrina__freccia:focus-visible:not(:disabled) {
+  border-color: rgba(216, 162, 88, 0.95);
+  background: rgba(9, 13, 20, 0.80);
+  /* al puntatore la punta passa all'ambra chiara dello scanner, non al bianco:
+     il bianco l'avrebbe fatta uscire dalla tavolozza dei comandi */
+  color: rgb(255, 226, 178);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 6px 22px rgba(4, 6, 12, 0.6), 0 0 26px rgba(216, 162, 88, 0.42);
+}
+
+/* IL GALLONE, DUE SEGMENTI E UN VERTICE.
+ *
+ * Il perche' non sia piu' un carattere sta in `ui/Vetrina.ts`. Qui c'e' come
+ * si compone: una scatola grande esattamente quanto l'ingombro del segno, e
+ * due barre identiche che partono tutte e due dal vertice — una ruotata di 45
+ * gradi, l'altra di 135 — con l'origine della rotazione sul vertice stesso.
+ * Cosi' i due bracci si toccano davvero in un punto, invece di incrociarsi
+ * come farebbero due righe centrate e ruotate.
+ *
+ * La scatola e' 0,707 x 1,414 volte il braccio perche' e' la proiezione di un
+ * segmento a 45 gradi: non e' un numero scelto guardando, e' la ragione per
+ * cui il gallone resta centrato dentro il cerchio senza correzioni a mano.
+ * Il vertice sta sul bordo sinistro per la freccia indietro e su quello destro
+ * per la freccia avanti.
+ *
+ * `currentColor` e non un colore scritto: cosi' la punta segue il `color` del
+ * pulsante e la transizione al puntatore e' una sola, sul padre. */
+.vetrina__punta {
+  --braccio: 13px;
+  --spessore: 3px;
+  position: relative;
+  display: block;
+  width: calc(var(--braccio) * 0.7072);
+  height: calc(var(--braccio) * 1.4144);
+}
+.vetrina__punta::before,
+.vetrina__punta::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - var(--braccio));
+  width: var(--spessore);
+  height: var(--braccio);
+  /* le estremita' tonde: due barre a spigolo vivo che si incontrano a 90 gradi
+     lasciano una tacca visibile sul vertice, ed e' l'unico posto del segno
+     dove si guarda */
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: 50% 100%;
+}
+.vetrina__freccia--indietro .vetrina__punta::before,
+.vetrina__freccia--indietro .vetrina__punta::after { left: calc(var(--spessore) / -2); }
+.vetrina__freccia--indietro .vetrina__punta::before { transform: rotate(45deg); }
+.vetrina__freccia--indietro .vetrina__punta::after { transform: rotate(135deg); }
+.vetrina__freccia--avanti .vetrina__punta::before,
+.vetrina__freccia--avanti .vetrina__punta::after { left: calc(100% - var(--spessore) / 2); }
+.vetrina__freccia--avanti .vetrina__punta::before { transform: rotate(-45deg); }
+.vetrina__freccia--avanti .vetrina__punta::after { transform: rotate(-135deg); }
+/* SPENTA E NON NASCOSTA agli estremi: una freccia che sparisce sposta le
+   caselle di quaranta pixel proprio mentre le si sta guardando */
+.vetrina__freccia:disabled { opacity: 0.28; cursor: default; }
+
+@media (max-width: 720px) {
+  .vetrina { bottom: 66%; gap: 6px; }
+  .vetrina__nastro { --casella: clamp(74px, 24vw, 110px); width: calc(var(--passo) * 2.4); }
+}
+
+
+/* ============================================================== IL LAMPO */
+
+/* LA LUCE DELLA PATTUGLIA ENTRA DAI BORDI, e non e' un velo sopra la pagina.
+ *
+ * La differenza e' tutta qui. Un rettangolo colorato a schermo intero con
+ * `mix-blend-mode` avrebbe tinto anche la strada — che pero' il lampeggiante
+ * ce l'ha gia', scritto dentro il suo shader — e il risultato sarebbe stato il
+ * doppio della dose nel posto sbagliato: piatto al centro, dove la scena e'
+ * viva, e assente ai bordi, dove l'interfaccia e' ferma.
+ *
+ * Un'ombra INTERNA fa l'opposto: e' forte contro il perimetro e si spegne
+ * verso il centro. E' quello che fa una luce che arriva da fuori — dalla coda
+ * dell'occhio, dai finestrini laterali, dallo specchietto — ed e' la ragione
+ * per cui bastano due battute perche' il cervello metta un'automobile dietro
+ * senza averla vista.
+ *
+ * IL COLORE E L'INTENSITA' LI SCRIVE `ui/Controllo.ts` a ogni fotogramma,
+ * dallo STESSO battito dello shader della strada e delle due sorgenti sul
+ * tetto della volante. Tre luci con tre orologi si sfaserebbero, e uno
+ * sfasamento di un fotogramma su un lampeggiante si vede benissimo. */
+.lampo {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  /* LA SFOCATURA E' MENO DI META' DI QUANTA NE AVEVO MESSA.
+     Con 220 pixel di sfocatura e 40 di allargamento, su un fotogramma da
+     milleduecento la luce arrivava al centro e la pagina diventava una lastra
+     rossa a ogni battuta — che e' precisamente l'effetto discoteca da evitare.
+     Una luce che entra da fuori si spegne nei primi due decimi di schermo: se
+     arriva in mezzo non e' piu' una luce laterale, e' un filtro. */
+  box-shadow:
+    inset 0 0 clamp(50px, 7vw, 110px) clamp(2px, 0.6vw, 12px) var(--lampoLuce, transparent),
+    inset 0 0 clamp(14px, 1.8vw, 30px) 0 var(--lampoLuce, transparent);
+}
+
+/* E LA CORNICE DELLA PAGINA BATTE INSIEME.
+   E' il solo elemento del sito che sta sempre sul perimetro, quindi e' quello
+   che una luce laterale colpisce per primo. Cambiargli tinta per due decimi di
+   secondo e' cio' che lega l'interfaccia alla scena — senza, la pattuglia
+   illumina un render dentro una cornice che non se ne accorge. */
+.cornice__filo {
+  transition: none;
+}
+:root[data-lampo='1'] .cornice__filo::before,
+:root[data-lampo='1'] .cornice__filo {
+  border-color: var(--lampoBordo, rgba(216, 162, 88, 0.55));
+}
+
+/* ============================================================ IL BERSAGLIO DI «SCRIVIMI»
+
+   La carta del contatto e' disegnata dentro la scena in tre dimensioni (vedi
+   `scene/Vetrina3D.ts`), e nella scena non esistono pulsanti. Questo e' il suo
+   bersaglio: un rettangolo trasparente messo dove la carta si trova, acceso
+   solo quando la carta e' al centro.
+
+   LE MISURE VENGONO DALLA SCENA, non dall'occhio. Il pannello sta a 2,20 metri
+   dall'obiettivo, e' largo 0,96 e sta 0,13 sopra l'asse; il campo verticale
+   della camera e i due numeri danno una frazione di schermo che qui e'
+   riscritta in percentuali. Se in `Vetrina3D.ts` cambiano LARGO, ALTEZZA o
+   LONTANANZA, questo riquadro va rifatto — sta scritto anche li'.
+
+   E NON HA NESSUNO STILE VISIBILE. Deve essere invisibile: la carta la disegna
+   la scena, e due disegni della stessa cosa si sfasano al primo cambio di
+   formato. L'unica cosa che si vede e' il contorno del fuoco da tastiera, che
+   e' l'unico caso in cui questo elemento deve dire dove sta. */
+.vetrina__contatto {
+  /* OPACITA' ZERO, E NON «NESSUNO STILE» — la differenza l'ha decisa un
+     provino. Alla prima stesura questo elemento non aveva ne' fondo ne' bordo
+     ne' ombra, quindi «non poteva» disegnare niente: nel fotogramma c'era un
+     anello grigio sfocato in mezzo allo schermo, sopra la parola SCRIVIMI, e
+     spariva togliendo l'elemento. Non ho trovato quale proprieta' ereditata lo
+     producesse, e non serve trovarla: un bersaglio invisibile si dichiara
+     invisibile invece di dedurlo dall'assenza di stili.
+     `opacity: 0` non toglie il bersaglio — un elemento trasparente riceve i
+     clic esattamente come uno pieno — e chiude la questione per sempre,
+     qualunque cosa un giorno finisca ereditata qui dentro. */
+  opacity: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+  position: fixed;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(66vw, 118vh);
+  height: min(41vw, 74vh);
+  z-index: 6;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.vetrina__contatto[hidden] { display: none; }
+.vetrina__contatto:focus-visible {
+  /* e da tastiera torna visibile, ma solo per il contorno: chi arriva col
+     TAB deve vedere dove sta, e non e' un caso in cui l'invisibilita' aiuta */
+  opacity: 1;
+  outline: 2px solid var(--accento);
+  outline-offset: 6px;
+}
+
+/* ============================================================ L'ATTESA
+
+   I PRIMI TRE SECONDI SONO GIUDICATI COME TUTTO IL RESTO, e fino a ieri qui
+   non c'era niente: si arrivava su un rettangolo scuro e si aspettava. Su una
+   rete da telefono, misurato con `strumenti/carico.mjs`, il luogo compare a
+   3,5 secondi e l'automobile molto dopo — e in mezzo il sito non diceva che
+   stava succedendo qualcosa.
+
+   E' fatta con quello che il sito ha gia': l'ambra della rotaia, il carattere
+   delle misure, il filetto. Non e' un elemento nuovo — e' la rotaia, prima che
+   il viaggio cominci. */
+.attesa {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-content: center;
+  gap: 14px;
+  background: var(--fondo, #06080c);
+  /* si toglie di mezzo da sola, e con una transizione lunga: un indicatore
+     che sparisce di scatto si legge come uno sfarfallio, non come un sipario */
+  transition: opacity .55s ease .12s, visibility 0s linear .68s;
+}
+.attesa.e-finita { opacity: 0; visibility: hidden; pointer-events: none; }
+.attesa__parola {
+  margin: 0;
+  font-family: var(--tipoMisura);
+  font-size: clamp(11px, 1.3vw, 13px);
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  color: rgba(216, 162, 88, 0.86);
+  text-align: center;
+}
+.attesa__binario {
+  width: clamp(120px, 18vw, 220px);
+  height: 1px;
+  background: rgba(216, 162, 88, 0.18);
+  overflow: hidden;
+}
+/* IL FILO CRESCE DA SINISTRA e non pulsa: una barra che pulsa dice «sto
+   lavorando», una che avanza dice QUANTO MANCA — e qui si sa quanto manca,
+   perche' i tre passi sono traguardi veri e non un'animazione a vuoto. */
+.attesa__filo {
+  display: block;
+  height: 100%;
+  /* UNDICI PER CENTO SCRITTI NEL FOGLIO DI STILE, non messi dal codice.
+     Al primo provino il filo restava a zero per tutto il tempo che contava, e
+     la ragione e' la stessa per cui questo velo sta nel documento e non nella
+     scena: su una rete lenta il modulo JavaScript arriva DOPO: qualunque cosa
+     debba vedersi nei primi secondi non puo' dipendere da lui.
+     Un foglio di stile invece e' gia' li' — sono sette kilobyte, arrivano
+     insieme alla pagina — quindi lo stato di partenza si dichiara qui. */
+  width: 11%;
+  background: var(--accento, #d8a258);
+  transition: width .5s cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .attesa, .attesa__filo { transition-duration: .01s; }
+}
+
+/* ------------------------------------------------------------------------
+   IL CONTATORE E L'AVVISO DEL CAROSELLO
+
+   Nascono insieme alla presa — la rotella che, quando i lavori sono in campo,
+   muove il carosello invece della pagina (vedi `ui/Vetrina.ts`). La presa da
+   sola sarebbe scroll-jacking: chi scorre vede una pagina che non si muove, e
+   una pagina che non si muove si legge come guasta. Questi due elementi sono
+   la risposta, e sono di due tipi diversi apposta — uno permanente che dice
+   DOVE SI E', uno che compare una volta e dice COSA E' SUCCESSO.
+
+   STANNO IN FONDO, sotto il pannello, dove non c'e' niente altro. Era l'unica
+   fascia libera dello schermo nel finale: sopra ci sono la testata, la carta e
+   il pannello, e ognuno dei tre ha gia' litigato con gli altri due.
+   ------------------------------------------------------------------------ */
+.vetrina__conto {
+  position: fixed;
+  left: 50%;
+  /* DENTRO LA CORNICE, non sul suo filo: al primo giro il contatore stava a
+     26 px e la riga decorativa del bordo gliela passava sopra a meta'. Una
+     misura presa dal bordo della finestra invece che dal bordo del disegno. */
+  bottom: clamp(38px, 4.8vh, 52px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .45s ease;
+}
+.vetrina.e-viva .vetrina__conto { opacity: 1; }
+
+.vetrina__tacche { display: flex; align-items: center; gap: 6px; }
+/* UNA TACCA E' UNA BARRA, NON UN PUNTO. Undici punti in fila si contano male
+   — l'occhio li raggruppa a tre a tre e perde il conto — mentre undici barrette
+   verticali si leggono come una scala, e su una scala si vede a colpo d'occhio
+   a che gradino si e'. */
+.vetrina__tacca {
+  display: block;
+  width: 2px;
+  height: 9px;
+  border-radius: 2px;
+  background: rgba(196, 224, 252, 0.26);
+  transition: background .3s ease, height .3s ease;
+}
+.vetrina__tacca.e-passata { background: rgba(216, 162, 88, 0.52); }
+/* quella dove si e' non cambia solo colore ma anche ALTEZZA: il colore da solo
+   sparisce per chi non distingue l'ambra dall'azzurro, la forma no */
+.vetrina__tacca.e-qui {
+  height: 16px;
+  background: rgb(255, 226, 178);
+}
+
+.vetrina__cifre {
+  font: 600 clamp(10px, 0.86vw, 12px)/1 'Switzer', system-ui, sans-serif;
+  letter-spacing: 0.18em;
+  color: rgba(216, 162, 88, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
+.vetrina__avviso {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(70px, 8.4vh, 92px);
+  transform: translateX(-50%) translateY(6px);
+  margin: 0;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 162, 88, 0.34);
+  background: rgba(9, 13, 20, 0.82);
+  font: 500 clamp(11px, 0.9vw, 13px)/1 'Switzer', system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  color: rgba(238, 247, 255, 0.94);
+  white-space: nowrap;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .32s ease, transform .32s ease;
+}
+.vetrina.e-avvisa .vetrina__avviso {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* CHI CHIEDE MENO MOVIMENTO non riceve meno informazione: il contatore e
+   l'avviso restano, cambia solo che arrivano senza scivolare. */
+@media (prefers-reduced-motion: reduce) {
+  .vetrina__conto,
+  .vetrina__avviso,
+  .vetrina__tacca { transition-duration: .01ms; }
+  .vetrina.e-avvisa .vetrina__avviso { transform: translateX(-50%); }
+}
+
+/* ------------------------------------------------------------------------
+   L'INTIMAZIONE SU SCHERMO STRETTO
+
+   «COSA TRASPORTA?» sono quindici lettere, e la traduzione inglese ne ha
+   ventidue. Misurato da `strumenti/telefono_audit.mjs`: a 390 px di larghezza
+   la riga arrivava a 402, cioe' fuori dallo schermo di dodici pixel — e a 360
+   e a 430 lo stesso, il che dice che non e' un caso limite ma la regola.
+
+   Si stringe quello che si puo' stringere. La spaziatura scende a meno della
+   meta': su una riga di quindici lettere quella e' la voce piu' grossa del
+   conto, e una spaziatura larga su uno schermo stretto non fa monumentale, fa
+   sbordato. Il corpo scende di poco e non sotto i quindici pixel: sotto quella
+   soglia l'intimazione smette di essere un'intimazione.
+   ------------------------------------------------------------------------ */
+@media (max-width: 720px) {
+  .controllo__parola {
+    font-size: clamp(15px, min(5.6vw, 9vh) * (11 / max(var(--lunga, 11), 11)), 76px);
+    letter-spacing: calc(var(--parolaSpazio, 0.30) * 0.40em);
+    padding-left: calc(var(--parolaSpazio, 0.30) * 0.40em);
+  }
+}
+
+/* ------------------------------------------------------------------------
+   LA COREOGRAFIA D'INGRESSO — le stesse cose, non nello stesso istante.
+
+   IL DIFETTO, e l'hanno messo per primo due revisioni esterne che non si
+   parlano. Alla schermata zero erano in campo insieme: nome, menu, tre
+   anteprime, automobile, titolo, paragrafo, pulsante, filetto, peso del
+   modello, etichetta, selettore delle finiture, selettore dei luoghi, rotaia.
+   Tredici cose. E la frase che inchioda il problema e' questa: «piu' scrolli,
+   piu' bello diventa il sito» — cioe' il fotogramma migliore e' quello in cui
+   in campo c'e' meno roba. Non e' il linguaggio visivo, e' la densita'.
+
+   PERCHE' NON E' UN'ANIMAZIONE IN PIU'. La stessa revisione che chiede questo
+   scrive anche «non aggiungere nemmeno una nuova animazione», e ha ragione:
+   qui non si aggiunge niente. Le cose sono le stesse, nello stesso posto, con
+   la stessa forma. Cambia SOLO quando arrivano. E' montaggio, non effetto.
+
+   L'ORDINE HA UNA LOGICA, e non e' l'ordine del documento. Prima l'automobile,
+   che c'e' gia' e resta sola per quattro decimi: e' il momento in cui chi
+   arriva decide se restare, e va speso sul soggetto. Poi chi sei. Poi cosa
+   dici. Poi le prove — il peso, i comandi, la rotaia — che sono la parte che
+   si legge dopo aver deciso di leggere.
+
+   E FINISCE PRESTO. Un secondo e sette in tutto: sopra i due secondi una
+   comparsa scaglionata smette di essere un ingresso e diventa un'attesa, e
+   un'attesa dopo un velo di caricamento e' due attese in fila.
+   ------------------------------------------------------------------------ */
+
+html:not(.e-svelato) .testa,
+html:not(.e-svelato) .voci,
+html:not(.e-svelato) .spina,
+html:not(.e-svelato) .comandi,
+html:not(.e-svelato) .rotaia {
+  opacity: 0;
+  /* il sollevamento e' minimo: otto pixel sono un arrivo, venti sono un volo */
+  transform: translateY(8px);
+}
+
+.e-svelato .testa,
+.e-svelato .voci,
+.e-svelato .spina,
+.e-svelato .comandi,
+.e-svelato .rotaia {
+  transition: opacity .62s ease, transform .62s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* i ritardi: e' qui che sta tutta la coreografia */
+/* I RITARDI, SECONDA TARATURA. Alla prima il titolo entrava a 0,42 e nella
+   tavola di contatto era gia' in campo al primo scatto: l'automobile non aveva
+   nessun istante da sola, che era tutto il punto. Il primo scatto utile arriva
+   circa due decimi e mezzo dopo la classe — il tempo di un giro di macchina —
+   quindi tutto quello che sta sotto quel valore e' un ritardo che non esiste.
+   Adesso il soggetto ha mezzo secondo pieno prima che compaia una parola. */
+.e-svelato .testa   { transition-delay: .70s; }
+.e-svelato .voci    { transition-delay: .55s; }
+.e-svelato .spina   { transition-delay: 1.25s; }
+.e-svelato .comandi { transition-delay: 1.55s; }
+.e-svelato .rotaia  { transition-delay: 1.78s; }
+
+/* CHI CHIEDE MENO MOVIMENTO NON ASPETTA. Uno scaglionamento e' movimento
+   automatico per definizione — nessuno l'ha chiesto, parte da solo — quindi e'
+   esattamente cio' che `prefers-reduced-motion` deve spegnere. E si spegne
+   togliendo i ritardi, non l'ingresso: le cose arrivano tutte insieme, come
+   prima, che e' il comportamento che quella preferenza descrive. */
+@media (prefers-reduced-motion: reduce) {
+  .e-svelato .testa,
+  .e-svelato .voci,
+  .e-svelato .spina,
+  .e-svelato .comandi,
+  .e-svelato .rotaia {
+    transition-duration: .01ms;
+    transition-delay: 0s;
+  }
+}

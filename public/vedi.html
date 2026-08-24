@@ -1,0 +1,51 @@
+<!doctype html><meta charset="utf-8"><title>vedi</title>
+<style>html,body{margin:0;height:100%;background:#0d1016}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as T from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+// I MODELLI DEL SITO SONO COMPRESSI CON MESHOPT: senza il decodificatore il
+// caricatore non da' errore, resta appeso — ed e' il modo peggiore di fallire.
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
+const r = new T.WebGLRenderer({ antialias: true })
+r.setSize(innerWidth, innerHeight); r.setPixelRatio(1)
+r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.1
+document.body.appendChild(r.domElement)
+const s = new T.Scene(); s.background = new T.Color(0x0d1016)
+const pm = new T.PMREMGenerator(r)
+s.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture
+const c = new T.PerspectiveCamera(35, innerWidth/innerHeight, 0.01, 100)
+const url = new URLSearchParams(location.search)
+new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(url.get('m') || '/modelli/auto2.glb', (g) => {
+  const o = g.scene
+  const b = new T.Box3().setFromObject(o), d = new T.Vector3(), ce = new T.Vector3()
+  b.getSize(d); b.getCenter(ce)
+  o.position.sub(ce)
+  const k = 4.6 / Math.max(d.x, d.y, d.z)   // lo porta a 4,6 metri di lato lungo
+  o.scale.setScalar(k)
+  /* MODO DIAGNOSI: `?bf=1` dipinge di rosso tutto cio' che si vede solo da
+     dietro. Se le macchie nere di un modello diventano rosse, erano facce con
+     la normale rovesciata; se restano nere, la causa e' un'altra e non vale la
+     pena ricalcolare niente. */
+  if (url.get('bf')) {
+    o.traverse(n => {
+      if (!n.isMesh) return
+      n.material = new T.MeshBasicMaterial({ color: 0xdddddd, side: T.FrontSide })
+      const d = new T.Mesh(n.geometry, new T.MeshBasicMaterial({ color: 0xff2020, side: T.BackSide }))
+      n.add(d)
+    })
+  }
+  s.add(o)
+  const a = Number(url.get('a') || 38) * Math.PI / 180
+  const el = Number(url.get('e') || 12) * Math.PI / 180
+  const R = Number(url.get('d') || 9)
+  c.position.set(Math.sin(a)*Math.cos(el)*R, Math.sin(el)*R, Math.cos(a)*Math.cos(el)*R)
+  c.lookAt(0, 0, 0)
+  s.add(new T.DirectionalLight(0xffffff, 2.2).translateY(1))
+  r.render(s, c)
+  window.pronto = true
+  window.misure = { d: [d.x, d.y, d.z].map(v => +(v*k).toFixed(3)), tri: r.info.render.triangles, parti: [] }
+  o.traverse(n => { if (n.isMesh) window.misure.parti.push(n.name + ' ' + n.geometry.attributes.position.count) })
+})
+</script>

@@ -1,0 +1,28 @@
+{
+  "name": "velocity",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5174",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 5174",
+    "controlla": "tsc --noEmit",
+    "guardia": "node strumenti/guardia.mjs"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "sharp": "^0.35.3",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.4.2",
+    "@gltf-transform/core": "^4.4.2",
+    "@gltf-transform/extensions": "^4.4.2",
+    "@gltf-transform/functions": "^4.4.2",
+    "@types/three": "^0.185.4",
+    "gltfpack": "^1.2.0",
+    "meshoptimizer": "^1.2.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.1"
+  }
+}

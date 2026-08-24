@@ -1,0 +1,38 @@
+{
+  "//": [
+    "NON C'ERA, e questa e' la ragione per cui una revisione ha trovato venti",
+    "difetti in un colpo solo. Vite traspila il TypeScript senza controllare i",
+    "tipi, e `vite build` non chiama mai il compilatore: quindi per tutta la",
+    "costruzione nessuno ha mai verificato niente. Un import mancante si e'",
+    "manifestato come una pagina bianca, un file da 537 righe mai collegato",
+    "non ha detto una parola, e tre variabili assegnate e mai lette sono",
+    "rimaste li' a far credere che servissero.",
+    "",
+    "`noUnusedLocals` e `noUnusedParameters` sono qui apposta: su un progetto",
+    "costruito per correzioni successive, il codice morto e' il difetto piu'",
+    "frequente e il piu' insidioso, perche' non si rompe — mente e basta.",
+    "",
+    "Il controllo va messo PRIMA del build: `npm run build` fa `tsc --noEmit`",
+    "e poi `vite build`, cosi' non si puo' pubblicare qualcosa che non compila."
+  ],
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"]
+}

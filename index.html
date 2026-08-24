@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#08090b" />
+<title>Giuseppe Villani — Freelance Creative Developer</title>
+<meta name="description" content="Non progetto pagine: progetto macchine in cui si entra. Siti web creativi, WebGL, motion, sistemi interattivi." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- I CARATTERI SONO IN LOCALE, e prima arrivavano da un dominio esterno.
+
+     Qui c'era un `<link>` a `fonts.googleapis.com`. Tre difetti in una riga:
+     il sito mostrava davvero Arial per un istante e poi saltava al carattere
+     giusto; servivano due connessioni nuove su due domini diversi prima che si
+     vedesse una lettera; e un sito senza nessun altro servizio di terzi ne
+     aveva uno proprio sulla cosa che si vede per prima.
+
+     Era anche la violazione di una regola gia' scritta nella skill dello stack
+     di questa agenzia — «font in locale invece che da un dominio esterno» — e
+     non applicata proprio sul progetto piu' importante.
+
+     Cinque file, 203 kB, presi una volta con `strumenti/font.mjs` e messi in
+     `public/font/`. Solo il sottoinsieme latino: il sito e' in italiano e in
+     inglese, e i nove sottoinsiemi che Google serve sarebbero dieci volte il
+     peso per non usarli mai. -->
+<link rel="preload" as="font" type="font/woff2" href="/font/switzer-500.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="/font/clash-display-600.woff2" crossorigin />
+<link rel="stylesheet" href="/src/stile.css" />
+<!--
+  LA PRIMA DECISIONE DEL SITO STA QUI DENTRO, IN UNO SCRIPT DI VENTI RIGHE,
+  E NON PUO' STARE DA NESSUN'ALTRA PARTE.
+
+  Il preannuncio dei due file pesanti — il panorama e il modello — vale mezzo
+  secondo di rete: senza, il browser scopre che esistono solo dopo aver
+  scaricato, compilato ed eseguito il modulo JavaScript. E' la scorciatoia piu'
+  redditizia di tutto il progetto.
+
+  Ma scritto come due `<link rel="preload">` fissi, quel preannuncio partiva
+  SEMPRE. Anche per chi ha `prefers-reduced-motion` acceso e non vedra' mai la
+  scena. Misurato con `strumenti/ripiego.mjs`: la pagina statica scaricava tre
+  megabyte e trecento chilobyte di roba che nessuno avrebbe guardato. Una
+  preferenza onorata a parole e non nei fatti — che e' peggio di non onorarla,
+  perche' costa uguale e in piu' si vanta.
+
+  Il preannuncio non si puo' annullare una volta partito, e nessun modulo puo'
+  arrivare prima del parser. Quindi la decisione scende qui: quattro controlli
+  che costano meno di un millisecondo, e i due `<link>` si scrivono solo se si
+  passa. Chi non passa se ne va con la sola pagina.
+
+  IL RISULTATO E' ANCHE LA CAUSA: `data-ripiego` sulla radice viene scritto
+  qui, e `src/core/Ripiego.ts` da li' in poi lo LEGGE invece di ridecidere. Una
+  decisione sola, presa una volta, nel primo posto in cui si poteva prenderla.
+  Il perche' di ognuno dei quattro controlli sta scritto per esteso in quel
+  file: qui c'e' il minimo che deve girare presto.
+-->
+<script>
+(function () {
+  var r = document.documentElement, causa = null
+  // il rientro esplicito scavalca tutto, per questa scheda soltanto
+  try { if (sessionStorage.getItem('velocity:forza') === '1') return preannuncia() } catch (e) {}
+  /* NON SI GUARDA PIU' `prefers-reduced-motion`, E LA DECISIONE E' DEL
+     COMMITTENTE, presa dopo averne viste due versioni sbagliate di fila.
+
+     Prima quella preferenza spegneva l'intero sito e mandava alla pagina
+     statica: era sbagliata, e l'ha trovata lui aprendo la pagina sulla sua
+     macchina — Windows con gli effetti di animazione spenti — e vedendo una
+     fotografia al posto del sito.
+
+     Poi l'ho sostituita con un «modo quieto»: la scena partiva ma si
+     spegnevano le tre cose che si muovono da sole, fra cui la strada che
+     scorre a mano ferma. Anche quella e' stata rifiutata, e con una ragione
+     migliore della mia: su questo sito l'accelerazione NON e' un'animazione
+     che parte da sola, e' la cosa che l'utente fa. Toglierla non e' rispettare
+     una preferenza, e' togliere il sito.
+
+     Restano quindi due soli motivi per non partire — non c'e' WebGL, o la
+     scheda ha ritirato il contesto — e in tutti e due i casi l'alternativa non
+     e' una pagina piu' sobria: e' un rettangolo nero. */
+  /* E ADESSO NON SI CONTROLLA PIU' NEMMENO SE C'E' WEBGL.
+
+     Qui c'era una prova su una tela usa e getta: se non dava un contesto, si
+     scriveva `data-ripiego` e la pagina diventava un documento.
+
+     HA PRESO LA DECISIONE SBAGLIATA SULLA MACCHINA DEL COMMITTENTE, e la causa
+     ero io. Passando la notte a registrare filmati e a misurare, avevo una
+     dozzina di Chromium headless aperti insieme; Chrome tiene in vita una
+     sedicina di contesti WebGL in tutto, e quando lui ha aperto il sito la tela
+     di prova non ne ha ottenuto uno. Non perche' la sua macchina non possa
+     fare WebGL — puo' benissimo — ma perche' in quell'istante non ce n'erano
+     liberi. Il controllo ha risposto correttamente a una domanda mal posta.
+
+     La domanda mal posta e' «c'e' WebGL ADESSO?». Un contesto non e' una
+     proprieta' della macchina: e' una risorsa, e le risorse si liberano. La
+     domanda giusta e' «riesco a partire?», e a quella si risponde partendo.
+
+     E la regola del committente e' piu' netta di qualunque ragionamento
+     tecnico, l'ha data due volte e la seconda con l'esempio davanti: NIENTE
+     SITO STATICO, PER NESSUN MOTIVO. Un sito creativo che si trasforma in una
+     pagina di testo perche' una risorsa era occupata per due secondi non e' un
+     ripiego prudente: e' il sito che si arrende al posto di chi lo guarda. */
+  preannuncia()
+
+  function preannuncia() {
+    // l'ordine e' l'ordine in cui li chiede, e non e' indifferente: prima il
+    // luogo, poi il soggetto. Sono cinquecento chilobyte contro due megabyte e
+    // nove, e su una rete lenta quei cinquecento sono la differenza fra
+    // «piattaforma vuota dentro una villa» e «gradiente beige».
+    // `fetchpriority` alto sul solo panorama: dichiarare urgenti due file su
+    // due significa non dichiarare niente.
+    // IL «cors» SUL PANORAMA VALE MEZZO MEGABYTE, e per settimane non c'era.
+    //
+    // Misurato da `strumenti/carico.mjs`: il panorama veniva scaricato DUE
+    // VOLTE. 504 kB buttati e 2401 millisecondi su una rete da telefono — piu'
+    // del tempo che ci mette tutto il resto del primo fotogramma.
+    //
+    // La ragione e' che un preannuncio e la richiesta vera devono combaciare
+    // ANCHE nella modalita' CORS, non solo nell'indirizzo. `TextureLoader`
+    // chiede i suoi file con CORS anonimo — e' il valore di serie del
+    // caricatore di three, non una scelta di questo progetto — quindi per il
+    // browser il file preannunciato senza CORS e quello chiesto con CORS sono
+    // due risorse diverse, e le scarica tutte e due. Non c'e' nessun avviso:
+    // il preannuncio funziona, arriva, e poi non lo usa nessuno.
+    //
+    // Il GLB ce l'aveva gia' e infatti arriva una volta sola. La riga sotto e'
+    // la stessa correzione, e non era stata fatta solo perche' `as: 'image'`
+    // suggerisce un'immagine qualunque — mentre questa e' una TESSITURA, che
+    // e' un'altra cosa: una tessitura la legge WebGL, e WebGL i pixel di
+    // un'immagine senza CORS non li puo' nemmeno guardare.
+    // ORDINE E PRIORITA', e tutte e tre le righe sono state corrette.
+    //
+    // 1. LA SORGENTE DELL'AMBIENTE VA PRIMA DI TUTTO, ed e' nuova. Sono 132 kB
+    //    e da lei dipende la bandiera che chiude il velo di caricamento: senza
+    //    preannuncio entrava in coda tardi e «ambiente pronto» slittava da 5,4
+    //    a 11,5 secondi su 4G lento — misurato con `strumenti/carico.mjs`.
+    //
+    // 2. IL PANORAMA SCENDE DI PRIORITA'. Serve ancora, ma non piu' subito:
+    //    finche' non arriva c'e' il cielo costruito, e chiedere 491 kB in alta
+    //    priorita' significa mettersi davanti a cio' che invece serve adesso.
+    //
+    // 3. IL MODELLO DELL'AUTOMOBILE PUNTAVA A UN FILE CHE NON ESISTE PIU'.
+    //    `auto_parti.glb` e' stato cancellato quando la vettura e' stata
+    //    sostituita, e questa riga e' rimasta: un 404 buttato via al primo
+    //    istante, e — molto peggio — il modello VERO senza nessun preannuncio,
+    //    cioe' l'oggetto piu' pesante del percorso critico scoperto tardi.
+    //    Un preannuncio con l'indirizzo sbagliato non da' errore: da' un 404
+    //    che nessuno guarda, ed e' la stessa famiglia di difetto dei numeri
+    //    scritti a mano che smettono di essere veri.
+    var d = [
+      { as: 'image', href: '/hdri/corte_pano_ambiente.webp', cors: true },
+      { as: 'fetch', href: '/modelli/auto2.glb', cors: true },
+      { as: 'image', href: '/hdri/corte_pano.webp', cors: true },
+    ]
+    for (var i = 0; i < d.length; i++) {
+      var l = document.createElement('link')
+      l.rel = 'preload'; l.as = d[i].as; l.href = d[i].href
+      if (d[i].pri) l.setAttribute('fetchpriority', d[i].pri)
+      if (d[i].cors) l.crossOrigin = 'anonymous'
+      document.head.appendChild(l)
+    }
+  }
+})()
+</script>
+</head>
+<body>
+<!--
+  IL TELAIO — la scena non riempie piu' la finestra: ci sta DENTRO.
+
+  E' la differenza fra una finestra e un oggetto. Una scena a pieno schermo
+  e' un buco nella pagina: non ha bordi, quindi non ha misura, quindi non e'
+  niente in particolare. Chiusa in una scheda con un margine intorno diventa
+  una cosa appoggiata su una superficie — ha uno spessore, un'ombra, un
+  contorno che l'occhio puo' seguire.
+
+  E risolve il difetto per cui e' nata. Sotto la scheda c'e' la PAGINA, ed e'
+  li' che vive il testo. Prima il testo stava sopra la scena, su un velo, e nei
+  due tempi dell'abitacolo finiva sopra un cruscotto nero: mezzo fotogramma di
+  grigio piatto. Adesso quella fascia non e' piu' un avanzo della scena, e' la
+  pagina — e una pagina piatta e' giusta che sia piatta.
+-->
+<!-- LA CORNICE DELLA PAGINA.
+     Due elementi e non uno: il primo e' la fascia di vetro lungo il
+     perimetro, il secondo e' il filo luminoso che la chiude verso dentro.
+     Separati perche' il primo e' RITAGLIATO A CIAMBELLA da una maschera, e
+     tutto quello che gli sta dentro sparirebbe con il buco. -->
+<div class="cornice" aria-hidden="true"></div>
+<div class="cornice__filo" aria-hidden="true"></div>
+
+<!-- IL LAMPEGGIANTE ENTRA NELLA PAGINA.
+     Quando la volante arriva, la sua luce non si ferma al bordo della scena in
+     tre dimensioni: entra dai lati e tocca la cornice, la testata, tutto. E'
+     l'unico momento in cui qualcosa di esterno modifica l'interfaccia, ed e'
+     quello che fa smettere di leggere la pattuglia come un oggetto aggiunto
+     sopra il render. Vedi `scene/Volante.ts` e `ui/Controllo.ts`. -->
+<div class="lampo" aria-hidden="true"></div>
+
+<div class="telaio">
+  <!-- LA TELA DICHIARA CHE COSA C'E' DENTRO.
+       Un `<canvas>` senza attributi e' un buco nell'albero di accessibilita':
+       una sintesi vocale ci passa sopra e non trova niente, e un agente che
+       legge la pagina vede un elemento vuoto dove c'e' tutto il sito.
+       `role="img"` piu' un'etichetta dicono che li' c'e' un'immagine e cosa
+       rappresenta; il racconto per esteso sta nel documento semantico in fondo,
+       ed e' li' che punta `aria-describedby`. Non e' una duplicazione: e' la
+       stessa cosa detta due volte in due lingue diverse, una per gli occhi e
+       una per chi non li usa. -->
+  <!-- L'ATTESA — i primi secondi, che un giurato guarda come tutto il resto.
+       Sta QUI e non nel codice della scena per la ragione che la rende utile:
+       deve esistere prima che il modulo JavaScript sia stato scaricato,
+       compilato ed eseguito. Un indicatore costruito dalla scena comparirebbe
+       nell'istante in cui la scena e' pronta, cioe' quando non serve piu'.
+       E non e' una barra finta: i tre passi sono i tre traguardi veri che
+       `strumenti/apertura.mjs` misura da mesi — il luogo, l'automobile, il
+       resto — e la riga avanza quando arrivano davvero.
+       `aria-hidden` perche' il contenuto vero della pagina sta in `#documento`,
+       che e' gia' leggibile da subito: chi usa un lettore di schermo non deve
+       sentirsi annunciare un caricamento che per lui non cambia niente. -->
+  <div class="attesa" id="attesa" aria-hidden="true">
+    <p class="attesa__parola" id="attesaParola">IL LUOGO</p>
+    <div class="attesa__binario"><i class="attesa__filo" id="attesaFilo"></i></div>
+  </div>
+
+  <canvas id="tela" role="img" aria-label="L'esperienza interattiva: una supercar in un cortile di sera, che si attraversa scorrendo la pagina." aria-describedby="documento"></canvas>
+  <div class="velo"></div>
+    <!-- LE DUE SFUMATURE DI MARGINE, una per lato. Si accende quella dal lato
+         dove sta il testo, e sono due elementi invece di uno che cambia verso
+         perche' un gradiente che si ribalta si vede ribaltare: due che si
+         scambiano la presenza, no. -->
+    <div class="velo--sinistra"></div>
+    <div class="velo--destra"></div>
+  <!-- I DUE BLOCCHI DELLA TESTATA HANNO UN VETRO CIASCUNO, non uno solo che
+       li contiene tutti e due. Una barra da bordo a bordo tornerebbe a essere
+       un'interfaccia appoggiata davanti alla scena; due pastiglie separate
+       lasciano passare in mezzo tutto quello che c'e' dietro. -->
+  <header class="testa">
+    <p class="vetro"><span class="testa__nome">Giuseppe Villani</span><span class="testa__ruolo" data-t="ruolo">Freelance Creative Developer</span></p>
+    <nav class="vetro"><a href="#lavori" data-t="navLavori">Lavori</a><a href="#studio" data-t="navStudio">Studio</a><a href="#contatto" data-t="navContatto">Contatto</a>
+      <!-- L'INTERRUTTORE DELLA LINGUA STA DENTRO IL MENU, non in un angolo suo.
+           Due sigle di due lettere separate da una barra: e' la forma piu'
+           compatta che esista e l'unica che si legge senza etichetta. Quella
+           attiva e' in bianco, l'altra e' un pulsante — e sono due `button` e
+           non due collegamenti perche' non portano da nessuna parte: cambiano
+           lo stato di questa pagina. Un `<a href="#">` che non naviga e' la
+           bugia piu' diffusa dell'HTML. -->
+      <span class="testa__lingua">
+        <button type="button" data-lingua="it">IT</button><span aria-hidden="true">/</span><button type="button" data-lingua="en">EN</button>
+      </span></nav>
+  </header>
+</div>
+
+<div id="corsa"></div>
+<aside id="hud"></aside>
+
+<!--
+  IL DOCUMENTO VERO, sotto l'esperienza.
+
+  Non e' un ripiego per i motori di ricerca: e' il contenuto. Chi arriva con un
+  lettore di schermo, con JavaScript spento, con `prefers-reduced-motion`
+  acceso o su una rete che non regge tre megabyte deve trovare un SITO, non una
+  pagina vuota.
+
+  DI SERIE E' NASCOSTO ALLA VISTA MA NON AL LETTORE — la ricetta `clip-path` —
+  e quando `src/core/Ripiego.ts` accende `data-ripiego` sulla radice diventa la
+  pagina vera. Un solo blocco di contenuto per tutti e due gli stati: due
+  copie divergono al primo ritocco e nessuno se ne accorge, perche' la seconda
+  la guarda solo chi non puo' vedere la prima.
+
+  L'ORDINE DELLE SEZIONI E' L'ORDINE DEL RACCONTO, non quello del menu: chi
+  legge con un lettore di schermo attraversa lo stesso percorso di chi scorre —
+  cosa faccio, cosa c'e' da vedere, come si scrive.
+-->
+<main class="documento" id="documento">
+
+  <!-- IL POSTER E' IL PRIMO FOTOGRAMMA VERO, renderizzato dalla scena da
+       `strumenti/poster.mjs`. Due inquadrature e non due ritagli: la verticale
+       e' composta dalla camera per il formato verticale, che e' esattamente
+       il motivo per cui la scena e' in tre dimensioni.
+
+       `loading="lazy"` non e' pigrizia: nello stato normale questo blocco e'
+       ritagliato a un pixel e l'immagine non serve a nessuno. Accendendo il
+       ripiego l'elemento entra nel campo visivo e il caricamento parte da
+       solo. Cinquantun chilobyte: meno di un secondo su qualunque rete che
+       abbia potuto scaricare questa pagina. -->
+  <figure class="statica__figura">
+    <picture>
+      <source type="image/avif" media="(max-width: 700px)" srcset="/poster/hero_verticale.avif" />
+      <source type="image/webp" media="(max-width: 700px)" srcset="/poster/hero_verticale.webp" />
+      <source type="image/avif" srcset="/poster/hero_orizzontale.avif" />
+      <img src="/poster/hero_orizzontale.webp" width="1400" height="875" loading="lazy" decoding="async"
+           alt="Una supercar nera ferma su un piedistallo di pietra chiara, davanti a una villa moderna con le vetrate accese e la piscina illuminata di sera." />
+    </picture>
+    <figcaption data-t="docDidascalia">La prima inquadratura dell'esperienza, renderizzata dalla stessa scena in tre dimensioni.</figcaption>
+  </figure>
+
+  <section id="studio" class="statica__blocco">
+    <!-- LO STESSO TITOLO CHE SI VEDE NELL'ESPERIENZA. Nell'esperienza e' un
+         `h1` che cambia a ogni tempo — «Puoi girarci intorno.», «Dentro c'e' un
+         motore.» — e un titolo che cambia non e' un titolo: per un motore di
+         ricerca e per un lettore di schermo la pagina non ha piu' un nome. Qui
+         il nome sta fermo. -->
+    <h1 data-t="docTitolo">Siti che non si guardano. Si attraversano.</h1>
+    <p class="statica__occhiello" data-t="docOcchiello">Giuseppe Villani — Freelance Creative Developer</p>
+    <p data-t="docStudio1">VELOCITY esplora come 3D realtime, movimento e interfaccia possano vivere nello stesso spazio: non una pagina con delle animazioni sopra, ma uno spazio in cui si entra, governato dallo scorrimento di chi guarda.</p>
+    <p data-t="docStudio2">Questa pagina esiste in due forme.</p>
+  </section>
+
+  <section id="lavori" class="statica__blocco">
+    <h2 data-t="docLavori">Lavori</h2>
+    <!-- QUATTRO PROGETTI FINTI SAREBBERO STATI PIU' FACILI, e sarebbero stati
+         la stessa bugia delle statistiche inventate che ho tolto dalla hero.
+         Il portfolio ne ha uno. Lo si dice, e lo si dice come una scelta. -->
+    <p class="statica__forte" data-t="docLavoriForte">Un lavoro solo, e ci sei dentro.</p>
+    <ol class="statica__ottiche">
+      <li class="e-acceso">
+        <span class="statica__codice">01</span>
+        <span class="statica__nome">VELOCITY</span>
+        <span class="statica__stato" data-t="docQuestoSito">2026 — questo sito</span>
+      </li>
+      <li><span class="statica__codice">02</span><span class="statica__nome">—</span><span class="statica__stato" data-t="docInLavorazione">in lavorazione</span></li>
+      <li><span class="statica__codice">03</span><span class="statica__nome">—</span><span class="statica__stato" data-t="docInLavorazione">in lavorazione</span></li>
+      <li><span class="statica__codice">04</span><span class="statica__nome">—</span><span class="statica__stato" data-t="docInLavorazione">in lavorazione</span></li>
+    </ol>
+    <p data-t="docLavoriCoda">Le altre tre ottiche si accendono quando c'è qualcosa da attraversare.</p>
+  </section>
+
+  <section id="contatto" class="statica__blocco">
+    <h2 data-t="docContatto">Contatto</h2>
+    <p class="statica__forte" data-t="docDomanda">Dove andiamo da qui?</p>
+    <!-- DA COMPILARE: l'indirizzo vive in un posto solo, `src/ui/Contatto.ts`,
+         e finche' e' vuoto ne' questa pagina ne' il finale dell'esperienza
+         mostrano un collegamento. Inventarne uno sarebbe stata l'ultima cosa
+         finta rimasta nel sito. -->
+    <p class="statica__contatto" data-contatto data-t="docIndirizzoVuoto">Indirizzo da definire.</p>
+  </section>
+
+  <!-- IL PULSANTE ESISTE SOLO NEL RIPIEGO, e solo per chi ci e' finito senza
+       averlo chiesto. Chi ha `prefers-reduced-motion` non lo vede: gli e' gia'
+       stato chiesto una volta cosa preferisce, e richiederglielo su ogni sito
+       e' il motivo per cui quella preferenza non la accende quasi nessuno. -->
+  <p class="statica__forza" hidden>
+    <button type="button" id="forzaEsperienza" data-t="docForza">Carica comunque l'esperienza completa</button>
+    <span class="statica__perche" data-perche></span>
+  </p>
+</main>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
