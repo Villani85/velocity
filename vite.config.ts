@@ -1,3 +1,4 @@
+import { documento } from './strumenti/vite-documento.ts'
 import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
 
@@ -53,6 +54,7 @@ const FUORI = ['asset', 'tripo-out', '.tmp', 'docs', 'strumenti']
   .map((d) => normalizza(resolve(__dirname, d)))
 
 export default defineConfig({
+  plugins: [documento()],
   /**
    * LE DIPENDENZE SI DICHIARANO, non si fanno scoprire a caldo.
    *

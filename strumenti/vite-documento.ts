@@ -1,0 +1,133 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import type { Plugin } from 'vite'
+
+/**
+ * IL DOCUMENTO STATICO SI GENERA, NON SI RICOPIA.
+ *
+ * `index.html` contiene un `<main class="documento">`: e' il sito per chi non
+ * ha WebGL, per Google, per un lettore di schermo e per la scheda di
+ * candidatura di un premio. Dentro c'era scritto «Un lavoro solo, e ci sei
+ * dentro», con le voci 02, 03 e 04 «in lavorazione».
+ *
+ * Nel frattempo `Lavori.ts` e' arrivato a undici lavori con le copertine vere.
+ * Le due copie sono divergute, ed e' successo esattamente quello che il
+ * commento nel file stesso prevedeva: «due copie divergono al primo ritocco e
+ * nessuno se ne accorge». Sul canale che non richiede WebGL il sito dichiarava
+ * di essere un portfolio con un progetto solo — la cosa peggiore che potesse
+ * dire di se'.
+ *
+ * La cura non e' aggiornare la lista: e' TOGLIERE LA SECONDA COPIA. Qui si
+ * legge `Lavori.ts` e si scrive la lista al momento della compilazione, cosi'
+ * la divergenza diventa impossibile invece che improbabile.
+ *
+ * E SE NON TROVA NIENTE, FALLISCE. Un generatore che in silenzio produce una
+ * lista vuota e' peggio della lista scritta a mano: quella almeno si vede.
+ */
+type Voce = { codice: string; nome: string; anno: string; soggetto: string }
+
+function leggiLavori(radice: string): Voce[] {
+  const src = readFileSync(resolve(radice, 'src/ui/Lavori.ts'), 'utf8')
+  const corpo = src.slice(src.indexOf('export const LAVORI'))
+  const voci: Voce[] = []
+  const re = /codice:\s*'([^']+)',\s*nome:\s*'([^']+)',\s*anno:\s*'([^']*)'[\s\S]*?soggetto:\s*'([^']*)'/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(corpo))) voci.push({ codice: m[1], nome: m[2], anno: m[3], soggetto: m[4] })
+  if (!voci.length) {
+    throw new Error(
+      '[documento] non ho trovato nessun lavoro in src/ui/Lavori.ts. ' +
+      'Se la forma del file e cambiata va aggiornata la lettura qui: ' +
+      'una lista vuota generata in silenzio e peggio di una scritta a mano.',
+    )
+  }
+  return voci
+}
+
+const esc = (t: string) =>
+  t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
+export function documento(): Plugin {
+  return {
+    name: 'velocity-documento',
+    transformIndexHtml: {
+      /* A VALLE, NON A MONTE. Con `order: 'pre'` Vite riprocessa quello che
+         inserisco — compreso lo `<script type="application/ld+json">`, che
+         prova a risolvere come modulo: la compilazione moriva con «EISDIR:
+         illegal operation on a directory». A valle il documento e' gia'
+         stato lavorato e le mie aggiunte restano quelle che sono. */
+      order: 'post',
+      handler(html, ctx) {
+        const radice = process.cwd()
+        const voci = leggiLavori(radice)
+
+        /* L'INDIRIZZO DEL SITO ARRIVA DALL'AMBIENTE, e se manca lo si dice.
+           `og:image` funziona solo con un URL ASSOLUTO: un percorso relativo
+           lo ignorano quasi tutti gli scraper. Non lo invento — un dominio
+           sbagliato manda l'anteprima nel vuoto, che e' peggio di non averla.
+           Si mette in `.env` come VITE_SITO=https://... */
+        const sito = (process.env.VITE_SITO || '').replace(/\/$/, '')
+        if (!sito && ctx.server === undefined) {
+          console.warn(
+            '\n[documento] VITE_SITO non e impostata: og:image restera RELATIVO\n' +
+            '            e le anteprime su X, LinkedIn e Slack non funzioneranno.\n' +
+            '            Mettila in .env: VITE_SITO=https://iltuodominio\n',
+          )
+        }
+        const abs = (p: string) => (sito ? sito + p : p)
+
+        const meta = [
+          `<link rel="canonical" href="${abs('/')}" />`,
+          `<meta property="og:type" content="website" />`,
+          `<meta property="og:site_name" content="Giuseppe Villani" />`,
+          `<meta property="og:title" content="Giuseppe Villani — Freelance Creative Developer" />`,
+          `<meta property="og:description" content="Siti che non si guardano. Si attraversano." />`,
+          `<meta property="og:image" content="${abs('/poster/hero_orizzontale.webp')}" />`,
+          `<meta property="og:image:width" content="1200" />`,
+          `<meta property="og:image:height" content="750" />`,
+          `<meta property="og:locale" content="it_IT" />`,
+          `<meta name="twitter:card" content="summary_large_image" />`,
+          `<meta name="twitter:title" content="Giuseppe Villani — Freelance Creative Developer" />`,
+          `<meta name="twitter:description" content="Siti che non si guardano. Si attraversano." />`,
+          `<meta name="twitter:image" content="${abs('/poster/hero_orizzontale.webp')}" />`,
+          `<script type="application/ld+json">${JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Person',
+            name: 'Giuseppe Villani',
+            jobTitle: 'Freelance Creative Developer',
+            description: 'Non progetto pagine: progetto macchine in cui si entra.',
+            url: sito || undefined,
+            image: abs('/poster/hero_orizzontale.webp'),
+            knowsAbout: ['WebGL', 'three.js', 'GSAP', 'Motion design', 'Creative development', 'Salesforce'],
+            makesOffer: voci.map((v) => ({
+              '@type': 'CreativeWork', name: v.nome, description: v.soggetto,
+              ...(v.anno ? { dateCreated: v.anno } : {}),
+            })),
+          })}</script>`,
+        ].join('\n')
+
+        const lista = voci.map((v, i) =>
+          `      <li${i === 0 ? ' class="e-acceso"' : ''}>` +
+          `<span class="statica__codice">${esc(v.codice)}</span>` +
+          `<span class="statica__nome">${esc(v.nome)}</span>` +
+          `<span class="statica__stato">${esc([v.anno, v.soggetto].filter(Boolean).join(' — '))}</span>` +
+          `</li>`,
+        ).join('\n')
+
+        return html
+          .replace('</head>', meta + '\n</head>')
+          .replace(
+            /<ol class="statica__ottiche">[\s\S]*?<\/ol>/,
+            `<ol class="statica__ottiche">\n${lista}\n    </ol>`,
+          )
+          .replace(
+            /<p class="statica__forte"[^>]*>[\s\S]*?<\/p>/,
+            `<p class="statica__forte">${voci.length} lavori, e ci si entra dentro.</p>`,
+          )
+          .replace(
+            /<p data-t="docLavoriCoda">[\s\S]*?<\/p>/,
+            `<p>Ognuno e una macchina diversa: la meccanica cambia con quello che deve raccontare.</p>`,
+          )
+      },
+    },
+  }
+}
