@@ -22,7 +22,7 @@ const uv = mesh.geometry.attributes.uv
 const pos = mesh.geometry.attributes.position
 const nor = mesh.geometry.attributes.normal
 const idx = mesh.geometry.index
-const { data, info } = await sharp('public/texture/auto2r_orm.webp').raw().toBuffer({ resolveWithObject: true })
+const { data, info } = await sharp(`public/texture/${process.argv[2] ?? 'auto2r_orm'}.webp`).raw().toBuffer({ resolveWithObject: true })
 const W = info.width, H = info.height, CH = info.channels
 
 const M = mesh.matrixWorld

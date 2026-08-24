@@ -282,7 +282,15 @@ export function vernice() {
      livello, questa decide lo scarto. Per questo e' stata normalizzata attorno
      a 0,80 prima di essere salvata — cosi' la ruvidita' dichiarata resta quella
      che si legge nel selettore. */
-  const orm = sua('/texture/auto2r_orm.webp')
+  /* LA ORM RICOSTRUITA — vedi `strumenti/orm_nuova.mjs` e il §0 di
+     `docs/PIANO_FOTOREALISMO.md`. La vecchia mappa faceva campionare al 66%
+     dell'area (e al 74,8% delle superfici rivolte in alto) una ruvidita' sotto
+     0,25: `0,30 x 0,004 = 0,001`, cioe' uno SPECCHIO. Il commento qui sotto
+     diceva «0,32 per la mappa fa 0,26» e descriveva un'intenzione che il file
+     non soddisfaceva.
+     Quella vecchia resta su disco come `auto2r_orm.webp`, non e' stata
+     sovrascritta: si torna indietro cambiando una riga. */
+  const orm = sua('/texture/auto2r_orm2.webp')
   m.roughnessMap = orm
   m.metalnessMap = orm
   m.normalMap = sua('/texture/auto2r_nor.webp')
@@ -918,7 +926,15 @@ export function scocca() {
   const col = sua('/texture/auto2r_col.webp')
   col.colorSpace = SRGBColorSpace
   m.map = col
-  const orm = sua('/texture/auto2r_orm.webp')
+  /* LA ORM RICOSTRUITA — vedi `strumenti/orm_nuova.mjs` e il §0 di
+     `docs/PIANO_FOTOREALISMO.md`. La vecchia mappa faceva campionare al 66%
+     dell'area (e al 74,8% delle superfici rivolte in alto) una ruvidita' sotto
+     0,25: `0,30 x 0,004 = 0,001`, cioe' uno SPECCHIO. Il commento qui sotto
+     diceva «0,32 per la mappa fa 0,26» e descriveva un'intenzione che il file
+     non soddisfaceva.
+     Quella vecchia resta su disco come `auto2r_orm.webp`, non e' stata
+     sovrascritta: si torna indietro cambiando una riga. */
+  const orm = sua('/texture/auto2r_orm2.webp')
   m.roughnessMap = orm
   m.metalnessMap = orm
   m.normalMap = sua('/texture/auto2r_nor.webp')
@@ -1080,9 +1096,29 @@ float grano( vec2 g ) {
      grande legge come una macchia. Sommandole, da vicino si vede la
      buccia d'arancia e da lontano resta una modulazione larga — che e' come
      si comporta una vernice vera a due distanze diverse. */
-  float g = grano( vRoughnessMapUv * 420.0 ) * 0.62 + grano( vRoughnessMapUv * 61.0 ) * 0.38;
+  /* TRE OTTAVE, NON DUE — e la terza e' quella che mancava.
+     C'erano 420 e 61 cicli. Su questo atlante un ciclo vale ~6,6 m di
+     superficie, quindi erano la banda da 1,6 cm e quella da 11 cm: la
+     struttura del trasparente e la velatura. Mancava la piu' larga, le
+     MACCHIE DI VERNICIATURA da 25-40 cm, che e' quella che si vede per prima
+     su una carena continua — perche' una carena non ha nervature che rompano
+     il riflesso, e allora l'unica cosa che puo' romperlo e' questa.
+     LE AMPIEZZE DECRESCONO con la frequenza: +-0,15 / +-0,10 / +-0,06 in
+     moltiplicativo, che su una ruvidita' di 0,26 fanno +-0,039 / +-0,026 /
+     +-0,016. Sono piccole APPOSTA: il punto non e' vedere la variazione — a
+     +-0,10 assoluti esce un'automobile sporca, non una lucida — ma che il
+     riflesso smetta di essere matematicamente uniforme. Una superficie a
+     ruvidita' costante non esiste in natura, ed e' il segno piu' riconoscibile
+     della computer grafica prima ancora della geometria troppo perfetta.
+     Perche' nello shader e non cotte nella mappa: cuocerle voleva dire
+     passare la ORM a webp senza perdita, da 236 a 730 kB su un percorso
+     critico gia' da 2,2 MB — per una struttura che qui costa zero byte. */
+  float gA = grano( vRoughnessMapUv *  22.0 ) - 0.5;   // ~30 cm  macchie
+  float gB = grano( vRoughnessMapUv *  61.0 ) - 0.5;   // ~11 cm  velatura
+  float gC = grano( vRoughnessMapUv * 420.0 ) - 0.5;   // ~1,6 cm trasparente
+  float g = gA * 0.30 + gB * 0.20 + gC * 0.12;
   // la buccia d'arancia e' della vernice, non del vetro: sul canopy si spegne
-  roughnessFactor = clamp( roughnessFactor * mix( 0.86 + 0.28 * g, 1.0, vetro ), 0.012, 1.0 );
+  roughnessFactor = clamp( roughnessFactor * ( 1.0 + mix( g, 0.0, vetro ) ), 0.012, 1.0 );
 }`)
       .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
   // un vetro e' un DIELETTRICO: non tinge cio' che riflette, e con la

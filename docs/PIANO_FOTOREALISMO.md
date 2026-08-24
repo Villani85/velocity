@@ -11,83 +11,91 @@ che racconta il lavoro sulla geometria e i quattro metri costruiti e buttati.
 
 ---
 
-## 0. Il reperto principale — la carrozzeria è uno specchio, non una vernice
+## 0. Il reperto principale — e la sua smentita
 
-Questo non era in nessuno dei due feedback esterni, ed è la scoperta più grossa
-della sessione. Spiega da sola quasi tutte le critiche ricevute.
+> **Questa sezione e' stata riscritta.** La prima versione affermava che il 66%
+> della carrozzeria fosse a specchio, e che questo spiegasse tutte le critiche
+> ricevute. **Era falso.** La storia resta qui invece di essere cancellata,
+> perche' e' il **quinto metro rotto** di questo progetto e il piu' insidioso:
+> gli altri quattro davano numeri assurdi, questo ne dava di **plausibili**.
 
-### Come si riproduce
+### Cosa avevo misurato, e perche' era sbagliato
+
+`strumenti/orm_area.mjs` pesava per area tutta la mesh e riportava:
+
+```
+ruvidita mappata sotto 0,25 (SPECCHIO): 66,1%
+area rivolta verso l alto             : 42,1%  di cui a specchio 74,8%
+```
+
+Ne avevo concluso: `ruvidita 0,30 x mappa 0,004 = 0,001`, la vettura e' uno
+specchio nero, e uno specchio mostra l'ambiente invece della forma.
+
+**Il difetto:** la mesh contiene sottoscocca, interni e cavita' delle carene —
+superfici mappate ma **mai cotte**, che campionano il riempimento dell'atlante.
+Pesate per area sono tantissime. Non si vedono mai.
+
+### L'argomento che lo ha smontato, in una riga
+
+Una revisione esterna ha fatto notare una cosa che avevo scritto **io stesso**,
+come prova a favore:
+
+> «Misurata sui texel mappati: la mediana e' esattamente la normale neutra
+> `(128,128,255)`.»
+
+`(128,128,255)` **e' il colore con cui ogni baker riempie i texel non mappati**,
+per costruzione. Se una maschera «texel mappati» ha quella mediana, sta
+selezionando il riempimento. Non c'e' altra spiegazione possibile.
+Era la prova contraria, ed e' definitiva.
+
+### La verifica: tre maschere fatte litigare
 
 ```bash
-node strumenti/orm_area.mjs
+node strumenti/canarino.mjs
 ```
 
-Lo strumento (`strumenti/orm_area.mjs`, scritto oggi) legge `auto2.glb`,
-campiona `auto2r_orm.webp` al **centroide di ogni triangolo** e pesa il
-risultato per l'**area vera del triangolo nel mondo**. Pesare per area e non
-contare i triangoli è essenziale: sono di dimensioni diversissime, e ciò che si
-vede è l'area.
-
-### Output
-
 ```
-ruvidita mappata sotto 0,25 (SPECCHIO): 66.1%
-ruvidita mappata sopra 0,75 (opaca)   : 23.0%
-metallico mappato sopra 0,5           : 32.9%
-area rivolta verso l alto             : 42.1%  di cui a specchio 74.8%
+A (non-rosso nella ORM)     26.7%      <- costruita dall'immagine ORM
+B (non-neutra nella NOR)    27.6%      <- costruita dall'immagine NOR
+C (rasterizzazione UV)      56.7%      <- costruita dalla geometria (la mia)
+
+accordo A/B  79.4%      accordo A/C  30.7%      accordo B/C  29.8%
+
+dentro A:  ORM G 252   ORM B 247   COL luma 253
+dentro B:  ORM G 215   ORM B 240   COL luma 248
+dentro C:  ORM G   1   ORM B   0   COL luma   0     <- il riempimento
 ```
 
-### Cosa significa
+Due criteri che non si parlano, ricavati da due file diversi, selezionano la
+stessa regione. La mia no.
 
-In three, `roughnessFactor = material.roughness * texel.g`
-([`Materiali.ts:1318`](../src/scene/Materiali.ts) per `ruvidita`, e
-[`Materiali.ts`](../src/scene/Materiali.ts) `scocca()` per `m.roughnessMap = orm`).
+E la scala non c'entra (`strumenti/scala_uv.mjs`): le UV sono `Float32Array`
+non normalizzato, intervallo esatto 0..1, e la scala 1,0 e' gia' la migliore.
+Il 73% delle isole vere **sta dentro** la mia copertura — semplicemente la mia
+copre anche tutto cio' che non e' stato cotto.
 
-Con `ruvidita = 0.30` e una mappa che sui texel della vettura vale ~0,004, la
-ruvidità effettiva è **0,001**. Il 74,8% della superficie **rivolta verso la
-camera** è un nero a specchio quasi perfetto.
+### Il quadro vero
 
-Il commento nel sorgente dice:
+Dentro le isole: `G` mediana **0,84-0,99**, `p75 = 1,000`, con un ~18% sotto
+0,25 che e' **canopy e cromature** — dove lo specchio ci va. Quindi
+`ruvidita 0,30 x ~0,87 = 0,26`: **il commento nel sorgente aveva ragione.**
 
-> «0,32 per la mappa fa 0,26, che è la ruvidità di una carrozzeria vera»
+La mappa non e' rotta. E' **piatta**: su meta' della carrozzeria non varia
+affatto. Che e' il difetto che il commento di `Materiali.ts` descrive senza
+accorgersi di averlo addosso —
 
-Descrive un'intenzione che il file non soddisfa. È lo stesso difetto di famiglia
-del §12 di `CARROZZERIA_FAIRNESS.md`: **un numero corretto rispetto a uno stato
-del progetto che non esiste più.**
+> «una superficie a ruvidita' costante non esiste in natura: e' il segno piu'
+> riconoscibile della computer grafica, prima ancora della geometria troppo
+> perfetta»
 
-### Perché spiega le critiche ricevute
+— e resta un difetto vero, solo con una cura diversa (vedi 1.2).
 
-| critica esterna | causa vera |
-|---|---|
-| «carrozzeria, vetri, gomma, cerchi e trim leggono come la stessa sostanza lucida» | *sono* la stessa sostanza: uno specchio |
-| «la parte centrale è quasi nera, spariscono curvature, volumi, spigoli» | uno specchio mostra l'**ambiente**, non la forma |
-| «il fianco legge a macchie invece che a righe» | idem |
-| «superficie senza tensione, sembra una saponetta» | idem |
+### La regola nuova, gratis
 
-Uno specchio nero sotto un cielo notturno **è** nero. Nessuna quantità di
-grading, di strisce o di rim light può farne una carrozzeria, perché il
-materiale decide prima che la luce arrivi al tone mapping.
-
-### Le tre verifiche indipendenti
-
-Non mi sono fermato al primo numero, perché il primo numero era sbagliato.
-
-1. **Rasterizzazione delle UV** (`strumenti/mappati.mjs`) — costruisce la
-   maschera di copertura rasterizzando i triangoli UV e misura solo dentro.
-2. **Centroide di tutti i 106.736 triangoli** — evita i bordi delle isole, dove
-   il campionamento punta su padding.
-3. **Pesatura per area** (`strumenti/orm_area.mjs`) — la misura che conta.
-
-E, decisivo, **ho guardato le mappe**:
-
-```bash
-node -e '...' # esporta docs/provini/mappe_affiancate.png
-```
-
-Nell'ORM il rosso `(255, 0, 0)` è AO 1 / ruvidità 0 / metallo 0. Le isole bianche
-sono l'altra popolazione. La distribuzione è **bimodale**, non piatta.
-
----
+**Dopo ogni maschera si stampa la mediana della normal map dentro.** Se e'
+`(128,128,255)` (con tolleranza: la mia usciva `128,127,255` e il primo
+canarino non l'ha vista), la maschera sta selezionando il vuoto. Il controllo
+e' in `strumenti/canarino.mjs` e costa niente.
 
 ## 1. Cosa dei feedback esterni ho confermato, e cosa no
 
@@ -98,23 +106,29 @@ Ho ricevuto due revisioni. Le ho verificate una per una invece di applicarle.
 | affermazione | verifica |
 |---|---|
 | **`metalness` alto tinge di blu ogni riflesso caldo** | Fisica corretta. Un metallo tinge lo speculare col proprio colore, un dielettrico lo restituisce bianco. Ero stato **io** ad alzarlo a 0,85 stamattina seguendo il primo revisore («Metallic 0.8–1»): sbagliato per una vernice scura. |
-| **`specularIntensity: 0.6` in `vernice()`** | [`Materiali.ts:245`](../src/scene/Materiali.ts). Taglia F0 dal 4% al 2,4%, cioè ammazza il Fresnel bianco. Su un dielettrico è ciò che fa vedere la superficie. |
+| **`specularIntensity: 0.6` in `vernice()`** | `Materiali.ts` → `vernice()` → `specularIntensity`. Taglia F0 dal 4% al 2,4%, cioè ammazza il Fresnel bianco. Su un dielettrico è ciò che fa vedere la superficie. |
 | **`scocca()` non ha `clearcoatNormalMap`** | Vero, mentre `vernice()` ce l'ha. E la scocca è ciò che veste `AUTO`. Il trasparente a 0,028 era uno **specchio ideale** su una mesh a 0,341 mm di residuo. |
 | **Canale R della ORM piatto a 1,000** | `R p10 254 · mediana 255 · p90 255`. Zero AO cotta, 2048×2048 di spazio già pagato e vuoto. |
-| **`GTAOPass radius: 0.9` m** | [`Esperienza.ts:755`](../src/core/Esperienza.ts). Tarato sulla corte; su una vettura di 4,4 m non tocca né passaruota né fughe. |
-| **`INDIRIZZO = ''`** | [`Contatto.ts:27`](../src/ui/Contatto.ts). Il sito non ha modo di essere contattato. |
+| **`GTAOPass radius: 0.9` m** | `Esperienza.ts` → `GTAOPass` → `radius`. Tarato sulla corte; su una vettura di 4,4 m non tocca né passaruota né fughe. |
+| **`INDIRIZZO = ''`** | `Contatto.ts` → `INDIRIZZO`. Il sito non ha modo di essere contattato. |
 | **Zero metadati sociali** | `grep -c "og:\|twitter:\|canonical\|application/ld" index.html` → **0** |
-| **Documento statico disallineato** | `index.html:319-321` dichiara 02/03/04 «in lavorazione»; `Lavori.ts` ha **11** voci. |
+| **Documento statico disallineato** | il blocco `<main class="documento">` di `index.html` dichiara 02/03/04 «in lavorazione»; `Lavori.ts` ha **11** voci. |
 
-### Non confermato ❌ — e va detto
+### Non confermato al primo giro, poi **confermato** ✅
 
-| affermazione | cosa dice la misura |
+Le tre voci qui sotto le avevo contestate sulla base della maschera sbagliata.
+Con la maschera giusta tornano tutte, e lo scrivo con lo stesso rilievo con cui
+le avevo contestate.
+
+| affermazione | esito |
 |---|---|
-| **«`auto2r_col.webp` è bianca, mediana 0,982»** | Sui texel mappati la mediana è **0** (nera). Comando: `node strumenti/mappati.mjs auto2r_col`. Nota: anche le **mie** prime misure erano sbagliate — campionavo il padding. La versione corretta, confermata guardando l'immagine, dice nero. |
-| **«normal map inclinata ~20° in mediana, ~62° al p95»** | Misurata sui texel mappati: `R 112/128/154 · G 125/127/135 · B 205/255/255`. La mediana è **esattamente la normale neutra** `(128,128,255)`. Lo scarto esiste ma è ~11°, non 20°. **Non tocco la mappa finché non ho un metro che regge.** |
-| **«metalness effettiva ≈ 0,83»** | Solo il **32,9% dell'area** ha `B > 0,5` nella ORM. Su due terzi della vettura `metalness = metallo × ~0 = 0`. La conclusione (andare dielettrico) resta giusta; il numero no. |
+| **`auto2r_col.webp` e' bianca** | **Vera.** Luma mediana 248-253 sulle isole. I 190 kB portano quasi nulla, e il divisore 0,58 delle quattro tinte appartiene a una mappa che non esiste piu'. |
+| **La normal map ha dettaglio vero** | **Vera.** Il `p10/p90` che mi aveva fatto desistere era del riempimento. `passaalto.mjs` va scritto lo stesso, ma sulla maschera giusta. |
+| **`metalness` effettiva ~0,80** | **Vera.** `B` mediana 0,94-0,97 sulle isole. Con `metallo: 0.85` faceva ~0,80, non «zero su due terzi». La conclusione dielettrica era giusta *e* il numero pure. |
 
----
+La disciplina di 1.3 — rifiutare di toccare la mappa senza un metro che regge —
+**ha funzionato lo stesso**: mi ha impedito di fare un danno mentre il metro
+era rotto.
 
 ## 2. Un difetto trovato e corretto strada facendo
 
@@ -247,6 +261,13 @@ dopo    orbita  mediana 24.7   scuri 37.8%
 
 Il contraccolpo previsto («scuri sopra il 55%») **non si è verificato**: 37,8%.
 
+> ⚠️ **Il cancello di 1.1 NON è passato, e va detto chiaramente.** Il bersaglio
+> di 1.4 è mediana 90–120 con scuri sotto il 15%. Siamo a **24,8 / 37,4%**:
+> 1.1 lascia la vettura in uno stato *peggiore* di prima (era 36,5 / 28,0%), ed
+> è **1.4 a doverlo recuperare** — con le strisce e la rotazione dell'ambiente,
+> **non** schiarendo la tinta. Scritto qui perché fra due settimane quel 24,8
+> non sembri un risultato accettato.
+
 #### 1.2 Ricostruire il canale della ruvidità — **il punto numero uno**
 
 La mappa non è «piatta», è **rotta**: bimodale, due terzi dell'area a zero. Non
@@ -272,9 +293,9 @@ si ripara con una manopola. Si sintetizza una ORM nuova
   dichiara metallo vero (il 32,9% di area con `B > 0,5`: griglie, inserti).
 - **R** — resta 1,0 finché non arriva l'AO cotta (2.1), che va esattamente lì.
 
-> **Cancello:** `node strumenti/orm_area.mjs` deve dare «sotto 0,25» vicino a
-> **0%**; `carrozzeria.mjs` non deve perdere mediana; e **si guarda il provino**.
-> Se la vettura smette di essere uno specchio, le forme devono ricomparire.
+> **Cancello (invertito rispetto alla prima stesura):** «sotto 0,25» deve
+> **restare intorno al 18%**, e deve cadere dove ci sono vetro e cromo. Se va a
+> zero ho murato i vetri. Poi si guarda il provino.
 
 #### 1.3 La normal map — **prima misurare, poi decidere**
 
@@ -324,6 +345,13 @@ volume. Costa un numero.
   pneumatico, dopo la divisione per raggio che c'è già. Un pneumatico
   perfettamente circolare che tocca il suolo in un punto è la firma più
   riconoscibile del render amatoriale.
+
+- **2.5 Il pavimento bagnato — verificato, non toccato.** Vale circa il 15%
+  della lettura nella reference e nel piano non c'era né una riga né un
+  cancello. Lo stato attuale è quello di `CARROZZERIA_FAIRNESS §13`: raggio
+  5,6, forza 1,15, Fresnel `pow(radente, 2.1)`. **Da rimisurare dopo 1.4**,
+  perché una vernice dielettrica riflette nel pavimento una quantità di luce
+  diversa da un metallo — e la forza dello specchio era tarata sul metallo.
 
 *Già fatto:* le **quattro macchie scure sotto le gomme**, agganciate alle
 posizioni vere restituite da `trovaArchi` (`Ruote.ts`), non alla mezzeria. Se le
