@@ -107,6 +107,8 @@ export type MaterialiRuota = {
   gomma: MeshStandardMaterial
   cerchio: MeshPhysicalMaterial
   disco: MeshStandardMaterial
+  cavita: MeshStandardMaterial
+  pinza: MeshStandardMaterial
 }
 
 /**
@@ -129,7 +131,17 @@ export function materialiRuota(): MaterialiRuota {
      sono `RectAreaLight` forti e fredde, e un metallo troppo liscio le
      restituisce come un colpo concentrato — che nel provino leggeva come un
      disco ciano acceso, non come un cerchio. */
-  const cerchio = new MeshPhysicalMaterial({ roughness: 0.42, metalness: 1.0 })
+  /* METALLICO 0,82 E NON 1,0 — ed e' la ragione per cui i raggi si vedono.
+     Dentro il passaruota non arriva nessuna luce diretta, e un metallo PURO
+     li' e' nero su nero: non ha componente diffusa, quindi puo' solo
+     restituire un ambiente che li' non c'e'. E' lo stesso muro contro cui
+     questo file aveva sbattuto la prima volta, e la cura di allora — un
+     `MeshBasicMaterial` che emette — dava quattro dischi ciano luminosi.
+     Lasciando un 18% di dielettrico il cerchio raccoglie la luce ambiente
+     come qualunque superficie opaca, e le razze tornano a leggersi anche in
+     ombra. Non e' un trucco: un cerchio verniciato o anodizzato NON e' un
+     metallo puro, e il modello a strati di Filament lo tratta cosi'. */
+  const cerchio = new MeshPhysicalMaterial({ roughness: 0.45, metalness: 0.82 })
   /* APPENA CALDA, non neutra. Un metallo non ha colore proprio: restituisce
      quello che riceve, e le sorgenti di questa scena sono `RectAreaLight`
      fredde — quindi una lega neutra usciva AZZURRA, e un cerchio azzurro
@@ -138,20 +150,45 @@ export function materialiRuota(): MaterialiRuota {
      (0,91/0,92/0,92 nelle tabelle di Filament, cioe' rosso appena piu' alto
      del blu). Qui la si accentua quel tanto che basta a bilanciare la
      temperatura della chiave. */
-  cerchio.color.setRGB(0.575, 0.560, 0.535)
-  cerchio.envMapIntensity = 0.30
+  cerchio.color.setRGB(0.615, 0.600, 0.575)
+  cerchio.envMapIntensity = 0.34
   cerchio.name = 'CERCHIO_VERO'
 
   /* IL DISCO FRENO sta in ombra dietro le razze e non deve competere con
      loro: ghisa scura, quasi opaca. Serve a dare PROFONDITA', non a farsi
      guardare — e' la parallasse fra il piano delle razze e il suo a dire che
      la ruota e' cava. */
-  const disco = new MeshStandardMaterial({ roughness: 0.62, metalness: 0.85 })
-  disco.color.setRGB(0.10, 0.104, 0.112)
-  disco.envMapIntensity = 0.22
+  /* IL DISCO NON PUO' ESSERE METALLO PURO, per la stessa ragione del cerchio
+     e in modo ancora piu' netto: sta piu' in fondo, quindi di luce diretta ne
+     riceve ancora meno. Con metallico 0,90 dentro il passaruota il disco
+     diventava un buco nero — c'era, e non si vedeva. Un disco freno in uso e'
+     acciaio levigato dalle pastiglie ma coperto di polvere di frenata: circa
+     meta' metallo, che e' esattamente cio' che serve perche' raccolga la luce
+     ambiente e si legga anche in ombra. */
+  const disco = new MeshStandardMaterial({ roughness: 0.34, metalness: 0.52 })
+  disco.color.setRGB(0.345, 0.350, 0.358)
+  disco.envMapIntensity = 0.78
   disco.name = 'DISCO_FRENO'
 
-  return { gomma, cerchio, disco }
+  /* IL BUIO DEL PASSARUOTA. Quasi nero e completamente opaco: e' l'unica
+     superficie di tutta la scena che deve restituire il meno possibile,
+     perche' e' cio' che sta dietro a dare profondita' a cio' che sta davanti.
+     `side: DoubleSide` perche' la si guarda da tutte e due le parti quando la
+     vettura gira. */
+  const cavita = new MeshStandardMaterial({ roughness: 0.95, metalness: 0.0, side: DoubleSide })
+  cavita.color.setRGB(0.012, 0.012, 0.014)
+  cavita.envMapIntensity = 0.05
+  cavita.name = 'CAVITA_RUOTA'
+
+  /* LA PINZA e' l'unico pezzo colorato di tutta la vettura, e basta un
+     accenno: un rosso scuro che a sessanta pixel legge come «c'e' qualcosa
+     di meccanico li' dentro» senza diventare un adesivo. */
+  const pinza = new MeshStandardMaterial({ roughness: 0.42, metalness: 0.25 })
+  pinza.color.setRGB(0.235, 0.038, 0.030)
+  pinza.envMapIntensity = 0.55
+  pinza.name = 'PINZA'
+
+  return { gomma, cerchio, disco, cavita, pinza }
 }
 
 /**
@@ -228,33 +265,65 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
   dado.name = 'DISCO_FRENO'
   g.add(dado)
 
-  /* IL DISCO FRENO, dietro le razze e piu' dentro: la distanza fra i due
-     piani e' il punto. Con disco e razze complanari non si vedrebbe nessuna
-     profondita', solo un disegno piatto. */
-  const disco = new Mesh(new CylinderGeometry(0.196, 0.196, 0.016, 40), M.disco)
+  /* DENTRO LE RAZZE CI DEVE ESSERE MECCANICA, NON VERNICE.
+     Il committente, guardando la vettura bianca: «dentro i raggi non si deve
+     vedere la vernice ma ingranaggi». Ed era esatto — fra una razza e
+     l'altra si vedeva la carrozzeria, perche' il fondo che chiudeva la
+     cavita' era un disco chiaro e piatto: leggeva come un tappo, non come
+     l'interno di una ruota.
+     Quello che si vede dentro un cerchio vero e' una successione di piani a
+     profondita' diverse: il disco freno lucido, la campana piu' scura che lo
+     porta, la pinza che ne morde il bordo, e dietro tutto il buio del
+     passaruota. E' quella SCALA DI PROFONDITA' a leggere «meccanica»; un
+     piano solo, a qualunque colore lo si metta, legge «tappo». */
+
+  // 1. il buio in fondo: e' il passaruota, e non deve restituire niente
+  const buio = new Mesh(new CylinderGeometry(0.236, 0.236, 0.004, 32), M.cavita)
+  buio.rotation.x = Math.PI / 2
+  buio.position.z = faccia - 0.125 * verso
+  buio.name = 'CAVITA_RUOTA'
+  g.add(buio)
+
+  /* 2. IL DISCO FRENO, grande quanto puo': su una vettura cosi' il disco
+     riempie quasi tutto il cerchio, ed e' proprio il poco spazio fra il suo
+     bordo e il cerchio a dire «freno serio». Lucido, perche' un disco in uso
+     e' levigato dalle pastiglie e riflette a specchio sulla pista di
+     frenata. */
+  const disco = new Mesh(new CylinderGeometry(0.208, 0.208, 0.020, 48), M.disco)
   disco.rotation.x = Math.PI / 2
-  disco.position.z = faccia - 0.052 * verso
+  disco.position.z = faccia - 0.062 * verso
   disco.name = 'DISCO_FRENO'
   g.add(disco)
 
-  // la pinza: un blocco che rompe la simmetria e dice «meccanica»
-  const pinza = new Mesh(new BoxGeometry(0.062, 0.115, 0.052), M.disco)
-  pinza.position.set(0.055, 0.150, faccia - 0.052 * verso)
-  pinza.rotation.z = -0.34
-  pinza.name = 'DISCO_FRENO'
-  g.add(pinza)
+  /* 3. LA FASCIA FORATA. Un disco liscio legge come una moneta. I fori non
+     si modellano — a questa dimensione sarebbero decine di pezzi per niente:
+     si suggeriscono con due gole concentriche, che e' cio' che l'occhio
+     riconosce come «disco lavorato» a sessanta pixel di distanza. */
+  for (const r of [0.150, 0.186]) {
+    const gola = new Mesh(new RingGeometry(r - 0.006, r + 0.006, 48), M.cavita)
+    gola.position.z = faccia - 0.062 * verso + 0.011 * verso
+    gola.rotation.y = verso < 0 ? Math.PI : 0
+    gola.name = 'CAVITA_RUOTA'
+    g.add(gola)
+  }
 
-  /* IL FONDO DELLA CAVITA'. Senza, guardando la ruota di tre quarti si vede
-     attraverso: fra le razze si intravede lo sfondo della scena, e una ruota
-     trasparente e' peggio di una ruota brutta. */
-  const fondo = new Mesh(new CylinderGeometry(0.235, 0.235, 0.004, 40), M.disco)
-  fondo.rotation.x = Math.PI / 2
-  fondo.position.z = faccia - 0.075 * verso
-  fondo.material = M.disco
-  fondo.name = 'DISCO_FRENO'
-  const mat = fondo.material as MeshStandardMaterial
-  mat.side = DoubleSide
-  g.add(fondo)
+  /* 4. LA CAMPANA che porta il disco: piu' scura e piu' avanti, cosi' fra lei
+     e il disco si legge uno scalino. */
+  const campana = new Mesh(new CylinderGeometry(0.086, 0.078, 0.048, 24), M.cavita)
+  campana.rotation.x = Math.PI / 2
+  campana.position.z = faccia - 0.030 * verso
+  campana.name = 'CAVITA_RUOTA'
+  g.add(campana)
+
+  /* 5. LA PINZA. E' il pezzo che rompe la simmetria a raggiera, ed e' per
+     questo che si nota: tutto il resto dentro una ruota gira, lei sta ferma.
+     Sta a ore due e MORDE il bordo del disco — una pinza che galleggia in
+     mezzo non e' una pinza. */
+  const pinza = new Mesh(new BoxGeometry(0.052, 0.132, 0.062), M.pinza)
+  pinza.position.set(0.072, 0.158, faccia - 0.062 * verso)
+  pinza.rotation.z = -0.42
+  pinza.name = 'PINZA'
+  g.add(pinza)
 
   g.name = 'RUOTA_COSTRUITA'
   return g

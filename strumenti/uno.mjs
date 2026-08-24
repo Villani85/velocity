@@ -53,6 +53,19 @@ await p.waitForFunction(
   null, { timeout: 120000 },
 ).catch(() => console.log('  (ATTENZIONE: le ruote vere non sono arrivate, nel provino ci sono i segnali)'))
 await p.evaluate(() => window.fissaQualita('alto'))
+/* SI PUO' CHIEDERE UNA FINITURA DIVERSA: `node uno.mjs <t> <nome> <indice>`.
+   Serve perche' i difetti della carrozzeria NON SI VEDONO TUTTI SULLO STESSO
+   COLORE: i segni cotti nella normal map su una vernice nera si intuiscono,
+   su una bianca gridano. Collaudare solo sulla finitura di partenza vuol dire
+   scoprire i difetti dal committente. */
+const FIN = process.argv[4]
+if (FIN !== undefined) {
+  await p.evaluate((i) => {
+    const c = document.querySelectorAll('.comandi__campione')
+    if (c[i]) c[i].click()
+  }, Number(FIN))
+  for (let i = 0; i < 8; i++) await p.evaluate(() => new Promise(r => requestAnimationFrame(r)))
+}
 await p.evaluate(() => { const h=document.getElementById('hud'); if(h) h.style.display='none' })
 const corsa = await p.evaluate(() => document.documentElement.scrollHeight - innerHeight)
 for (let i=1;i<=40;i++){
