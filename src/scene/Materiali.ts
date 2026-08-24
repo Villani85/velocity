@@ -937,7 +937,20 @@ export function scocca() {
   const orm = sua('/texture/auto2r_orm2.webp')
   m.roughnessMap = orm
   m.metalnessMap = orm
-  m.normalMap = sua('/texture/auto2r_nor.webp')
+  /* LA NORMAL MAP CON L'ARCO SPIANATO — vedi `strumenti/arco_maschera.mjs`.
+     Sopra la ruota, sulla fiancata, correva una linea che disegnava il
+     passaruota del modello generato: era COTTA nella mappa. Isolata spegnendo
+     `normalScale`: a zero il segno spariva, quindi non era ne' un'ombra ne'
+     una cucitura della maglia.
+     Non si poteva abbassare la scala e basta, perche' quella mappa porta
+     anche le fughe fra i pannelli, le prese d'aria e le griglie — l'unico
+     rilievo vero che questa carrozzeria abbia. Quindi si e' spianata SOLO la
+     corona intorno a ciascun mozzo (fra 0,88 e 1,60 raggi ruota, e solo sul
+     fianco), con i bordi sfumati: un taglio netto in una normal map si legge
+     come una crepa.
+     Il 17,3% dei texel toccati, 10,3 livelli medi di rilievo tolti. La
+     mappa originale resta su disco: si torna indietro cambiando una riga. */
+  m.normalMap = sua('/texture/auto2r_nor2.webp')
   m.normalScale.set(0.7, 0.7)
   const emi = sua('/texture/auto2r_emi.webp')
   emi.colorSpace = SRGBColorSpace
