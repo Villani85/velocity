@@ -1882,6 +1882,16 @@ export class Esperienza {
        * deciso porta il fondoscala, uno tranquillo sta intorno ai centoventi.
        */
       const spinta = Math.min(this.scorrimento.velocita * 9.0, 1)
+      /* DOVE SIAMO NEL RACCONTO — sette tempi, e il quadro non lo sapeva.
+         I confini arrivano da `Regia.CONFINI`, che e' la stessa tabella che
+         decide i beat: scriverne una copia nel quadro vorrebbe dire che al
+         prossimo ritocco della regia il cruscotto indicherebbe un film
+         diverso da quello che si sta guardando. */
+      this.quadro.stato(
+        CONFINI.findIndex(([b]) => b === this.regia.beat),
+        CONFINI.map(([, f]) => f),
+        this.regia.globale,
+      )
       this.quadro.aggiorna(avvio, spinta, dt)
       // le ruote girano sulla STESSA spinta del tachimetro, non su un
       // numero loro: sono la prova visiva della cifra che il quadro mostra

@@ -677,6 +677,30 @@ export class Quadro {
    * @param chiamate quante volte la scheda e' stata chiamata a disegnare
    * @param triangoli quanti triangoli sono passati nell'ultimo fotogramma
    */
+  /** quale dei sette tempi si sta attraversando, e quanto e' avanti il film */
+  private tempoIndice = 0
+  /** dove FINISCE ciascun tempo, in progresso globale: l'ultimo vale 1 */
+  private tempoConfini: number[] = []
+  private tempoGlobale = 0
+
+  /**
+   * LO STATO DEL RACCONTO, che il quadro non aveva.
+   *
+   * Non e' telemetria: e' un'informazione di NAVIGAZIONE, e la differenza
+   * conta. Questo file ha gia' tolto tre volte dei numeri veri — i
+   * millisecondi, i quattrocentosessantamila triangoli, le chiamate di
+   * disegno — con la stessa ragione ogni volta: «un dato vero non e'
+   * automaticamente un dato da mostrare», perche' nessuno di quelli si legge
+   * senza essere interpretato.
+   * «Sei al quinto tempo su sette» si legge senza interpretare niente, ed e'
+   * la domanda che si fa chiunque stia attraversando qualcosa di lungo.
+   */
+  stato(indice: number, confini: number[], globale: number) {
+    this.tempoIndice = indice
+    this.tempoConfini = confini
+    this.tempoGlobale = Math.min(Math.max(globale, 0), 1)
+  }
+
   misura(ms: number, chiamate: number, triangoli: number) {
     // LE MEDIE SONO GIA' FATTE A MONTE per il tempo, ma non per gli altri due,
     // e senza smorzamento le cifre ballano di continuo — un numero che cambia
@@ -1258,6 +1282,69 @@ export class Quadro {
     nucleo.addColorStop(1, 'rgba(150,220,255,0.04)')
     c.fillStyle = nucleo
     c.fillRect(BORDO, y, L - BORDO * 2, Math.max(2, A * 0.014))
+
+    this.tempi(y)
+  }
+
+  /**
+   * I SETTE TEMPI — dove sei nel racconto.
+   *
+   * PERCHE' QUI. La striscia alta era una riga di luce e basta, e sotto
+   * c'erano quaranta pixel di vuoto per tutta la larghezza: lo spazio piu'
+   * grande e piu' visibile del pannello, occupato da niente. Un cruscotto con
+   * un vuoto in cima non sembra sobrio, sembra incompiuto.
+   *
+   * PERCHE' A SEGMENTI E NON A BARRA. Una barra continua dice «quanto manca»,
+   * che e' l'informazione di un caricamento. Sette segmenti dicono «di quante
+   * cose e' fatto e a quale sono», che e' l'informazione di un racconto — e
+   * questo film di tempi ne ha sette dichiarati, con i loro nomi, in
+   * `Regia.CONFINI`. Il numero non e' scelto qui: e' letto da li'.
+   *
+   * IL SEGMENTO CORRENTE SI RIEMPIE. Gli altri sono accesi o spenti; quello in
+   * corso mostra quanto e' avanti. E' cio' che distingue uno strumento da un
+   * elenco: risponde a «dove sono» e a «quanto manca a cambiare» con lo stesso
+   * segno.
+   *
+   * LARGHEZZA PROPORZIONALE AL TEMPO VERO. I sette tempi non durano uguale —
+   * `hero` vale il 13% della corsa e `contatto` il 18,5% — e disegnarli tutti
+   * larghi uguale sarebbe una bugia comoda: si guarderebbe il quinto segmento
+   * a meta' credendo di essere a meta' di qualcosa che invece e' quasi finito.
+   */
+  private tempi(yStriscia: number) {
+    const c = this.c
+    const fine = this.tempoConfini
+    const n = fine.length
+    if (n < 2) return
+    const x0 = BORDO + L * 0.055
+    const largo = (L - BORDO * 2) - L * 0.110
+    const y = yStriscia + A * 0.036
+    const alto = Math.max(2, A * 0.010)
+    const vano = L * 0.006
+
+    for (let i = 0; i < n; i++) {
+      // i confini VERI, non parti uguali: `hero` vale il 13% della corsa e
+      // `contatto` il 18,5%, e disegnarli larghi uguale sarebbe una bugia
+      // comoda — si guarderebbe il quinto segmento a meta' credendo di essere
+      // a meta' di qualcosa che invece e' quasi finito
+      const q0 = i === 0 ? 0 : fine[i - 1], q1 = fine[i]
+      const xa = x0 + largo * q0 + vano / 2
+      const w = largo * (q1 - q0) - vano
+      const passato = i < this.tempoIndice
+      const ora = i === this.tempoIndice
+      c.fillStyle = passato
+        ? 'rgba(150,220,255,0.30)'
+        : ora ? 'rgba(150,220,255,0.16)' : 'rgba(150,220,255,0.07)'
+      c.fillRect(xa, y, w, alto)
+      if (ora) {
+        /* dentro il tempo corrente: quanto e' avanti QUEL tempo, non il film.
+           `tempoGlobale` e' la posizione nella corsa intera, quindi va
+           riportata dentro il segmento — se no il riempimento correrebbe
+           sette volte piu' piano di quanto sembra. */
+        const dentro = Math.min(Math.max((this.tempoGlobale - q0) / Math.max(1e-4, q1 - q0), 0), 1)
+        c.fillStyle = 'rgba(212,240,255,0.92)'
+        c.fillRect(xa, y, w * dentro, alto)
+      }
+    }
   }
 
   /**
