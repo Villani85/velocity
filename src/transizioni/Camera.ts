@@ -70,8 +70,19 @@ export const POSE = {
    * insieme. Restando a 0,92 da cinque metri e mezzo si tornerebbe a guardarla
    * dall'alto, che e' esattamente il difetto da cui quella regola nasce.
    */
-  heroDa: new Vector3(5.609, 0.9, 4.434),
-  heroA: new Vector3(5.256, 0.84, 4.155),
+  /* PIU' LONTANE, PERCHE' IL CAMPO SI STRINGE — vedi `inquadra`, beat hero.
+     Il fattore e' tan(19 gradi) / tan(15 gradi) = 1.2850, cioe' esattamente
+     quanto serve ad allontanarsi perche' l'automobile occupi la STESSA
+     frazione di fotogramma con un campo di 30 invece che di 38. Non e' una
+     scelta di gusto: e' la formula, e senza di essa restringere il campo
+     ingrandirebbe il soggetto finche' non esce dai bordi — che e' esattamente
+     l'errore descritto nel commento sopra.
+     L'ALTEZZA NON SI SCALA. Se salisse insieme alla distanza si tornerebbe a
+     guardare l'automobile dall'alto, che e' il difetto da cui nasce tutta la
+     regola dei 90 centimetri. Allontanandosi a quota fissa l'angolo di scorcio
+     si CHIUDE, ed e' proprio quello che si vuole. */
+  heroDa: new Vector3(7.208, 0.9, 5.698),
+  heroA: new Vector3(6.754, 0.84, 5.339),
   /**
    * L'orbita in coordinate polari: angolo, raggio, altezza.
    *
@@ -322,7 +333,20 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
       // fermo, quasi. Il movimento c'e' ma non si nota: serve a dire che la
       // scena e' viva prima ancora che succeda qualcosa.
       camera.position.lerpVectors(POSE.heroDa, POSE.heroA, t)
-      camera.fov = 38
+      /* 30 GRADI E NON 38, e le pose si sono allontanate di conseguenza.
+         38 gradi su questo formato corrispondono a circa un 35 mm su pieno
+         formato. La fotografia d'automobile — e il riferimento che il
+         committente ha dato lo e' — si fa fra i 70 e i 135 mm, cioe' fra 28 e
+         18 gradi: e' il grandangolo a gonfiare i parafanghi e a far leggere
+         «modellino».
+         Su QUESTA vettura pesa il doppio che altrove. E' una streamliner a
+         carena continua: non ha spigoli, e senza spigoli non c'e' niente che
+         dia un riferimento su quanto la prospettiva stia deformando. Su una
+         hypercar a facce piane l'occhio corregge da solo; qui no.
+         Si tocca SOLO la hero. Il campo e' gia' animato per beat (38, poi 32,
+         poi 28, e 40 nell'abitacolo): a 30 gradi dentro un abitacolo non si
+         vedrebbe niente, e nell'attraversamento la deformazione E' il punto. */
+      camera.fov = 30
       diLato(camera, mira, SCOSTA_HERO)
       mira.y += ALZA_HERO
       break
