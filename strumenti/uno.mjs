@@ -37,6 +37,21 @@ await p.waitForFunction(() => window.esperienza.autoPronta && window.esperienza.
 // IL LIVELLO SI FISSA, se no si misura una scena diversa da quella vera:
 // Chromium headless disegna in software e il gestore di qualita' scende da
 // solo, spegnendo riflesso e occlusione. Vedi `main.ts`, `fissaQualita`.
+/* SI ASPETTANO ANCHE LE RUOTE VERE, e non e' un dettaglio: e' stato l'inganno
+   piu' lungo della sessione. `autoPronta && ambientePronto` non copre
+   `ruota.glb`, che arriva dopo — e fino ad allora al loro posto ci sono le
+   RUOTE DI SEGNALE, che sono `MeshBasicMaterial` con `toneMapped: false`,
+   cioe' emettono luce propria. Nei provini uscivano quattro dischi ciano
+   luminosi, e per due volte ho creduto fossero i cerchi veri troppo
+   specchianti: la prima volta ho abbassato ruvidita' e intensita' d'ambiente,
+   la seconda le ho abbassate ancora. Non cambiava niente, perche' stavo
+   correggendo un materiale che nel fotogramma non c'era.
+   Un provino che ritrae uno stato TRANSITORIO non e' un provino: e' una
+   fotografia scattata mentre la scena si vestiva. */
+await p.waitForFunction(
+  () => (window.esperienza?.ruote?.ruoteVere?.length ?? 0) >= 4,
+  null, { timeout: 120000 },
+).catch(() => console.log('  (ATTENZIONE: le ruote vere non sono arrivate, nel provino ci sono i segnali)'))
 await p.evaluate(() => window.fissaQualita('alto'))
 await p.evaluate(() => { const h=document.getElementById('hud'); if(h) h.style.display='none' })
 const corsa = await p.evaluate(() => document.documentElement.scrollHeight - innerHeight)

@@ -50,9 +50,26 @@ const b = await chromium.launch({
 const p = await b.newPage({ viewport: { width: L, height: A } })
 p.setDefaultTimeout(200000)
 await p.route('**/@vite/client', (r) => r.fulfill({ body: 'export {}', contentType: 'application/javascript' }))
+await p.route('**/@vite/client', (r) => r.fulfill({ body: 'export {}', contentType: 'application/javascript' }))
+p.on('pageerror', (e) => console.log('!! ERRORE DI PAGINA:', e.message))
 await p.goto(BASE, { waitUntil: 'domcontentloaded' })
 await p.waitForFunction(() => !!window.esperienza)
 await p.waitForFunction(() => esperienza.autoPronta && esperienza.ambientePronto)
+/* SI ASPETTANO ANCHE LE RUOTE VERE, e non e' un dettaglio: e' stato l'inganno
+   piu' lungo della sessione. `autoPronta && ambientePronto` non copre
+   `ruota.glb`, che arriva dopo — e fino ad allora al loro posto ci sono le
+   RUOTE DI SEGNALE, che sono `MeshBasicMaterial` con `toneMapped: false`,
+   cioe' emettono luce propria. Nei provini uscivano quattro dischi ciano
+   luminosi, e per due volte ho creduto fossero i cerchi veri troppo
+   specchianti: la prima volta ho abbassato ruvidita' e intensita' d'ambiente,
+   la seconda le ho abbassate ancora. Non cambiava niente, perche' stavo
+   correggendo un materiale che nel fotogramma non c'era.
+   Un provino che ritrae uno stato TRANSITORIO non e' un provino: e' una
+   fotografia scattata mentre la scena si vestiva. */
+await p.waitForFunction(
+  () => (window.esperienza?.ruote?.ruoteVere?.length ?? 0) >= 4,
+  null, { timeout: 120000 },
+).catch(() => console.log('  (ATTENZIONE: le ruote vere non sono arrivate, nel provino ci sono i segnali)'))
 await p.evaluate(() => window.fissaQualita('alto'))
 await p.evaluate(() => {
   const h = document.getElementById('hud'); if (h) h.style.display = 'none'
@@ -62,6 +79,56 @@ await p.evaluate(() => {
 const corsa = await p.evaluate(() => document.body.scrollHeight - innerHeight)
 const fermo = () => p.evaluate(() => new Promise((r) => requestAnimationFrame(r)))
 
+/* SI ASPETTA CHE IL FOTOGRAMMA SMETTA DI CAMBIARE, non un numero di frame.
+   Questo strumento non era RIPETIBILE: tre esecuzioni con le stesse identiche
+   impostazioni davano mediana 41,2 / 4,3 / 25,7 e scuri 27,4% / 56,8% / 37,1%,
+   con il conteggio dei pixel che ballava del cento per cento. Ci ho tarato
+   sopra mezza sessione.
+   La causa: la scena e' VIVA — lo scorrimento ha inerzia (Lenis continua a
+   frenare dopo `scrollTo`) e il gruppo dell'esterno ruota. Aspettare «18
+   fotogrammi» non e' un'attesa, e' una scommessa: quanti ne passano davvero
+   dipende dal carico della macchina. E soprattutto fra la fotografia CON
+   l'automobile e quella SENZA la scena si muoveva, quindi la differenza fra
+   le due prendeva dentro il FONDO che si era spostato — non la carrozzeria.
+   Adesso si confrontano due fotogrammi consecutivi e si va avanti finche' non
+   sono praticamente uguali. E' un'attesa su una CONDIZIONE, non sul tempo:
+   e' la differenza fra un controllo e una speranza. */
+async function quieto(giri = 90) {
+  /* SI ASPETTA UNA CONDIZIONE, NON UN NUMERO DI FOTOGRAMMI.
+     Questo strumento non era ripetibile: tre esecuzioni identiche davano
+     mediana 41,2 / 4,3 / 25,7 e scuri 27,4% / 56,8% / 37,1%, col conteggio
+     dei pixel che ballava del cento per cento. Ci ho tarato sopra mezza
+     sessione — e' il sesto metro rotto di questo progetto.
+     La causa: lo scorrimento ha INERZIA (Lenis continua a frenare dopo
+     `scrollTo`), quindi «aspetta 18 fotogrammi» non e' un'attesa ma una
+     scommessa su quanti ne passano davvero, che dipende dal carico della
+     macchina. E fra la fotografia CON l'automobile e quella SENZA la scena
+     si spostava ancora: la differenza fra le due prendeva dentro il FONDO
+     che si era mosso, non la carrozzeria.
+     PRIMO TENTATIVO DI CURA, ANCHE LUI SBAGLIATO: confrontavo due
+     `p.screenshot()` finche' non erano uguali. Ma `screenshot()` restituisce
+     un PNG COMPRESSO, e due immagini quasi identiche danno sequenze di byte
+     diversissime: la condizione non convergeva mai e la misura non finiva.
+     Confrontare byte compressi non e' confrontare immagini.
+     Adesso si guarda lo stato della pagina — la posizione di scorrimento e il
+     tempo della regia — e si va avanti finche' non stanno fermi per qualche
+     giro di seguito. Costa un `evaluate` invece di una fotografia. */
+  let ultimo = null, fermi = 0
+  for (let g = 0; g < giri; g++) {
+    await fermo()
+    const ora = await p.evaluate(() => [
+      Math.round(window.scrollY * 100) / 100,
+      Math.round((window.esperienza?.regia?.locale ?? 0) * 10000) / 10000,
+    ])
+    const uguale = ultimo && ora[0] === ultimo[0] && ora[1] === ultimo[1]
+    fermi = uguale ? fermi + 1 : 0
+    ultimo = ora
+    if (fermi >= 6) { for (let i = 0; i < 3; i++) await fermo(); return }
+  }
+  console.log('  (attenzione: lo scorrimento non si e mai fermato)')
+}
+
+
 for (const [nome, q] of TEMPI) {
   const passi = Math.max(40, Math.round(q * 700))
   await p.evaluate(() => window.scrollTo(0, 0))
@@ -69,14 +136,13 @@ for (const [nome, q] of TEMPI) {
     await p.evaluate(([c, v]) => window.scrollTo(0, c * v), [corsa, q * (i / passi)])
     await fermo()
   }
-  for (let i = 0; i < 18; i++) await fermo()
-
+  await quieto()
   const con = await p.screenshot()
   await p.evaluate(() => { esperienza.autoVera.visible = false })
-  for (let i = 0; i < 6; i++) await fermo()
+  await quieto()
   const senza = await p.screenshot()
   await p.evaluate(() => { esperienza.autoVera.visible = true })
-  for (let i = 0; i < 4; i++) await fermo()
+  await quieto()
 
   const a = await sharp(con).raw().toBuffer()
   const s = await sharp(senza).raw().toBuffer()

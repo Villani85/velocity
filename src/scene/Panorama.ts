@@ -193,7 +193,7 @@ export function ambienteConStrisce(
      le ha spente insieme allo sfondo. La gola del podio invece non si e'
      mossa, perche' e' `toneMapped: false`. E' la differenza fra una sorgente
      DICHIARATA e un riflesso: la prima resta, il secondo va ricompensato. */
-  forza = 7.6,
+  forza = 55,
 ) {
   const s = new Scene()
 
@@ -216,10 +216,18 @@ export function ambienteConStrisce(
      accesa per sbaglio — l'accento dello stesso colore di tutto il resto smette
      di essere un accento. Sulla lamiera il riflesso ambra e' anche cio' che
      distingue una carrozzeria FOTOGRAFATA di notte da una illuminata a giorno. */
+  /* PIU' LUNGHE E MOLTO PIU' STRETTE — 24 x 0,18 invece di 12 x 0,55.
+     La ragione e' la forma di QUESTA vettura. Una carena continua ha doppia
+     curvatura dappertutto: una striscia larga 55 cm ci si comprime in una
+     MACCHIA, e una macchia non racconta niente. Una striscia sottile si
+     comprime su un asse solo e resta una RIGA anche dopo — ed e' la riga che
+     corre lungo la fiancata a dire dove la superficie gira.
+     Piu' lunga per la stessa ragione: la riga deve attraversare tutta la
+     vettura, non accenderne un pezzo. */
   const calda = new MeshBasicMaterial({ color: 0xffb877, toneMapped: false })
   calda.color.multiplyScalar(forza)
   for (const lato of [-1, 1]) {
-    const striscia = new Mesh(new PlaneGeometry(12, 0.55), calda)
+    const striscia = new Mesh(new PlaneGeometry(24, 0.18), calda)
     striscia.position.set(lato * 3.4, 3.1, 0)
     striscia.rotation.set(-Math.PI / 2 + lato * 0.42, 0, Math.PI / 2)
     s.add(striscia)
@@ -237,7 +245,7 @@ export function ambienteConStrisce(
      litiga piu' con l'ambiente. */
   const fredda = new MeshBasicMaterial({ color: 0xffe3c4, toneMapped: false })
   fredda.color.multiplyScalar(forza * 0.8)
-  const alta = new Mesh(new PlaneGeometry(7, 0.4), fredda)
+  const alta = new Mesh(new PlaneGeometry(16, 0.14), fredda)
   alta.position.set(0, 4.2, -1.2)
   alta.rotation.set(-Math.PI / 2, 0, 0)
   s.add(alta)
@@ -252,11 +260,44 @@ export function ambienteConStrisce(
      FREDDA contro un ambiente caldo, perche' un contorno dello stesso colore
      della scena non stacca. */
   const contorno = new MeshBasicMaterial({ color: 0xbcd8ff, toneMapped: false })
-  contorno.color.multiplyScalar(forza * 1.5)
+  /* 0,45 E NON 1,5. Era una frazione della forza, e la forza e' salita da 7,6
+     a 55: la lama e' passata da 11 a 82, cioe' e' diventata la sorgente
+     dominante di tutta la scena. Un contorno che stacca la silhouette deve
+     essere piu' DEBOLE del riempimento, non piu' forte — se no non contorna,
+     illumina. */
+  contorno.color.multiplyScalar(forza * 0.45)
   const lama = new Mesh(new PlaneGeometry(11, 0.32), contorno)
   lama.position.set(0, 2.4, -5.2)
   lama.rotation.set(-Math.PI / 2 + 1.15, 0, 0)
   s.add(lama)
+
+  /* LE BANDIERE NERE — la cosa che mancava del tutto, ed e' meta' del mestiere
+     in uno studio di fotografia d'automobili.
+     Fra una softbox e l'altra si mettono PANNELLI NERI, e non e' per togliere
+     luce: e' perche' su una superficie lucida la forma la disegna il CONTRASTO
+     fra chiaro e scuro riflessi, non il chiaro da solo. Una lamiera che
+     riflette luce ovunque non ha bordi — e' esattamente il difetto che una
+     revisione esterna ha chiamato «saponetta».
+     Su questa vettura pesano il doppio che altrove: e' una streamliner senza
+     spigoli, quindi non c'e' NIENTE di geometrico che possa dare un bordo. Le
+     bande nere sono l'unica cosa che puo' farlo.
+     Sono nere per davvero: `MeshBasicMaterial` a zero, `toneMapped: false`.
+     Un nero passato per la curva ACES si schiarirebbe, e una bandiera grigia
+     non stacca da un ambiente gia' scuro. */
+  const bandiera = new MeshBasicMaterial({ color: 0x000000, toneMapped: false })
+  for (const lato of [-1, 1]) {
+    for (const [dy, largo] of [[-0.62, 0.42], [0.62, 0.42]] as Array<[number, number]>) {
+      const b = new Mesh(new PlaneGeometry(24, largo), bandiera)
+      b.position.set(lato * 3.4, 3.1 + dy, 0)
+      b.rotation.set(-Math.PI / 2 + lato * 0.42, 0, Math.PI / 2)
+      s.add(b)
+    }
+  }
+  // e una sopra, che separa la lama alta dal cielo del panorama
+  const bAlta = new Mesh(new PlaneGeometry(16, 0.5), bandiera)
+  bAlta.position.set(0, 4.2, -0.45)
+  bAlta.rotation.set(-Math.PI / 2, 0, 0)
+  s.add(bAlta)
 
   const pmrem = new PMREMGenerator(renderer)
   const env = pmrem.fromScene(s, 0, 0.1, 200).texture
@@ -266,6 +307,7 @@ export function ambienteConStrisce(
   calda.dispose()
   fredda.dispose()
   contorno.dispose()
+  bandiera.dispose()
   return env
 }
 

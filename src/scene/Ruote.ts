@@ -158,7 +158,9 @@ export class Ruote {
 
     // un filo piu' chiara del nero pieno: una gomma vera non e' mai nera
     // assoluta, e nera assoluta si perde contro l'ombra della carena
-    const gomma = new MeshStandardMaterial({ roughness: 0.82, metalness: 0.0 })
+    const gomma = new MeshStandardMaterial({ roughness: 0.88, metalness: 0.0 })
+    // stessa ragione del cerchio: l'ambiente e' sette volte piu' forte
+    gomma.envMapIntensity = 0.28
     gomma.color.setRGB(0.028, 0.028, 0.03)
     /* IL METALLO DELLA RUOTA VERA — usato solo da `vestiConModello`.
        Non e' il `MeshBasic` del segnale: quello e' piatto per essere sempre
@@ -187,9 +189,42 @@ export class Ruote {
        «lega lavorata» invece di «metallo cromato».
        E la lega scende da 0,90 a 0,74: 0,90 e' argento lucidato, un cerchio in
        alluminio non arriva li'. */
-    this.materialeCerchio = new MeshPhysicalMaterial({ roughness: 0.27, metalness: 1.0 })
-    this.materialeCerchio.color.setRGB(0.74, 0.75, 0.775)
-    this.materialeCerchio.envMapIntensity = 1.0
+    this.materialeCerchio = new MeshPhysicalMaterial({ roughness: 0.55, metalness: 1.0 })
+    /* NON E' L'AMBIENTE CHE LI ACCENDE: SONO LE LUCI DIRETTE.
+       Prova decisiva: dipinti di rosso pieno con `metalness 0`, la zona ruota
+       nel provino misura (42, 1, 4). Quindi il materiale e' questo e le
+       modifiche arrivano — ma con `metalness 1` e `envMapIntensity 0,07` i
+       cerchi restavano ciano luminosi, e un metallo con l'ambiente quasi
+       spento puo' prendere luce solo dalle `RectAreaLight`. Sono loro, e sono
+       fredde: da qui il ciano.
+       Ne segue che la cura non e' l'intensita' d'ambiente — che avevo
+       abbassato quattro volte inutilmente — ma la RUVIDITA', che allarga il
+       colpo speculare invece di concentrarlo, e la RIFLETTANZA: su un metallo
+       il colore base E' la riflettanza, e 0,74 e' argento lucidato. Un cerchio
+       in alluminio scuro sta intorno a 0,55. */
+    this.materialeCerchio.color.setRGB(0.55, 0.56, 0.585)
+    /* 0,28 E NON 1,0, e il numero da solo non dice niente: e' RELATIVO
+       all'ambiente. Le strisce sono passate da forza 7,6 a 55 per recuperare
+       l'esposizione dopo la vernice dielettrica, cioe' l'ambiente e' sette
+       volte piu' forte. Un metallo che lo specchia con intensita' 1,0 sotto
+       quell'ambiente non e' un cerchio: e' una lampada. Nel provino le quattro
+       ruote erano dischi ciano luminosi — due volte di seguito, per due cause
+       diverse, ed e' il difetto che salta all'occhio prima di ogni altro.
+       Regola: quando si cambia la forza dell'ambiente si ricontrollano TUTTI
+       i materiali che lo specchiano, perche' la loro intensita' e' un
+       rapporto, non un valore. */
+    this.materialeCerchio.envMapIntensity = 0.07
+    /* LA REGOLA CHE MI E' COSTATA TRE GIRI: `forza` DELLE STRISCE E' IL
+       DENOMINATORE DI OGNI `envMapIntensity` DEL PROGETTO.
+       Non e' una manopola libera. Portandola da 7,6 a 55 per recuperare
+       l'esposizione dopo la vernice dielettrica ho invalidato in un colpo la
+       taratura di TUTTI i materiali che specchiano — e il primo a gridarlo
+       sono stati i cerchi, che sono metallo pieno. Ho abbassato la loro
+       intensita' tre volte (1,7 -> 1,0 -> 0,28 -> 0,07) senza capire perche'
+       non bastasse mai: perche' 0,28 di un ambiente sette volte piu' forte
+       vale ancora piu' di 1,7 di prima.
+       Quando si tocca `forza`, si ricontrollano tutti gli `envMapIntensity`.
+       Il numero da guardare non e' l'intensita': e' il PRODOTTO. */
     /* L'ANISOTROPIA NON SI PUO' AVERE, E NON E' UNA RINUNCIA DI GUSTO.
        La revisione la chiede («anisotropy 0.7 allineata alle razze ->
        alluminio spazzolato») ed e' giusta: un riflesso stirato lungo una
