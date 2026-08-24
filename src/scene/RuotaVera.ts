@@ -56,7 +56,8 @@ import {
 /** raggio esterno del pneumatico, in metri veri */
 export const RAGGIO_RUOTA = 0.354
 /** larghezza del pneumatico da spalla a spalla */
-const LARGHEZZA = 0.215
+export const LARGHEZZA_RUOTA = 0.215
+const LARGHEZZA = LARGHEZZA_RUOTA
 /** dove finisce il cerchio e comincia la gomma */
 const RAGGIO_CERCHIO = 0.248
 

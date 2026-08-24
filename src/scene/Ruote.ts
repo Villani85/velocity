@@ -15,7 +15,7 @@ import {
 } from 'three'
 
 import { ALTEZZA_PIATTAFORMA } from './Piattaforma'
-import { costruisciRuota, materialiRuota } from './RuotaVera'
+import { costruisciRuota, materialiRuota, LARGHEZZA_RUOTA } from './RuotaVera'
 
 /**
  * IL SEGNALE DI RUOTA — un accenno di gomma e di rotazione, dentro carenature
@@ -455,11 +455,25 @@ export class Ruote {
       const gommaVecchia = this.gomme.get(vecchio)
       perno.position.copy(gommaVecchia ? gommaVecchia.position : vecchio.position)
       const verso = perno.position.z < 0 ? -1 : 1
-      /* SI RIENTRA, ma molto meno di prima. La ruota costruita ha la
-         larghezza vera (0,215) e non deve sporgere: su una streamliner a
-         ruote carenate la fiancata passa SOPRA il pneumatico. Un terzo della
-         sporgenza basta a tenerla dentro senza seppellirne il disegno. */
-      perno.position.z -= verso * SPORGENZA * 0.34
+      /* QUANTO RIENTRA NON SI STIMA, SI CALCOLA.
+         L'ancora arriva dalla ruota di SEGNALE, che era spinta in fuori di
+         `SPORGENZA` apposta: un anello piatto si vede solo se sporge dal
+         fianco. Una ruota vera in quel punto sporge per intero — misurato,
+         con un rientro di un terzo la carreggiata veniva 1,913 su una
+         carrozzeria larga 1,766, cioe' il pneumatico usciva di DICIOTTO
+         CENTIMETRI oltre il fianco e leggeva come un pezzo appiccicato
+         accanto all'automobile.
+         Il bersaglio e' geometrico: la spalla esterna del pneumatico a filo
+         della fiancata, appena dentro. Quindi si torna indietro di tutta la
+         sporgenza PIU' mezza larghezza della gomma, meno un margine perche' su una streamliner a ruote carenate la carena deve
+         passare sopra il pneumatico, non finirgli accanto.
+         IL MARGINE E' 65 mm E NON 30: a filo esatto la ruota POSTERIORE
+         spariva del tutto dentro la carena — se ne vedeva un mezzaluna — e una
+         ruota che non si vede legge come una ruota che manca, che e' l'errore
+         opposto e altrettanto brutto. Sessantacinque millimetri la fanno
+         leggere senza farla sporgere. Il davanti non ne aveva bisogno: li' la
+         carena e' piu' stretta e la ruota si vedeva gia'. */
+      perno.position.z -= verso * (SPORGENZA + LARGHEZZA_RUOTA / 2 - 0.065)
       /* L'IMPRONTA A TERRA: la ruota affonda di 11 mm invece di essere
          schiacciata. Queste ruote GIRANO, e un appiattimento cotto nella
          geometria girerebbe con loro — si vedrebbe una gomma ovale che
