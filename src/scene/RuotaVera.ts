@@ -130,7 +130,15 @@ export function materialiRuota(): MaterialiRuota {
      restituisce come un colpo concentrato — che nel provino leggeva come un
      disco ciano acceso, non come un cerchio. */
   const cerchio = new MeshPhysicalMaterial({ roughness: 0.42, metalness: 1.0 })
-  cerchio.color.setRGB(0.55, 0.56, 0.585)
+  /* APPENA CALDA, non neutra. Un metallo non ha colore proprio: restituisce
+     quello che riceve, e le sorgenti di questa scena sono `RectAreaLight`
+     fredde — quindi una lega neutra usciva AZZURRA, e un cerchio azzurro
+     legge come plastica verniciata, non come alluminio.
+     Non e' un trucco: l'alluminio lavorato ha davvero una punta calda
+     (0,91/0,92/0,92 nelle tabelle di Filament, cioe' rosso appena piu' alto
+     del blu). Qui la si accentua quel tanto che basta a bilanciare la
+     temperatura della chiave. */
+  cerchio.color.setRGB(0.575, 0.560, 0.535)
   cerchio.envMapIntensity = 0.30
   cerchio.name = 'CERCHIO_VERO'
 

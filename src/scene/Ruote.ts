@@ -15,7 +15,7 @@ import {
 } from 'three'
 
 import { ALTEZZA_PIATTAFORMA } from './Piattaforma'
-import { costruisciRuota, materialiRuota, LARGHEZZA_RUOTA } from './RuotaVera'
+import { costruisciRuota, materialiRuota, LARGHEZZA_RUOTA, RAGGIO_RUOTA } from './RuotaVera'
 
 /**
  * IL SEGNALE DI RUOTA — un accenno di gomma e di rotazione, dentro carenature
@@ -225,7 +225,11 @@ export class Ruote {
    *  a ogni fotogramma invece di scorrere */
   private angolo = 0
 
+  /** la quota del pavimento su cui la vettura appoggia, in metri del mondo */
+  private readonly quotaPiano: number
+
   constructor(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA) {
+    this.quotaPiano = quotaPiano
     this.gruppo = new Group()
     this.gruppo.name = 'RUOTE_SEGNALE'
 
@@ -474,12 +478,29 @@ export class Ruote {
          leggere senza farla sporgere. Il davanti non ne aveva bisogno: li' la
          carena e' piu' stretta e la ruota si vedeva gia'. */
       perno.position.z -= verso * (SPORGENZA + LARGHEZZA_RUOTA / 2 - 0.065)
-      /* L'IMPRONTA A TERRA: la ruota affonda di 11 mm invece di essere
+      /* LA QUOTA SI RICALCOLA DAL RAGGIO VERO, e questo era il difetto piu'
+         grosso di tutti — quello per cui le ruote «facevano schifo» anche
+         dopo essere state rifatte da zero.
+         L'ancora arriva dalla ruota di SEGNALE, che aveva raggio 0,30 e
+         centro a `pavimento + 0,30`: cosi' toccava terra esattamente. La
+         ruota costruita ha raggio 0,354, ma ereditava quel centro. Il suo
+         punto piu' basso finiva a 0,045 contro un pavimento a 0,110: la ruota
+         era SEPOLTA DI SEI CENTIMETRI E MEZZO nel podio.
+         E il podio e' opaco, quindi non si vedeva una ruota affondata: si
+         vedeva una CORDA DI CERCHIO. Una ruota tagliata sotto sembra piccola,
+         sembra fuori posto, e nessun aggiustamento di posizione orizzontale o
+         di materiale poteva rimediare — stavo spostando lateralmente un
+         oggetto il cui difetto era verticale.
+         Adesso il centro si calcola: pavimento piu' raggio VERO. Ereditare
+         una quota tarata su un raggio diverso e' la stessa famiglia dei numeri
+         che smettono di essere veri quando cambia cio' su cui erano tarati.
+
+         Meno 11 mm di IMPRONTA A TERRA: la ruota affonda invece di essere
          schiacciata. Queste ruote GIRANO, e un appiattimento cotto nella
          geometria girerebbe con loro — si vedrebbe una gomma ovale che
          rotola. Affondando, il pavimento taglia il pneumatico e l'appoggio
          diventa una superficie, ferma o in moto che sia. */
-      perno.position.y -= 0.011
+      perno.position.y = this.quotaPiano + RAGGIO_RUOTA - 0.011
       perno.add(costruisciRuota(M, verso))
       this.gruppo.add(perno)
       this.ruoteVere.push(perno)
