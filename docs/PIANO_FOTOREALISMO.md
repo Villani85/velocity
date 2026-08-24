@@ -392,6 +392,135 @@ sbagliato, e un'ombra fuori posto si nota molto più di un'ombra che manca.
 
 ---
 
+## 4bis. Stato dei lavori
+
+| voce | stato | numero |
+|---|---|---|
+| **0.1** indirizzo di contatto | BLOCCATO | `Contatto.ts` -> `INDIRIZZO` e' vuoto: non lo invento |
+| **0.2** meta social + JSON-LD | fatto | 14 tag nel documento generato. Manca `VITE_SITO`: `og:image` vuole un URL **assoluto** |
+| **0.3** lista lavori generata | fatto | plugin Vite: 10 lavori letti da `LAVORI`, zero «in lavorazione» |
+| **1.1** vernice dielettrica | fatto | `metallo 0.85 -> 0.06`, `specularIntensity 0.6 -> 1.0` |
+| **1.2** ruvidita' non piatta | fatto | tre ottave nello shader (22 / 61 / 420 cicli = 30 cm / 11 cm / 1,6 cm), ampiezze +-0,039 / +-0,026 / +-0,016 |
+| **1.2b** riempimento della ORM | fatto | era `G = 0` (specchio) e sbavava nelle isole coi mipmap; ora 0,87 |
+| **1.3** passa-alto sulla normal map | NON FATTO | il metro che l'avrebbe giustificato era rotto |
+| **1.4** strisce + bandiere nere | fatto | 24x0,18 e 16x0,14 invece di 12x0,55 e 7x0,4, piu' quattro pannelli neri |
+| **2.3** tronco d'ombra | fatto | da +-6 m a +-3,3 m: da 5,9 a 3,2 mm per texel |
+| **2.4** impronta a terra | fatto | la ruota AFFONDA di 11 mm invece di essere schiacciata |
+| **3.1** campo della hero | fatto | 38 -> **30 gradi**, pose x tan(19)/tan(15) = 1,285, altezza invariata |
+| **3.2** profondita' di campo | fatto | `backgroundBlurriness` 0,03 -> 0,055 (a 0,14 la villa si dissolve) |
+| **4** ri-derivare le tinte | fatto | x0,61. `BIANCO PERLA` era a **1,06 di albedo**, sopra il 100% |
+| **RUOTE** | rifatte da zero | vedi sotto |
+| **2.1** AO cotta nel canale R | NON FATTO | serve un giro in Blender |
+| **3.3** ritarare bloom e grading | NON FATTO | da fare a scena assestata |
+
+### Le ruote: due difetti diversi, confusi per mezza sessione
+
+**POSIZIONE.** `trovaArchi` cercava «i dodici punti piu' larghi di ogni
+quadrante». Su un siluro quello non e' il passaruota, ed e' un criterio che sui
+due lati cade in posti diversi: **posteriore destra a x -0,883, sinistra a
+-1,148 — ventisei centimetri di sfasamento sullo stesso asse.**
+
+Due criteri sbagliati prima di quello buono, entrambi istruttivi:
+
+- **massimi di semilarghezza** -> la fiancata a mezza altezza e' un ALTOPIANO, e
+  su un altopiano un cercatore di massimi restituisce un punto qualunque;
+- **minimi della quota del fondo** (il passaruota come incavo) -> questa vettura
+  ha il **sottoscocca chiuso**: il profilo e' una riga piatta.
+
+Il segnale vero e' la **fascia bassa** (3-12% dell'altezza): li' la fiancata si
+allarga in due punti soli, i bauletti che contengono una ruota, e fra loro si
+strozza perche' non c'e' niente da contenere.
+
+```bash
+node strumenti/incavi.mjs
+```
+
+```
+bauletto posteriore  x -1,830 .. -0,730   centro -1,280
+bauletto anteriore   x  0,920 ..  1,670   centro  1,295
+passo 2,575 m = 60% della lunghezza - sbalzi 0,93 e 0,80 m
+```
+
+Sessanta per cento di passo con quegli sbalzi sono le proporzioni di
+un'automobile vera. E il bauletto anteriore e' lungo **0,750 m** contro un
+diametro di ruota di **0,708**: una coincidenza del genere non capita per caso.
+
+E la **simmetria adesso e' imposta**, non sperata: gli assi sono perpendicolari
+alla direzione di marcia, ed e' una legge della cosa rappresentata.
+
+**QUANTO RIENTRA** non si stima. L'ancora arriva dalla ruota di segnale, spinta
+in fuori di `SPORGENZA` apposta. Con un rientro di un terzo la carreggiata
+veniva **1,913 su una carrozzeria larga 1,766**: il pneumatico usciva di
+diciotto centimetri. Si torna indietro di tutta la sporgenza piu' mezza
+larghezza della gomma, meno 65 mm — e 65 e non 30 perche' a filo esatto la ruota
+posteriore **spariva dentro la carena**, e una ruota che non si vede legge come
+una ruota che manca.
+
+**QUALITA'.** `ruota.glb` erano 28.700 triangoli di RUMORE: bordo del
+pneumatico frastagliato invece che circolare, spalla che ondeggia, cerchio in
+cui non si distingue una razza. E **non era un problema di materiale**: ci ho
+provato tre volte, nessuna ruvidita' raddrizza una circonferenza storta.
+
+Adesso la ruota **si costruisce** (`scene/RuotaVera.ts`), ed e' la scelta giusta
+qui e quasi mai altrove: una carrozzeria e' superficie libera, una **ruota e' un
+solido di rivoluzione con dentro una simmetria a raggiera**. E' fatta di cerchi,
+e un cerchio scritto in codice e' esatto per costruzione mentre uno generato e'
+un poligono che gli somiglia.
+
+Contiene: spalla del pneumatico **bombata** (un cilindro dice «tornito»), canale
+del cerchio, dieci razze con spessore vero, **disco freno e pinza dietro** per
+la parallasse, mozzo, dado, e un fondo che chiude la cavita' — senza, di tre
+quarti si vedeva lo sfondo fra le razze.
+
+**Costo: -297 kB, e da 114.000 triangoli di ruote a 11.760.** Quattro ruote
+facevano piu' triangoli di tutta la carrozzeria.
+
+### Il sesto metro rotto: il misuratore non era ripetibile
+
+Tre esecuzioni di `carrozzeria.mjs` con impostazioni IDENTICHE:
+
+```
+mediana 41,2 / 4,3 / 25,7      scuri 27,4% / 56,8% / 37,1%
+pixel   86.526 / 147.317 / 74.426
+```
+
+Lo scorrimento ha **inerzia** (Lenis frena dopo `scrollTo`), quindi «aspetta 18
+fotogrammi» non e' un'attesa ma una scommessa. E fra la fotografia CON
+l'automobile e quella SENZA la scena si spostava: la differenza prendeva dentro
+il fondo che si era mosso.
+
+Prima cura, anche lei sbagliata: confrontare due `p.screenshot()` finche' non
+erano uguali. `screenshot()` restituisce un **PNG compresso**, e due immagini
+quasi identiche danno byte diversissimi: non convergeva mai.
+
+Ora si aspetta che scorrimento e tempo della regia stiano fermi. Ripetibilita':
+**dal 100% di varianza al 2%.** E il valore vero e' peggiore di quello su cui
+stavo lavorando (scuri 57%, non 37%): la previsione della revisione esterna era
+**giusta**, e l'avevo scartata sulla base del metro rotto.
+
+### `forza` e' un denominatore, non una manopola
+
+Portandola da 7,6 a 55 ho invalidato in un colpo la taratura di TUTTI i
+materiali che specchiano. Ho abbassato l'intensita' d'ambiente dei cerchi
+quattro volte — 1,7, 1,0, 0,28, 0,07 — senza capire perche' non bastasse mai:
+**0,28 di un ambiente sette volte piu' forte vale piu' di 1,7 di prima.** Il
+numero da guardare non e' l'intensita': e' il **prodotto**.
+
+E poi non era nemmeno l'ambiente. Prova decisiva: cerchi dipinti di rosso pieno,
+la zona ruota misura `(42, 1, 4)` — il materiale e' quello e le modifiche
+arrivano. Con l'ambiente quasi spento un metallo prende luce solo dalle
+`RectAreaLight`, che sono fredde: il ciano veniva da li'.
+
+### I provini ritraevano uno stato transitorio
+
+`autoPronta && ambientePronto` non copriva `ruota.glb`. Fino al suo arrivo, al
+posto delle ruote c'erano quelle **di segnale**: `MeshBasicMaterial` con
+`toneMapped: false`, che emettono luce propria. **Due volte** ho creduto fossero
+i cerchi veri troppo specchianti e ho corretto un materiale che nel fotogramma
+non c'era.
+
+---
+
 ## 5. Come si verifica il lavoro
 
 ```bash
