@@ -15,6 +15,7 @@ import {
 } from 'three'
 
 import { ALTEZZA_PIATTAFORMA } from './Piattaforma'
+import { costruisciRuota, materialiRuota } from './RuotaVera'
 
 /**
  * IL SEGNALE DI RUOTA — un accenno di gomma e di rotazione, dentro carenature
@@ -95,44 +96,119 @@ export type Arco = { x: number; z: number }
    contatto: se le ruote stanno in un posto e le macchie scure in un altro,
    il contatto non lo legge nessuno. Una fonte sola, misurata una volta. */
 export function trovaArchi(auto: Object3D): Arco[] {
+  /* DOVE STANNO LE RUOTE — RISCRITTO, perche' il criterio vecchio sbagliava e
+     si vedeva.
+     Cercava «i dodici punti piu' larghi di ogni quadrante» e ne faceva la
+     media. Su una carena continua quello non e' il passaruota: e' il punto in
+     cui la fiancata gonfia di piu', che sui due lati puo' cadere in posti
+     diversi. Misurato sul modello vero: ruota posteriore destra a x -0,883,
+     sinistra a x -1,148. VENTISEI CENTIMETRI DI SFASAMENTO SULLO STESSO ASSE.
+     Il committente l'ha visto subito — «non sono al posto della carrozzeria
+     che dovrebbero essere» — ed era esatto.
+
+     Due cambiamenti.
+
+     PRIMO, il criterio. Questa vettura ha le ruote CARENATE e il fondo chiuso:
+     non esiste nessun passaruota aperto da trovare (verificato con
+     `strumenti/archi.mjs`: il profilo della quota minima lungo il fianco e'
+     una riga piatta). La ruota sta dentro un bauletto, e un bauletto sul
+     fianco e' un RIGONFIAMENTO. Quindi si scandisce la lunghezza e si legge la
+     SEMILARGHEZZA in una fascia di quota — sopra il fondo, sotto la cintura —
+     e i massimi davanti e dietro sono i due assi.
+
+     SECONDO, e conta di piu': SI IMPONE LA SIMMETRIA. Gli assi di
+     un'automobile sono perpendicolari alla direzione di marcia, punto. Anche
+     se la maglia generata e' un po' storta — e questa lo e' — le due ruote di
+     un asse devono stare alla stessa x. Non e' una taratura: e' una legge
+     della cosa che sto rappresentando, e va imposta invece che sperata. */
   auto.updateWorldMatrix(true, true)
   const v = new Vector3()
-  let fondo = Infinity
-  const pezzi: Array<{ o: Object3D; pos: BufferAttribute }> = []
+  const punti: Vector3[] = []
   auto.traverse((o) => {
     const m = o as unknown as { isMesh?: boolean; geometry?: BufferGeometry; material?: { name?: string } }
     if (!m.isMesh || !m.geometry || m.material?.name !== 'SCOCCA') return
     const pos = m.geometry.attributes.position as BufferAttribute
-    pezzi.push({ o, pos })
     for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld)
-      if (v.y < fondo) fondo = v.y
+      punti.push(v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld).clone())
     }
   })
-  if (!pezzi.length || !isFinite(fondo)) return []
+  if (punti.length < 100) return []
 
-  // quattro quadranti: avanti/dietro per x, sinistra/destra per z
-  const gruppi: Array<Array<[number, number]>> = [[], [], [], []]
-  for (const { o, pos } of pezzi) {
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld)
-      const h = v.y - fondo
-      if (h < 0.10 || h > 0.45) continue
-      const k = (v.x < 0 ? 0 : 2) + (v.z < 0 ? 0 : 1)
-      gruppi[k].push([v.x, v.z])
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity
+  for (const p of punti) {
+    if (p.x < x0) x0 = p.x; if (p.x > x1) x1 = p.x
+    if (p.y < y0) y0 = p.y; if (p.y > y1) y1 = p.y
+    if (p.z < z0) z0 = p.z; if (p.z > z1) z1 = p.z
+  }
+  const L = x1 - x0, H = y1 - y0, cz = (z0 + z1) / 2
+  if (!(L > 0) || !(H > 0)) return []
+
+  const N = 86
+  /* IL VANO RUOTA SI VEDE SOLO NELLA FASCIA BASSA, e questa e' la chiave che
+     mi era sfuggita per due tentativi.
+     A meta' altezza e in alto la carrozzeria e' larga DAPPERTUTTO — e' un
+     siluro, ha una sezione piena — quindi qualunque cercatore di massimi o di
+     minimi la' sopra restituisce un punto qualunque di un altopiano. Vicino
+     al SUOLO invece la fiancata si allarga in due punti soli, e solo in quei
+     due: sono i bauletti che devono contenere una ruota. Fra loro il corpo si
+     strozza, perche' li' non c'e' niente da contenere.
+     Misurato con `strumenti/incavi.mjs` sul modello vero:
+        bauletto posteriore  x -1,830 .. -0,730   (centro -1,280)
+        bauletto anteriore   x  0,920 ..  1,670   (centro  1,295)
+        passo 2,575 m = 60% della lunghezza, sbalzi 0,93 e 0,80 m
+     Sessanta per cento di passo con quegli sbalzi sono le proporzioni di
+     un'automobile vera — che e' anche la conferma che stavolta il segnale e'
+     quello giusto: il criterio precedente dava 57% con le due ruote
+     posteriori sfasate di ventisei centimetri fra destra e sinistra.
+     E il bauletto anteriore e' lungo 0,750 m contro un diametro di ruota di
+     0,708: coincide, e una coincidenza del genere non capita per caso. */
+  const semi: [number[], number[]] = [new Array(N).fill(0), new Array(N).fill(0)]
+  for (const p of punti) {
+    const q = (p.y - y0) / H
+    // SOLO la fascia bassa: sopra, la sezione piena nasconde i bauletti
+    if (q < 0.03 || q > 0.12) continue
+    const d = p.z - cz
+    const lato = d < 0 ? 0 : 1
+    const dd = Math.abs(d)
+    const f = Math.min(N - 1, Math.max(0, Math.floor((p.x - x0) / L * N)))
+    if (dd > semi[lato][f]) semi[lato][f] = dd
+  }
+  // sommando i due lati una fiancata storta non sposta piu' l'asse
+  const insieme = semi[0].map((a, i) => a + semi[1][i])
+  const largo = Math.max(...insieme)
+  const dentro = insieme.map((v) => v / largo > 0.93)
+  const blocchi: Array<{ da: number; a: number }> = []
+  for (let i = 0; i < N;) {
+    if (!dentro[i]) { i++; continue }
+    let j = i
+    while (j < N && dentro[j]) j++
+    blocchi.push({ da: i, a: j - 1 })
+    i = j
+  }
+  const xa = (i: number) => x0 + (i + 0.5) / N * L
+  console.log('[archi] L', +L.toFixed(3), 'H', +H.toFixed(3), 'punti', punti.length,
+    'blocchi', JSON.stringify(blocchi.map((b) => [+xa(b.da).toFixed(2), +xa(b.a).toFixed(2)])), 'largo', +largo.toFixed(3))
+  const grandi = blocchi.filter((b) => xa(b.a) - xa(b.da) > 0.25)
+  if (grandi.length < 2) return []
+  const primo = grandi[0], ultimo = grandi[grandi.length - 1]
+  const xDietro = (xa(primo.da) + xa(primo.a)) / 2
+  const xDavanti = (xa(ultimo.da) + xa(ultimo.a)) / 2
+
+  // la carreggiata: quanto sporge il fianco all'altezza di quell'asse
+  const mezzaLarghezza = (xa: number, lato: number) => {
+    const f = Math.min(N - 1, Math.max(0, Math.floor((xa - x0) / L * N)))
+    let m = 0
+    for (let i = Math.max(0, f - 2); i <= Math.min(N - 1, f + 2); i++) m = Math.max(m, semi[lato][i])
+    return m
+  }
+  const archi: Arco[] = []
+  for (const xa of [xDietro, xDavanti]) {
+    for (const lato of [0, 1]) {
+      const z = cz + (lato === 0 ? -1 : 1) * mezzaLarghezza(xa, lato)
+      archi.push({ x: xa, z })
     }
   }
-
-  return gruppi.map((g) => {
-    if (!g.length) return null
-    // i dodici punti piu' larghi: la media riduce il rumore di un singolo
-    // vertice isolato, che su una maglia generata capita
-    g.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-    const top = g.slice(0, 12)
-    const x = top.reduce((s, p) => s + p[0], 0) / top.length
-    const z = top.reduce((s, p) => s + p[1], 0) / top.length
-    return { x, z }
-  }).filter((a): a is Arco => a !== null)
+  return archi
 }
 
 export class Ruote {
@@ -357,6 +433,48 @@ export class Ruote {
    * Se il modello non arriva (rete lenta, file mancante) non succede niente:
    * restano le ruote di segnale. Non si sostituisce cio' che non c'e'.
    */
+  /**
+   * LE RUOTE COSTRUITE, al posto di quelle scaricate.
+   *
+   * `ruota.glb` arrivava da un generatore ed erano 28.700 triangoli di rumore:
+   * bordo del pneumatico frastagliato invece che circolare, spalla che
+   * ondeggia, cerchio in cui non si distingue una razza. Ingrandendo il
+   * provino non c'era niente da discutere. E non era un problema di
+   * materiale — ci ho provato tre volte: nessuna ruvidita' raddrizza una
+   * circonferenza storta.
+   * Una ruota e' un solido di rivoluzione con dentro una simmetria a
+   * raggiera: e' fatta di cerchi, e un cerchio scritto in codice e' esatto per
+   * costruzione mentre uno generato e' un poligono che gli somiglia. Sulla
+   * silhouette la differenza si vede subito. Vedi `scene/RuotaVera.ts`.
+   */
+  costruisci(): boolean {
+    if (!this.cerchi.length) return false
+    const M = materialiRuota()
+    for (const vecchio of this.cerchi) {
+      const perno = new Group()
+      const gommaVecchia = this.gomme.get(vecchio)
+      perno.position.copy(gommaVecchia ? gommaVecchia.position : vecchio.position)
+      const verso = perno.position.z < 0 ? -1 : 1
+      /* SI RIENTRA, ma molto meno di prima. La ruota costruita ha la
+         larghezza vera (0,215) e non deve sporgere: su una streamliner a
+         ruote carenate la fiancata passa SOPRA il pneumatico. Un terzo della
+         sporgenza basta a tenerla dentro senza seppellirne il disegno. */
+      perno.position.z -= verso * SPORGENZA * 0.34
+      /* L'IMPRONTA A TERRA: la ruota affonda di 11 mm invece di essere
+         schiacciata. Queste ruote GIRANO, e un appiattimento cotto nella
+         geometria girerebbe con loro — si vedrebbe una gomma ovale che
+         rotola. Affondando, il pavimento taglia il pneumatico e l'appoggio
+         diventa una superficie, ferma o in moto che sia. */
+      perno.position.y -= 0.011
+      perno.add(costruisciRuota(M, verso))
+      this.gruppo.add(perno)
+      this.ruoteVere.push(perno)
+      vecchio.visible = false
+      if (gommaVecchia) gommaVecchia.visible = false
+    }
+    return true
+  }
+
   vestiConModello(scena: Object3D) {
     /* SI CLONA LA SCENA, NON LE GEOMETRIE.
        Il primo tentativo copiava `m.geometry` e ci cuoceva dentro `matrixWorld`:

@@ -42,7 +42,7 @@ import { Ruote } from '../scene/Ruote'
 import { vestiAuto, LIVELLO_SOGGETTO } from '../scene/Materiali'
 import { caricaFaro, innestaFaro, type Faro } from '../scene/Faro'
 import { Accensione } from '../scene/Accensione'
-import { caricaGrezzo, caricaNormalizzato } from '../scene/Modelli'
+import { caricaNormalizzato } from '../scene/Modelli'
 
 import { costruisciInterno } from '../scene/Interno'
 import { Volante } from '../scene/Volante'
@@ -1036,15 +1036,16 @@ export class Esperienza {
        caricamento per un dettaglio che si vede da vicino. Si chiede qui e si
        innesta quando arriva; se non arriva restano le ruote di segnale, che
        reggono da lontano. */
-    caricaGrezzo('/modelli/ruota.glb')
-      .then((ruotaModello) => {
-        const r = this.ruote
-        if (!r) return
-        const messa = r.vestiConModello(ruotaModello)
-        r.gruppo.traverse((o) => o.layers.enable(LIVELLO_SOGGETTO))
-        if (!messa) console.info('[ruote] modello non utilizzabile, restano i segnali')
-      })
-      .catch(() => console.info('[ruote] modello non arrivato, restano i segnali'))
+    /* LE RUOTE SI COSTRUISCONO, e `ruota.glb` non si carica piu'.
+       Erano 297 kB e 28.700 triangoli per ruota — 114.000 in quattro, contro
+       i 106.000 di tutta la carrozzeria: sproporzionato di dieci volte. E
+       soprattutto erano 28.700 triangoli di RUMORE. Vedi `scene/RuotaVera.ts`.
+       Non c'e' piu' niente da aspettare e niente che possa non arrivare:
+       quello che prima era una promessa asincrona adesso e' una chiamata. */
+    if (this.ruote) {
+      this.ruote.costruisci()
+      this.ruote.gruppo.traverse((o) => o.layers.enable(LIVELLO_SOGGETTO))
+    }
     /* LE GUARNIZIONI DEI VETRI, calcolate qui perche' qui la geometria c'e'.
        Vedi `scene/Guarnizione.ts`: e' la fascia ceramica nera che ogni vetro
        d'auto ha sul bordo, e senza la quale il perimetro del parabrezza resta

@@ -353,7 +353,15 @@ export function costruisciLuci() {
   ombra.castShadow = true
   ombra.shadow.mapSize.set(2048, 2048)
   const c = ombra.shadow.camera
-  c.left = -6; c.right = 6; c.top = 6; c.bottom = -6
+  /* IL TRONCO SI STRINGE DA +-6 A +-3,3 METRI.
+     La vettura e' lunga 4,4 m e larga 1,8: un tronco di dodici metri di lato
+     su una mappa 2048 spende 5,9 mm per texel, e con quella risoluzione il
+     contatto sotto le gomme non e' un'ombra, e' una sfumatura. A +-3,3 si
+     passa a 3,2 mm per texel — l'ombra sotto il pneumatico raddoppia di
+     definizione, ed e' quel filo scuro a dire «pesa milletrecento chili».
+     3,3 e non 2,5: deve restarci dentro anche il podio, se no il suo bordo
+     smette di proiettare e l'appoggio si stacca dal piano. */
+  c.left = -3.3; c.right = 3.3; c.top = 3.3; c.bottom = -3.3
   c.near = 1; c.far = 30
   ombra.shadow.bias = -0.0006
   ombra.shadow.normalBias = 0.02

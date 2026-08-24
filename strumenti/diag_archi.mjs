@@ -1,0 +1,11 @@
+import { chromium } from 'file:///C:/Users/Giuseppe/hce-audio-rec/node_modules/playwright/index.mjs'
+const b = await chromium.launch()
+const p = await b.newPage({ viewport: { width: 1200, height: 750 } })
+await p.route('**/@vite/client', (r) => r.fulfill({ body: 'export {}', contentType: 'application/javascript' }))
+p.on('console', (m) => { const t = m.text(); if (t.includes('[archi]') || t.includes('[auto]') || t.includes('[scocca]')) console.log(t) })
+p.on('pageerror', (e) => console.log('!!', e.message))
+await p.goto('http://localhost:5174/', { waitUntil: 'domcontentloaded' })
+await p.waitForFunction(() => !!window.esperienza, null, { timeout: 120000 })
+await p.waitForFunction(() => esperienza.autoPronta && esperienza.ambientePronto, null, { timeout: 180000 }).catch(() => {})
+await new Promise((r) => setTimeout(r, 4000))
+await b.close()

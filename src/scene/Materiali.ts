@@ -1457,7 +1457,7 @@ export const FINITURE: Finitura[] = [
   {
     nome: 'NERO SATINATO',
     campione: '#15171c',
-    tinta: [0.077, 0.082, 0.080],
+    tinta: [0.047, 0.050, 0.049],
     metallo: 0.0,
     ruvidita: 0.48,
     trasparente: 0.70,
@@ -1469,7 +1469,7 @@ export const FINITURE: Finitura[] = [
     // come plastica.
     nome: 'BIANCO PERLA',
     campione: '#e6e3dc',
-    tinta: [1.06, 1.07, 0.86],
+    tinta: [0.647, 0.653, 0.525],
     ruvidita: 0.30,
     trasparente: 0.92,
     ruviditaTrasparente: 0.06,
@@ -1479,7 +1479,7 @@ export const FINITURE: Finitura[] = [
     // saturo su una superficie curva costruisce il volume da solo
     nome: 'ARANCIO',
     campione: '#c8551a',
-    tinta: [0.72, 0.16, 0.023],
+    tinta: [0.439, 0.098, 0.014],
     ruvidita: 0.38,
     trasparente: 0.85,
     ruviditaTrasparente: 0.10,
@@ -1490,7 +1490,7 @@ export const FINITURE: Finitura[] = [
     // e nitido a raccontarlo.
     nome: 'CARBONIO',
     campione: '#23262b',
-    tinta: [0.031, 0.034, 0.034],
+    tinta: [0.019, 0.021, 0.021],
     ruvidita: 0.14,
     trasparente: 1.0,
     ruviditaTrasparente: 0.03,

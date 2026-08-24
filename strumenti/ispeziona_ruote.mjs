@@ -28,20 +28,33 @@ console.log(await p.evaluate(() => {
     })
   })
   // le ruote: basse e larghe rispetto alla mezzeria
-  const basse = fuori.filter((f) => Math.abs(f.pos[2]) > 0.4 && f.pos[1] < 0.7)
-  let cer = null, gom = null
-  esperienza.esterno.traverse((o) => {
-    if (!o.isMesh) return
-    if (o.material?.name === 'CERCHIO_VERO' && !cer) cer = o.material
-    if (o.material?.name === 'GOMMA_SEGNALE' && !gom) gom = o.material
+  const box = new (Object.getPrototypeOf(esperienza.esterno).constructor === Object ? Object : Object)()
+  let auto = null
+  esperienza.esterno.traverse((o) => { if (o.isMesh && o.material?.name === 'SCOCCA') auto = o })
+  auto.updateWorldMatrix(true, false)
+  const g = auto.geometry
+  g.computeBoundingBox()
+  const bb = g.boundingBox.clone().applyMatrix4(auto.matrixWorld)
+  const ruote = esperienza.ruote.ruoteVere.map((p) => {
+    p.updateWorldMatrix(true, false)
+    const m = p.matrixWorld.elements
+    return [Math.round(m[12] * 1000) / 1000, Math.round(m[13] * 1000) / 1000, Math.round(m[14] * 1000) / 1000]
   })
-  const d = (m) => m ? {
-    tipo: m.type, ruvidita: m.roughness, metallo: m.metalness,
-    env: m.envMapIntensity, toneMapped: m.toneMapped,
-    colore: [m.color.r, m.color.g, m.color.b].map((v) => Math.round(v * 1000) / 1000),
-  } : 'assente'
-  return { visibiliBasse: basse.length, CERCHIO_VERO: d(cer), GOMMA: d(gom),
-    forzaAmbiente: esperienza.scena?.environmentIntensity,
-    fondo: esperienza.scena?.backgroundIntensity }
+  return {
+    scocca: {
+      x: [Math.round(bb.min.x * 1000) / 1000, Math.round(bb.max.x * 1000) / 1000],
+      y: [Math.round(bb.min.y * 1000) / 1000, Math.round(bb.max.y * 1000) / 1000],
+      z: [Math.round(bb.min.z * 1000) / 1000, Math.round(bb.max.z * 1000) / 1000],
+      lunghezza: Math.round((bb.max.x - bb.min.x) * 1000) / 1000,
+      larghezza: Math.round((bb.max.z - bb.min.z) * 1000) / 1000,
+    },
+    ruote,
+    passo: ruote.length >= 4
+      ? Math.round((Math.max(...ruote.map(r => r[0])) - Math.min(...ruote.map(r => r[0]))) * 1000) / 1000
+      : 'n/d',
+    carreggiata: ruote.length >= 4
+      ? Math.round((Math.max(...ruote.map(r => r[2])) - Math.min(...ruote.map(r => r[2]))) * 1000) / 1000
+      : 'n/d',
+  }
 }))
 await b.close()
