@@ -7,6 +7,7 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   Object3D,
   RingGeometry,
@@ -88,9 +89,12 @@ const SPORGENZA = 0.12
  *  un cerchio vero */
 const RAGGIO_CERCHIO = 0.21
 
-type Arco = { x: number; z: number }
+export type Arco = { x: number; z: number }
 
-function trovaArchi(auto: Object3D): Arco[] {
+/* PUBBLICA, perche' le stesse quattro posizioni servono anche all'ombra di
+   contatto: se le ruote stanno in un posto e le macchie scure in un altro,
+   il contatto non lo legge nessuno. Una fonte sola, misurata una volta. */
+export function trovaArchi(auto: Object3D): Arco[] {
   auto.updateWorldMatrix(true, true)
   const v = new Vector3()
   let fondo = Infinity
@@ -138,7 +142,7 @@ export class Ruote {
   private ruoteVere: Group[] = []
   /** la gomma di segnale appesa a ogni cerchio, per poterla nascondere */
   private gomme = new Map<Mesh, Mesh>()
-  private materialeCerchio!: MeshStandardMaterial
+  private materialeCerchio!: MeshPhysicalMaterial
   private materialeGomma!: MeshStandardMaterial
   private gommaCorrente: Mesh | null = null
   /** radianti percorsi: si accumula, non si azzera, o la rotazione scatta
@@ -168,9 +172,40 @@ export class Ruote {
        colpo di luce netto sugli spigoli delle razze, che e' cio' che disegna il
        raggio. L'intensita' d'ambiente alzata fa il resto: e' la stessa leva che
        serve al cromo, e per la stessa ragione. */
-    this.materialeCerchio = new MeshStandardMaterial({ roughness: 0.20, metalness: 1.0 })
-    this.materialeCerchio.color.setRGB(0.90, 0.91, 0.93)
-    this.materialeCerchio.envMapIntensity = 1.7
+    /* MA UNA LEGA NON E' UN CROMO, e il provino l'ha mostrato senza scampo.
+       Con ruvidita' 0,20 e intensita' d'ambiente 1,7 il cerchio e' uno
+       SPECCHIO: appena e' comparsa la lama fredda che deve staccare la
+       silhouette, le quattro ruote se la sono rimandata in faccia e sono
+       diventate dischi ciano luminosi. Un cerchio che emette luce propria
+       urla «computer grafica» piu' di qualunque altro difetto in quel
+       fotogramma — e non era un problema della lama, era il cerchio che si
+       comportava da lente.
+       La revisione esterna dice cosa deve essere: alluminio SPAZZOLATO,
+       metallico pieno, ruvidita' 0,25-0,28, con l'anisotropia allineata alle
+       razze. Spazzolato vuol dire che il riflesso si stira lungo una
+       direzione invece di restituire l'ambiente puntuale: e' quello a dire
+       «lega lavorata» invece di «metallo cromato».
+       E la lega scende da 0,90 a 0,74: 0,90 e' argento lucidato, un cerchio in
+       alluminio non arriva li'. */
+    this.materialeCerchio = new MeshPhysicalMaterial({ roughness: 0.27, metalness: 1.0 })
+    this.materialeCerchio.color.setRGB(0.74, 0.75, 0.775)
+    this.materialeCerchio.envMapIntensity = 1.0
+    /* L'ANISOTROPIA NON SI PUO' AVERE, E NON E' UNA RINUNCIA DI GUSTO.
+       La revisione la chiede («anisotropy 0.7 allineata alle razze ->
+       alluminio spazzolato») ed e' giusta: un riflesso stirato lungo una
+       direzione e' cio' che distingue una lega lavorata da un cromo. Ma
+       `MeshPhysicalMaterial.anisotropy` lavora nello spazio tangente, e
+       `ruota.glb` porta SOLO `position` e `normal`: senza UV non si possono
+       calcolare le tangenti (`computeTangents` le pretende), e senza tangenti
+       three compila un materiale che NON DISEGNA.
+       E non lo dice: nessuna eccezione, nessun console.error. La scena intera
+       e' diventata nera — luminanza media della vettura da 28,2 a 0,6 — e il
+       primo sintomo e' stato il misuratore che restituiva mediana 0,0 come se
+       fosse una taratura sbagliata. Per questo `strumenti/uno.mjs` adesso
+       ascolta `pageerror` e `console.error`: un guasto deve gridare.
+       Per riaverla servirebbe generare le UV della ruota e ricalcolare le
+       tangenti. Finche' non c'e' quello, il verso spazzolato lo fa la sola
+       ruvidita', e va detto invece che lasciato credere. */
     this.materialeCerchio.name = 'CERCHIO_VERO'
     this.materialeGomma = gomma
     gomma.name = 'GOMMA_SEGNALE'

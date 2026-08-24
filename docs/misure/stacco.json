@@ -1,0 +1,86 @@
+{
+  "hero": {
+    "colonne": [
+      36.5,
+      36,
+      36.3,
+      35.9,
+      36.3,
+      57
+    ],
+    "sbalzo": 21.1,
+    "libera": 75.1
+  },
+  "orbita": {
+    "colonne": [
+      35,
+      34.9,
+      32.7,
+      33.5,
+      33.5,
+      32.7
+    ],
+    "sbalzo": 2.3,
+    "libera": 93.4
+  },
+  "lato": {
+    "colonne": [
+      34.6,
+      34.3,
+      33.5,
+      31.4,
+      31.2,
+      33.5
+    ],
+    "sbalzo": 3.4,
+    "libera": 54.8
+  },
+  "taglio": {
+    "colonne": [
+      2.7,
+      3,
+      4.1,
+      8.1,
+      10.5,
+      12.2
+    ],
+    "sbalzo": 9.5,
+    "libera": 44.5
+  },
+  "accensione": {
+    "colonne": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "sbalzo": 0,
+    "libera": 55
+  },
+  "velocita": {
+    "colonne": [
+      0.1,
+      0,
+      0,
+      0.1,
+      0,
+      0
+    ],
+    "sbalzo": 0.1,
+    "libera": 67.6
+  },
+  "contatto": {
+    "colonne": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "sbalzo": 0,
+    "libera": 33
+  }
+}

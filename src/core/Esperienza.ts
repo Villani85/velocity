@@ -36,6 +36,7 @@ import { ALTEZZA_PIATTAFORMA, applicaSpecchio, costruisciPiattaforma } from '../
 import { Matrix4 } from 'three'
 
 import { ombraDiContatto } from '../scene/Appoggio'
+import { trovaArchi } from '../scene/Ruote'
 import { sottoscocca } from '../scene/Sottoscocca'
 import { Ruote } from '../scene/Ruote'
 import { vestiAuto, LIVELLO_SOGGETTO } from '../scene/Materiali'
@@ -1004,7 +1005,7 @@ export class Esperienza {
        precisa: e' `esterno` a ruotare (vedi `rotazioneScena`), e ruotando
        porta con se' sia la vettura sia la piattaforma. Appendendola al perno
        si sarebbe sommata due volte alla stessa rotazione. */
-    this.esterno.add(ombraDiContatto(misura.x, misura.z))
+    this.esterno.add(ombraDiContatto(misura.x, misura.z, trovaArchi(perno)))
     /* E IL SOTTOSCOCCA, che e' l'altra meta' — quella che l'ombra non poteva
        fare. Vedi «scene/Sottoscocca.ts»: la scocca ha il fondo piatto a 0,291 e
        la pedana sta a 0,110, quindi sotto la vettura restavano diciotto

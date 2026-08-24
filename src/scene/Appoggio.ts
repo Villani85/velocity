@@ -78,7 +78,7 @@ const STACCO = 0.004
  * gradiente non ha frequenze alte da conservare, quindi la risoluzione in
  * eccesso e' solo memoria video buttata.
  */
-function macchia(): CanvasTexture {
+function macchia(ruote: Ruota[], L_m: number, A_m: number): CanvasTexture {
   const L = 512
   const A = 256
   const c = document.createElement('canvas')
@@ -118,6 +118,29 @@ function macchia(): CanvasTexture {
   alone(L * 0.255, A * 0.5, L * 0.115, A * 0.145, 0.98)
   alone(L * 0.745, A * 0.5, L * 0.115, A * 0.145, 0.98)
 
+  /* L'IMPRONTA, UNA PER GOMMA — ed e' una cosa diversa dagli aloni qui sopra.
+     Quelli sono l'aria chiusa sotto la vettura: larghi, morbidi, sulla
+     mezzeria. La revisione esterna chiede l'opposto e ha ragione: «non una
+     grande ombra sfocata, una piccola zona quasi nera immediatamente sotto le
+     gomme». E' il gradiente stretto a dire «appoggia»; quello largo dice solo
+     «c'e' qualcosa sopra».
+     Le posizioni non sono scelte: arrivano da `trovaArchi`, le stesse su cui
+     sono montate le ruote. Se le due cose divergessero il contatto sarebbe
+     peggio che assente — sarebbe SBAGLIATO, e un'ombra fuori posto si nota
+     molto piu' di un'ombra che manca.
+     La mappatura dal mondo alla tela: il piano e' ruotato di -90 gradi intorno
+     a X, quindi la sua x locale e' la lunghezza (X del mondo) e la riga 0
+     della tela cade sul bordo a Z negativo. */
+  for (const r of ruote) {
+    const cx = ((r.x + L_m / 2) / L_m) * L
+    const cy = ((r.z + A_m / 2) / A_m) * A
+    if (cx < 0 || cx > L || cy < 0 || cy > A) continue
+    // il nucleo: quasi nero, grande quanto l'impronta vera di un pneumatico
+    alone(cx, cy, (0.15 / L_m) * L, (0.11 / A_m) * A, 1.0)
+    // e un raccordo appena piu' largo, perche' un'occlusione non ha un bordo
+    alone(cx, cy, (0.34 / L_m) * L, (0.26 / A_m) * A, 0.42)
+  }
+
   const t = new CanvasTexture(c)
   t.colorSpace = SRGBColorSpace
   return t
@@ -127,8 +150,16 @@ function macchia(): CanvasTexture {
  * @param lunghezza la lunghezza vera della vettura, in metri
  * @param larghezza la sua larghezza vera, in metri
  */
-export function ombraDiContatto(lunghezza: number, larghezza: number): Mesh {
-  const t = macchia()
+export type Ruota = { x: number; z: number }
+
+export function ombraDiContatto(
+  lunghezza: number,
+  larghezza: number,
+  ruote: Ruota[] = [],
+): Mesh {
+  const L_m = lunghezza * 1.20
+  const A_m = larghezza * 1.62
+  const t = macchia(ruote, L_m, A_m)
   const m = new MeshBasicMaterial({
     color: 0x000000,
     // la tela porta la forma nell'alfa: `alphaMap` legge il canale verde, che
@@ -147,7 +178,7 @@ export function ombraDiContatto(lunghezza: number, larghezza: number): Mesh {
   // deborda oltre l'ingombro perche' un'occlusione non finisce dove finisce
   // l'oggetto: si trascina intorno, ed e' quella coda a leggere come aria e
   // non come adesivo
-  const mesh = new Mesh(new PlaneGeometry(lunghezza * 1.20, larghezza * 1.62), m)
+  const mesh = new Mesh(new PlaneGeometry(L_m, A_m), m)
   mesh.rotation.x = -Math.PI / 2
   mesh.position.y = ALTEZZA_PIATTAFORMA + STACCO
   mesh.name = 'OMBRA_CONTATTO'

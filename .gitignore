@@ -8,3 +8,10 @@ asset/
 # le build di prova di `strumenti/carico.mjs`
 dist_carico/
 dist_carico_mappa/
+
+# NON ENTRANO NEL RAMO DEI SORGENTI, e ci sono gia' entrati una volta:
+# un `git add -A` distratto ha portato dentro 180 MB di FBX e HDRI, e il
+# push e' andato in timeout due volte prima che capissi perche'.
+tripo-out/
+assets-source/
+docs/video/

@@ -15,6 +15,7 @@ import {
   Object3D,
   RepeatWrapping,
   TextureLoader,
+  Box3,
   Vector2,
   Vector3,
   type Material,
@@ -238,7 +239,11 @@ export function vernice() {
        a uno non e' aggiungere una sorgente inventata: e' smettere di scontare
        quella che c'e' gia' nella fotografia. */
     envMapIntensity: 1.00,
-    specularIntensity: 0.6,
+    /* 1,0 E NON 0,6. Tagliare l'intensita' speculare porta F0 dal 4% al 2,4%,
+       cioe' ammazza esattamente il Fresnel bianco su cui poggia tutta la
+       lettura di una vernice scura. Su un metallo non si notava; su un
+       dielettrico e' la cosa che fa vedere la superficie. */
+    specularIntensity: 1.0,
   })
   /* IL COLORE DI PARTENZA E' LA PRIMA FINITURA DELL'ELENCO, non una costante
      a parte — ed era un difetto vero, non una pulizia.
@@ -964,8 +969,29 @@ export function scocca() {
    * alla vista brulicherebbe, ed e' il difetto che tradisce subito un rumore
    * aggiunto in fase di composizione invece che una proprieta' della superficie.
    */
+  /* L'INTERVALLO DI QUOTA DELLA CARROZZERIA, in metri del mondo. Lo scrive
+     `vestiAuto` misurando la scatola d'ingombro vera: scriverlo a mano qui
+     vorrebbe dire che al prossimo modello i vetri finiscono sul cofano, e
+     nessuno se ne accorgerebbe. Vedi `metriche-vanno-verificate`. */
+  m.userData.quote = { min: 0, max: 1 }
   m.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader
+    shader.uniforms.uYmin = { value: m.userData.quote.min }
+    shader.uniforms.uYmax = { value: m.userData.quote.max }
+    // si conserva per poter aggiornare le quote se il modello cambia dopo
+    // la prima compilazione
+    m.userData.shader = shader
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+varying float vAltCar;
+uniform float uYmin;
+uniform float uYmax;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+  // la quota nel MONDO, normalizzata sull'altezza della vettura: 0 il fondo,
+  // 1 il punto piu' alto del tetto
+  vAltCar = clamp(
+    ( ( modelMatrix * vec4( transformed, 1.0 ) ).y - uYmin )
+      / max( 0.0001, uYmax - uYmin ), 0.0, 1.0 );`)
+    shader.fragmentShader = ('varying float vAltCar;' + String.fromCharCode(10) + shader.fragmentShader)
       .replace('#include <common>', `#include <common>
 /**
  * IL VETRO FUME' — trovato nella mappa, non aggiunto come geometria.
@@ -1001,10 +1027,28 @@ export function scocca() {
  * il cielo. Il risultato e' che il canopy smette di essere una macchia e
  * diventa la cosa piu' riflettente della vettura, come su un'automobile vera.
  */
-/* la soglia in LINEARE: 40 su 255 in sRGB stanno a 0,021 in lineare, ed e' in
-   mezzo alla valle dell'istogramma */
-const float VETRO_SCURO_DA = 0.008;
-const float VETRO_SCURO_A  = 0.030;
+/* LA SOGLIA SUL COLORE E' MORTA, E VA CAPITO PERCHE' PRIMA DI RIMPIAZZARLA.
+   Era tarata sulla valle dell'istogramma di «auto2_col.webp»: 4,5% dei pixel
+   sotto 31 e appena lo 0,8% fra 32 e 95, quindi una soglia in mezzo separava
+   pulito. Quella valle apparteneva alla mappa PRE-REMESH. Su «auto2r_col.webp»
+   i texel effettivamente mappati hanno mediana 0,99: la mappa e' bianca, la
+   valle non esiste piu', e «diffuseColor» a quel punto vale colore x mappa —
+   cioe' SOLO LA TINTA. La maschera quindi non misurava piu' il canopy:
+   misurava quanto e' scura la vernice scelta. Con la tinta dielettrica
+   (luma 0,015) si accendeva al 77% ovunque la superficie guardasse in alto,
+   verniciando a vetro fume' un terzo della vettura.
+   E' il difetto di famiglia gia' descritto al §12 del documento: un numero
+   corretto rispetto a uno stato del progetto che non esiste piu'.
+
+   LA CHIAVE NUOVA E' LA QUOTA, e non e' una scelta: e' misurata. Con
+   «strumenti/zone.mjs» la semilarghezza della vettura crolla da 0,373 a
+   0,246 m fra 0,64 e 0,72 m di altezza (74% -> 49% del massimo): quella e' la
+   linea di cintura, il punto in cui il vetro rientra rispetto alla spalla.
+   Normalizzata sull'altezza vera del corpo fa 0,67-0,75.
+   Un vantaggio che la vecchia chiave non aveva: la quota non dipende dalla
+   finitura scelta. Cambiare vernice non puo' piu' spostare i vetri. */
+const float VETRO_CINTURA_DA = 0.66;
+const float VETRO_CINTURA_A  = 0.78;
 /** quanto deve guardare in alto per essere canopy e non sottoscocca */
 const float VETRO_SU_DA = 0.16;
 const float VETRO_SU_A  = 0.44;
@@ -1024,8 +1068,7 @@ float grano( vec2 g ) {
     f.y );
 }`)
       .replace('#include <map_fragment>', `#include <map_fragment>
-  float vetroLuma = dot( diffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) );
-  float vetro = ( 1.0 - smoothstep( VETRO_SCURO_DA, VETRO_SCURO_A, vetroLuma ) )
+  float vetro = smoothstep( VETRO_CINTURA_DA, VETRO_CINTURA_A, vAltCar )
               * smoothstep( VETRO_SU_DA, VETRO_SU_A, normalize( vNormal ).y );
   diffuseColor.rgb = mix( diffuseColor.rgb, VETRO_TINTA, vetro );`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
@@ -1048,6 +1091,24 @@ float grano( vec2 g ) {
   }
   // uno shader modificato vuole una chiave sua, se no three riusa il programma
   // gia' compilato di un MeshPhysicalMaterial qualunque
+  /* LA BUCCIA D'ARANCIA SUL TRASPARENTE — mancava proprio dove serve.
+     `vernice()` ce l'ha, `scocca()` no, e la scocca e' cio' che veste AUTO:
+     quindi in produzione il trasparente a 0,028 era uno SPECCHIO IDEALE,
+     posato su una mesh che `fairness.mjs` misura a 0,341 mm di residuo. Uno
+     specchio ideale non perdona niente: ogni increspatura rimasta veniva
+     mostrata in pieno, ed e' una delle ragioni per cui la fiancata leggeva a
+     macchie invece che a righe.
+     RIPETIZIONE 300, NON 5. In `vernice()` sta a 5, ed e' sbagliato di due
+     ordini di grandezza da quando le UV sono a scala piena: su una vettura di
+     4,4 m ogni cella della buccia misurerebbe quasi un metro — non e' buccia
+     d'arancia, e' ondulazione di lamiera, cioe' esattamente il difetto tolto
+     dalla geometria. La banda giusta e' quella BYK Wd/We, fra 1 e 10 mm.
+     E VA SOLO SUL TRASPARENTE. E' l'ondulazione della vernice di finitura,
+     non della lamiera: in three il clearcoat senza mappa usa la normale
+     geometrica, ed e' proprio quella separazione che serve. */
+  m.clearcoatNormalMap = micro('/texture/buccia_nor.webp', 300)
+  m.clearcoatNormalScale = new Vector2(0.10, 0.10)
+
   m.customProgramCacheKey = () => 'scocca'
 
   m.name = 'SCOCCA'
@@ -1249,7 +1310,7 @@ export const FINITURE: Finitura[] = [
        luce, ha un colore con cui TINGE cio' che riflette. Il grigio caldo qui
        sotto e' l'alluminio: appena piu' rosso nel canale basso, che e' quello
        che distingue l'alluminio dall'acciaio. */
-    nome: 'GRAFITE SPAZZOLATO',
+    nome: 'NERO LIQUIDO',
     campione: '#8d9095',
     /* QUASI UNO, E NON MEZZO — perche' adesso sotto c'e' una MAPPA.
        Con una carrozzeria senza texture la tinta ERA il colore, e 0,52 dava un
@@ -1272,7 +1333,29 @@ export const FINITURE: Finitura[] = [
        deve SPIEGARE la geometria. Il blu resta molto scuro ma smette di essere
        un buco: un metallo scuro con una punta di blu restituisce abbastanza da
        far leggere le superfici. */
-    tinta: [0.085, 0.105, 0.155],
+    /* DIELETTRICA, E QUESTA E' LA CORREZIONE PIU' IMPORTANTE DEL FILE.
+       Era metallo 0,85 con una tinta gunmetal blu, e l'ho messa io stamattina
+       seguendo una revisione che chiedeva «Metallic 0.8-1». E' sbagliato, e la
+       ragione e' fisica, non di gusto:
+
+         UN METALLO TINGE IL RIFLESSO SPECULARE COL PROPRIO COLORE.
+         UN DIELETTRICO LO RESTITUISCE BIANCO.
+
+       Con metallicita' effettiva 0,83 (0,85 per il canale blu della ORM, che
+       misurato sui texel mappati sta a 0,973) ogni sorgente ambra della corte
+       — le gole dell'architrave, il PANNELLO_TAGLIO a 0xffc98a, le vetrate
+       della villa — arrivava sulla lamiera e usciva moltiplicata per un blu.
+       Non era l'ambiente a essere freddo: era la carrozzeria a ricolorare di
+       blu tutto cio' che rifletteva, compreso il caldo. E nessuna quantita' di
+       grading ambra puo' raddrizzarlo, perche' il colore lo decide il
+       materiale prima che la luce arrivi al tone mapping.
+       Spiega anche i cerchi azzurrati che §9 del documento attribuiva
+       all'ambiente: stessa fisica, stessa causa.
+
+       Una vernice nera vera e' un DIELETTRICO: base quasi nera (3-4% di
+       riflettanza diffusa), scaglie metalliche SOSPESE in un legante, e sopra
+       un trasparente. Non e' un blocco di alluminio verniciato. */
+    tinta: [0.014, 0.014, 0.017],
     /* QUASI METALLO PIENO, e la ragione e' la ruvidita' qui sotto.
        Di notte un metallo puro e' NERO: restituisce solo cio' che specchia, e
        se non ha niente da specchiare non ha niente da restituire. Era il
@@ -1285,7 +1368,11 @@ export const FINITURE: Finitura[] = [
        niente da restituire. Con una tinta gunmetal il metallo torna a fare il
        suo mestiere — e la scaglia sotto il trasparente e' cio' che distingue
        una vernice metallizzata da una plastica colorata. */
-    metallo: 0.85,
+    /* 0,06 E NON 0,85: la scaglia sta sospesa nel legante, non e' la
+       superficie. Questo lascia il Fresnel bianco a fare il suo mestiere —
+       ed e' il Fresnel a disegnare la forma di notte, proprio dove la base
+       scura non restituisce niente. */
+    metallo: 0.06,
     /* TRENTADUE, ED ERA UNO — l'errore che ha fatto sembrare l'automobile di
        creta per due giri interi.
        Avevo scritto 1,0 credendo fosse il valore neutro «decida la mappa». Non
@@ -1294,7 +1381,7 @@ export const FINITURE: Finitura[] = [
        esterna ha scritto «legge come un modello di studio in clay», con
        ragione sul sintomo. 0,32 per 0,80 fa 0,26, che e' la ruvidita' di una
        carrozzeria vera. */
-    ruvidita: 0.26,
+    ruvidita: 0.30,
     /* IL TRASPARENTE E' L'ALTRA META' DI CIO' CHE FA LEGGERE «LAMIERA».
        Un metallo nudo restituisce un riflesso solo, della propria tinta; una
        carrozzeria ne restituisce due — quello colorato del metallo sotto e
@@ -1316,7 +1403,7 @@ export const FINITURE: Finitura[] = [
        liscia (il 95esimo percentile resta sopra il riferimento di una
        fiancata vera), ma regge uno specchio piu' netto di prima. */
     trasparente: 1.0,
-    ruviditaTrasparente: 0.030,
+    ruviditaTrasparente: 0.028,
   },
   /* LE QUATTRO TINTE QUI SOTTO SONO DIVISE PER LA MAPPA, e senza quella
      divisione il configuratore mostrava quattro sfumature di nero.
@@ -1509,6 +1596,28 @@ export function vestiAuto(radice: Object3D) {
          dividere. Vedi `scocca()` per il perche' — in due parole, tagliare la
          geometria per assegnare i materiali distruggeva le fughe. */
       mesh.material = laScocca
+      /* LE QUOTE DELLA CARROZZERIA, per la maschera del canopy.
+         La maschera adesso si chiava sull'ALTEZZA e non sul colore (vedi
+         `scocca()`), e un'altezza normalizzata ha bisogno di sapere dove
+         comincia e dove finisce il corpo. Si misura qui, sulla mesh vera e
+         gia' trasformata: scrivere due numeri a mano nello shader vorrebbe
+         dire che al prossimo modello i vetri finiscono sul cofano senza che
+         niente dia errore.
+         Attenzione a misurare la MESH e non il gruppo: `OTTICA_BORDO` scende
+         sotto la carrozzeria, e la scatola del gruppo darebbe un fondo
+         sbagliato di quasi trenta centimetri — cioe' la cintura fuori posto
+         di un terzo dell'altezza. */
+      mesh.updateWorldMatrix(true, false)
+      const scatola = new Box3().setFromObject(mesh)
+      laScocca.userData.quote = { min: scatola.min.y, max: scatola.max.y }
+      const sh = laScocca.userData.shader
+      if (sh) {
+        sh.uniforms.uYmin.value = scatola.min.y
+        sh.uniforms.uYmax.value = scatola.max.y
+      }
+      console.log('[scocca] quote carrozzeria',
+        +scatola.min.y.toFixed(3), '..', +scatola.max.y.toFixed(3),
+        '-> cintura a', +(scatola.min.y + (scatola.max.y - scatola.min.y) * 0.72).toFixed(3))
       mesh.castShadow = true
       mesh.receiveShadow = true
       mesh.layers.enable(LIVELLO_SOGGETTO)

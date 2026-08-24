@@ -1,0 +1,146 @@
+{
+ "CAPABILITY_DEFAULTS": {
+  "texture": "v3.0-20250812",
+  "rig": "v2.5-20260210",
+  "segment": "v1.0-20250506",
+  "textToImage": "seedream_v4",
+  "imageToImage": "seedream_v5"
+ },
+ "CONVERT_FORMATS": [
+  "GLTF",
+  "USDZ",
+  "FBX",
+  "OBJ",
+  "STL",
+  "3MF"
+ ],
+ "DECIMATE_MODELS": [
+  "v2.0",
+  "v1.0"
+ ],
+ "EXPORT_ORIENTATIONS": [
+  "+x",
+  "-x",
+  "+y",
+  "-y"
+ ],
+ "FBX_PRESETS": [
+  "blender",
+  "3dsmax",
+  "mixamo"
+ ],
+ "IMAGE_TO_IMAGE_MODELS": [
+  "seedream_v5",
+  "banana",
+  "banana_pro",
+  "banana2",
+  "chat_image_1",
+  "chat_image_1.5",
+  "chat_image_2"
+ ],
+ "IMAGE_TO_IMAGE_TEMPLATES": [
+  "t_pose",
+  "character_completion",
+  "3d_enhance",
+  "variants",
+  "figure"
+ ],
+ "LEGACY_3D_MODELS": [
+  "v3.0-20250812",
+  "v2.5-20250123"
+ ],
+ "MODEL_ALIASES": {
+  "v3.1": "v3.1-20260211",
+  "v3.1-20260211": "v3.1-20260211",
+  "tripo-v3.1": "v3.1-20260211",
+  "p1": "P1-20260311",
+  "P1": "P1-20260311",
+  "P1-20260311": "P1-20260311",
+  "tripo-p1": "P1-20260311",
+  "v3.0": "v3.0-20250812",
+  "tripo-v3.0": "v3.0-20250812",
+  "v2.5": "v2.5-20250123",
+  "tripo-v2.5": "v2.5-20250123"
+ },
+ "MODEL_P1": "P1-20260311",
+ "MODEL_V31": "v3.1-20260211",
+ "P1_FACE_LIMIT": {
+  "min": 50,
+  "max": 20000
+ },
+ "P1_FORBIDDEN_PARAMS": [
+  "quad",
+  "smart_low_poly",
+  "generate_parts",
+  "geometry_quality"
+ ],
+ "RIG_MODEL_ALIASES": {
+  "rig-v1.0": "v1.0-20240301",
+  "v1.0-20240301": "v1.0-20240301",
+  "rig-v2.0": "v2.5-20260210",
+  "rig-v2.5": "v2.5-20260210",
+  "v2.5-20260210": "v2.5-20260210"
+ },
+ "RIG_MODEL_V1": "v1.0-20240301",
+ "RIG_MODEL_V25": "v2.5-20260210",
+ "RIG_SPECS": [
+  "tripo",
+  "mixamo"
+ ],
+ "RIG_TYPES": [
+  "biped",
+  "quadruped",
+  "hexapod",
+  "octopod",
+  "avian",
+  "serpentine",
+  "aquatic"
+ ],
+ "SEGMENT_MODELS": [
+  "v1.0-20250506",
+  "v2.0-20260430"
+ ],
+ "STYLIZE_STYLES": [
+  "lego",
+  "voxel",
+  "voronoi",
+  "minecraft"
+ ],
+ "TEXTURE_FORMATS": [
+  "BMP",
+  "DPX",
+  "HDR",
+  "JPEG",
+  "OPEN_EXR",
+  "PNG",
+  "TARGA",
+  "TIFF",
+  "WEBP"
+ ],
+ "TEXTURE_MODELS": [
+  "v3.0-20250812",
+  "v2.5-20250123"
+ ],
+ "TEXTURE_QUALITIES": [
+  "standard",
+  "detailed",
+  "extreme"
+ ],
+ "TEXT_TO_IMAGE_MODELS": [
+  "seedream_v4",
+  "seedream_v5",
+  "banana",
+  "banana_pro",
+  "banana2",
+  "chat_image_1",
+  "chat_image_1.5",
+  "chat_image_2"
+ ],
+ "TEXT_TO_IMAGE_TEMPLATES": [
+  "asset_extraction",
+  "character_completion",
+  "t_pose",
+  "variants",
+  "figure"
+ ]
+}

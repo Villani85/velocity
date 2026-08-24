@@ -23,6 +23,14 @@ p.setDefaultTimeout(120000)
 // caricata all'inizio, che e' anche l'unica cosa sensata da misurare — una
 // misura ha senso su UNO stato, non su uno che cambia sotto.
 await p.route('**/@vite/client', (r) => r.fulfill({ body: 'export {}', contentType: 'application/javascript' }))
+/* UNA GUARDIA CHE AVVISA. Senza questa il provino di un'applicazione ROTTA
+   esce lo stesso: un fotogramma nero con sopra l'interfaccia, e il misuratore
+   ci calcola sopra delle statistiche perfettamente formate. E' successo — un
+   errore a runtime nelle ruote ha spento tutta la scena, e il primo segnale
+   e' stato una mediana 0,0 che sembrava una taratura andata male. Un guasto
+   deve gridare, non restituire un numero. */
+p.on('pageerror', (e) => console.log('!! ERRORE DI PAGINA:', e.message))
+p.on('console', (m) => { if (m.type() === 'error') console.log('!! console.error:', m.text()) })
 await p.goto('http://localhost:5174/', { waitUntil:'domcontentloaded' })
 await p.waitForFunction(() => !!window.esperienza, null, { timeout:120000 })
 await p.waitForFunction(() => window.esperienza.autoPronta && window.esperienza.ambientePronto, null, { timeout:180000 }).catch(()=>console.log('  (asset non tutti pronti)'))

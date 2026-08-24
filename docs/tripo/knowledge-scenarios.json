@@ -1,0 +1,300 @@
+{
+ "SCENARIOS": [
+  {
+   "id": "game-mobile",
+   "label": {
+    "zh": "手游/低模",
+    "en": "Mobile game / low-poly"
+   },
+   "description": {
+    "zh": "移动端游戏资产,面数预算严格,干净拓扑",
+    "en": "Mobile game assets with strict face budgets and clean topology"
+   },
+   "model": "P1-20260311",
+   "genParams": {
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "standard",
+    "face_limit": 15000
+   },
+   "chain": [
+    {
+     "step": "convert",
+     "args": {
+      "format": "FBX",
+      "texture_size": 2048
+     }
+    }
+   ],
+   "deliverables": [
+    "FBX",
+    "GLB"
+   ],
+   "notes": {
+    "zh": [
+     "P1 原生低模,拓扑干净",
+     "2K 贴图适配移动端",
+     "需要骨骼时追加 --then rig"
+    ],
+    "en": [
+     "P1 native low-poly with clean topology",
+     "2K textures for mobile budgets",
+     "append --then rig if you need a skeleton"
+    ]
+   }
+  },
+  {
+   "id": "game-pc",
+   "label": {
+    "zh": "端游/主机",
+    "en": "PC / console game"
+   },
+   "description": {
+    "zh": "高预算引擎资产,PBR 全开",
+    "en": "High-budget engine assets with full PBR"
+   },
+   "model": "v3.1-20260211",
+   "genParams": {
+    "texture": true,
+    "pbr": true,
+    "texture_quality": "detailed"
+   },
+   "chain": [
+    {
+     "step": "convert",
+     "args": {
+      "format": "FBX"
+     }
+    }
+   ],
+   "deliverables": [
+    "FBX",
+    "GLTF"
+   ],
+   "notes": {
+    "zh": [
+     "v3.1 高精度 + detailed 贴图",
+     "需要 LOD 时追加 --then decimate:5000",
+     "进 Blender/3dsMax 用 fbx_preset 对齐"
+    ],
+    "en": [
+     "v3.1 high fidelity + detailed textures",
+     "append --then decimate:5000 for LODs",
+     "use fbx_preset to match Blender/3dsMax"
+    ]
+   }
+  },
+  {
+   "id": "film",
+   "label": {
+    "zh": "影视/离线渲染",
+    "en": "Film / offline rendering"
+   },
+   "description": {
+    "zh": "细分友好四边面,规格拉满",
+    "en": "Subdivision-friendly quads, maximum quality"
+   },
+   "model": "v3.1-20260211",
+   "genParams": {
+    "texture": true,
+    "pbr": true,
+    "quad": true,
+    "geometry_quality": "detailed",
+    "texture_quality": "detailed"
+   },
+   "chain": [],
+   "deliverables": [
+    "FBX (quad)",
+    "USDZ/OBJ via convert"
+   ],
+   "notes": {
+    "zh": [
+     "quad=true 输出 FBX(quad 进不了 GLB)",
+     "geometry detailed 加收 HD credit",
+     "进 USD 管线追加 --then convert:usdz"
+    ],
+    "en": [
+     "quad=true outputs FBX (quads cannot be stored in GLB)",
+     "geometry detailed bills an extra HD credit",
+     "append --then convert:usdz for USD pipelines"
+    ]
+   }
+  },
+  {
+   "id": "print",
+   "label": {
+    "zh": "3D 打印",
+    "en": "3D printing"
+   },
+   "description": {
+    "zh": "水密可打印几何,免贴图省积分",
+    "en": "Watertight printable geometry, skipping textures saves credits"
+   },
+   "model": "v3.1-20260211",
+   "genParams": {
+    "texture": false,
+    "pbr": false
+   },
+   "chain": [
+    {
+     "step": "convert",
+     "args": {
+      "format": "STL",
+      "flatten_bottom": true
+     }
+    }
+   ],
+   "deliverables": [
+    "STL",
+    "3MF (colored)"
+   ],
+   "notes": {
+    "zh": [
+     "白模生成,不花贴图积分",
+     "flatten_bottom 平底利于 FDM",
+     "彩色打印改 --then convert:3mf,export_vertex_colors=true"
+    ],
+    "en": [
+     "bare geometry: no texture credits spent",
+     "flatten_bottom helps FDM adhesion",
+     "for color prints use --then convert:3mf,export_vertex_colors=true"
+    ]
+   }
+  },
+  {
+   "id": "ar-web",
+   "label": {
+    "zh": "AR/Web/电商",
+    "en": "AR / Web / e-commerce"
+   },
+   "description": {
+    "zh": "移动端性能预算,glb+usdz 双交付",
+    "en": "Mobile performance budgets with dual glb+usdz delivery"
+   },
+   "model": "v3.1-20260211",
+   "genParams": {
+    "texture": true,
+    "pbr": true
+   },
+   "chain": [
+    {
+     "step": "decimate",
+     "args": {
+      "face_limit": 20000
+     }
+    },
+    {
+     "step": "convert",
+     "args": {
+      "format": "USDZ"
+     }
+    }
+   ],
+   "deliverables": [
+    "GLB",
+    "USDZ"
+   ],
+   "notes": {
+    "zh": [
+     "v3.1 生成后减面到 2 万内",
+     "iOS QuickLook 需要 USDZ",
+     "decimate 默认 bake 烘焙贴图到低模"
+    ],
+    "en": [
+     "generate with v3.1, then decimate under 20k faces",
+     "iOS QuickLook requires USDZ",
+     "decimate bakes textures onto the low-poly by default"
+    ]
+   }
+  },
+  {
+   "id": "anim",
+   "label": {
+    "zh": "角色动画",
+    "en": "Character animation"
+   },
+   "description": {
+    "zh": "绑骨+动作重定向全链路",
+    "en": "Full rig + retarget pipeline"
+   },
+   "model": "v3.1-20260211",
+   "genParams": {
+    "texture": true,
+    "pbr": true
+   },
+   "chain": [
+    {
+     "step": "rig-check",
+     "args": {}
+    },
+    {
+     "step": "rig",
+     "args": {
+      "model": "v2.5-20260210",
+      "spec": "tripo",
+      "out_format": "glb"
+     }
+    },
+    {
+     "step": "retarget",
+     "args": {
+      "animations": [
+       "preset:idle",
+       "preset:walk"
+      ]
+     }
+    }
+   ],
+   "deliverables": [
+    "GLB",
+    "FBX"
+   ],
+   "notes": {
+    "zh": [
+     "先 rig-check 预检,不可绑骨即止损",
+     "接 Mixamo/Unity Humanoid 用 rig:spec=mixamo",
+     "提示词建议 T-pose 站姿,或先 text-to-image template=t_pose"
+    ],
+    "en": [
+     "rig-check first: stop early if not riggable",
+     "use rig:spec=mixamo for Mixamo/Unity Humanoid",
+     "prompt for a T-pose, or pre-generate with text-to-image template=t_pose"
+    ]
+   }
+  },
+  {
+   "id": "toy",
+   "label": {
+    "zh": "风格化摆件",
+    "en": "Stylized toy / desk piece"
+   },
+   "description": {
+    "zh": "低模可爱风或积木/体素风格化",
+    "en": "Cute low-poly or brick/voxel stylization"
+   },
+   "model": "P1-20260311",
+   "genParams": {
+    "texture": true,
+    "pbr": true,
+    "face_limit": 20000
+   },
+   "chain": [],
+   "deliverables": [
+    "GLB",
+    "STL via convert"
+   ],
+   "notes": {
+    "zh": [
+     "P1 出干净低模",
+     "积木/体素风追加 --then stylize:lego 或 stylize:voxel",
+     "要打印实物追加 --then convert:stl"
+    ],
+    "en": [
+     "P1 produces clean low-poly",
+     "append --then stylize:lego or stylize:voxel for brick/voxel looks",
+     "append --then convert:stl to print it"
+    ]
+   }
+  }
+ ]
+}

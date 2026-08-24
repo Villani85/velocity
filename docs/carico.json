@@ -1,0 +1,1930 @@
+{
+  "generato": "2026-08-24T05:55:27.167Z",
+  "come": {
+    "build": "npx vite build --outDir dist_carico",
+    "servito": "npx vite preview --outDir dist_carico --port 5199 (gzip acceso)",
+    "reteLenta": {
+      "discesa": 209715,
+      "salita": 96000,
+      "latenza": 150
+    },
+    "nota": "kB e MB sono decimali (1000), come nel rapporto di Vite. La cache e' spenta: e' la misura della PRIMA visita."
+  },
+  "suDisco": [
+    {
+      "file": "assets/avvio-CeVfO66P.js",
+      "tipo": "JS",
+      "byte": 1334818,
+      "gzip": 403748,
+      "brotli": 321769
+    },
+    {
+      "file": "modelli/volante.glb",
+      "tipo": "modelli",
+      "byte": 936000,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/asfalto_nor.webp",
+      "tipo": "tessiture",
+      "byte": 725352,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "modelli/auto2.glb",
+      "tipo": "modelli",
+      "byte": 682660,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/nero_col.webp",
+      "tipo": "tessiture",
+      "byte": 639778,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/asfalto_col.webp",
+      "tipo": "tessiture",
+      "byte": 514174,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "hdri/corte_pano.webp",
+      "tipo": "panorama",
+      "byte": 503290,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/pelle_nor.webp",
+      "tipo": "tessiture",
+      "byte": 460546,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/abitacolo.webp",
+      "tipo": "tessiture",
+      "byte": 390754,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lastra/strada.mp4",
+      "tipo": "video",
+      "byte": 327325,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/asfalto_rgh.webp",
+      "tipo": "tessiture",
+      "byte": 267324,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/auto2_orm.webp",
+      "tipo": "tessiture",
+      "byte": 264266,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/auto2_col.webp",
+      "tipo": "tessiture",
+      "byte": 256412,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "modelli/turbina.glb",
+      "tipo": "modelli",
+      "byte": 205492,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/nero_nor.webp",
+      "tipo": "tessiture",
+      "byte": 185952,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "hdri/corte_pano_ambiente.webp",
+      "tipo": "panorama",
+      "byte": 135556,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/velocity.webp",
+      "tipo": "immagini",
+      "byte": 109076,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/auto2_nor.webp",
+      "tipo": "tessiture",
+      "byte": 89804,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/nero_rgh.webp",
+      "tipo": "tessiture",
+      "byte": 82802,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/abitacolo_mobile.webp",
+      "tipo": "tessiture",
+      "byte": 82078,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/auto2_emi.webp",
+      "tipo": "tessiture",
+      "byte": 81146,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/pelle_rgh.webp",
+      "tipo": "tessiture",
+      "byte": 68330,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "modelli/faro.glb",
+      "tipo": "modelli",
+      "byte": 64252,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "poster/hero_orizzontale.webp",
+      "tipo": "immagini",
+      "byte": 55458,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "poster/hero_orizzontale.avif",
+      "tipo": "immagini",
+      "byte": 51101,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "poster/hero_verticale.webp",
+      "tipo": "immagini",
+      "byte": 35634,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "poster/hero_verticale.avif",
+      "tipo": "immagini",
+      "byte": 33633,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "assets/index-Lm2QosMn.css",
+      "tipo": "CSS",
+      "byte": 30797,
+      "gzip": 7636,
+      "brotli": 6819
+    },
+    {
+      "file": "texture/carbonio_nor.webp",
+      "tipo": "tessiture",
+      "byte": 20786,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "index.html",
+      "tipo": "HTML",
+      "byte": 20563,
+      "gzip": 8449,
+      "brotli": 7559
+    },
+    {
+      "file": "font/switzer-600.woff2",
+      "tipo": "font",
+      "byte": 19640,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "font/switzer-500.woff2",
+      "tipo": "font",
+      "byte": 19564,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "font/switzer-700.woff2",
+      "tipo": "font",
+      "byte": 19432,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "font/switzer-400.woff2",
+      "tipo": "font",
+      "byte": 16728,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "font/clash-display-600.woff2",
+      "tipo": "font",
+      "byte": 15284,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/panino.webp",
+      "tipo": "immagini",
+      "byte": 14392,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/abitacolo_apertura.webp",
+      "tipo": "tessiture",
+      "byte": 14024,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/masseria.webp",
+      "tipo": "immagini",
+      "byte": 13348,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/every.webp",
+      "tipo": "immagini",
+      "byte": 12656,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/stefania.webp",
+      "tipo": "immagini",
+      "byte": 12462,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/fusto.webp",
+      "tipo": "immagini",
+      "byte": 11728,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/pianoforte.webp",
+      "tipo": "immagini",
+      "byte": 10378,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/orologio.webp",
+      "tipo": "immagini",
+      "byte": 9312,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/studio.webp",
+      "tipo": "immagini",
+      "byte": 8394,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "assets/Contatto-CFsHzj6Y.js",
+      "tipo": "JS",
+      "byte": 7627,
+      "gzip": 3383,
+      "brotli": 2923
+    },
+    {
+      "file": "texture/buccia_nor.webp",
+      "tipo": "tessiture",
+      "byte": 7404,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "lavori/flow.webp",
+      "tipo": "immagini",
+      "byte": 6292,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "texture/carbonio_rgh.webp",
+      "tipo": "tessiture",
+      "byte": 4406,
+      "gzip": null,
+      "brotli": null
+    },
+    {
+      "file": "assets/index-CVbDr-g5.js",
+      "tipo": "JS",
+      "byte": 3625,
+      "gzip": 1721,
+      "brotli": 1524
+    },
+    {
+      "file": "vedi.html",
+      "tipo": "HTML",
+      "byte": 2752,
+      "gzip": 1434,
+      "brotli": 1259
+    },
+    {
+      "file": "texture/abitacolo_quadro.webp",
+      "tipo": "tessiture",
+      "byte": 1492,
+      "gzip": null,
+      "brotli": null
+    }
+  ],
+  "javascript": [
+    {
+      "pezzo": "assets/avvio-CeVfO66P.js",
+      "byte": 1334861,
+      "gzip": 403781,
+      "impalcatura": 291988,
+      "famiglie": [
+        {
+          "nome": "three.js",
+          "byte": 925239,
+          "gzipMarginale": 285732
+        },
+        {
+          "nome": "codice del progetto",
+          "byte": 117634,
+          "gzipMarginale": 41008
+        }
+      ],
+      "moduli": [
+        {
+          "nome": "node_modules/three/build/three.core.js",
+          "byte": 380685
+        },
+        {
+          "nome": "node_modules/three/examples/jsm/lights/RectAreaLightTexturesLib.js",
+          "byte": 246986
+        },
+        {
+          "nome": "node_modules/three/build/three.module.js",
+          "byte": 196376
+        },
+        {
+          "nome": "node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+          "byte": 42488
+        },
+        {
+          "nome": "node_modules/three/examples/jsm/libs/meshopt_decoder.module.js",
+          "byte": 26459
+        },
+        {
+          "nome": "src/core/Esperienza.ts",
+          "byte": 14301
+        },
+        {
+          "nome": "src/ui/Quadro.ts",
+          "byte": 13128
+        },
+        {
+          "nome": "node_modules/three/examples/jsm/postprocessing/GTAOPass.js",
+          "byte": 10159
+        },
+        {
+          "nome": "src/scene/Lastra.ts",
+          "byte": 7755
+        },
+        {
+          "nome": "src/scene/Vetrina3D.ts",
+          "byte": 6780
+        },
+        {
+          "nome": "src/scene/Materiali.ts",
+          "byte": 6608
+        },
+        {
+          "nome": "node_modules/three/examples/jsm/postprocessing/UnrealBloomPass.js",
+          "byte": 5931
+        },
+        {
+          "nome": "node_modules/three/examples/jsm/math/SimplexNoise.js",
+          "byte": 4394
+        },
+        {
+          "nome": "src/core/Qualita.ts",
+          "byte": 4247
+        },
+        {
+          "nome": "src/transizioni/Attraversamento.ts",
+          "byte": 3876
+        },
+        {
+          "nome": "src/ui/Vetrina.ts",
+          "byte": 3823
+        },
+        {
+          "nome": "src/scene/Volante.ts",
+          "byte": 3722
+        },
+        {
+          "nome": "src/scene/Abitacolo.ts",
+          "byte": 3541
+        },
+        {
+          "nome": "src/scene/Insegne.ts",
+          "byte": 3410
+        },
+        {
+          "nome": "src/ui/Controllo.ts",
+          "byte": 3163
+        },
+        {
+          "nome": "src/ui/Voci.ts",
+          "byte": 3156
+        },
+        {
+          "nome": "src/scene/Riflesso.ts",
+          "byte": 3116
+        },
+        {
+          "nome": "src/transizioni/Camera.ts",
+          "byte": 2915
+        },
+        {
+          "nome": "src/ui/Spina.ts",
+          "byte": 2753
+        },
+        {
+          "nome": "node_modules/three/examples/jsm/postprocessing/EffectComposer.js",
+          "byte": 2582
+        }
+      ]
+    },
+    {
+      "pezzo": "assets/Contatto-CFsHzj6Y.js",
+      "byte": 7673,
+      "gzip": 3422,
+      "impalcatura": 275,
+      "famiglie": [
+        {
+          "nome": "codice del progetto",
+          "byte": 7398,
+          "gzipMarginale": 3181
+        }
+      ],
+      "moduli": [
+        {
+          "nome": "src/ui/Lingua.ts",
+          "byte": 7295
+        },
+        {
+          "nome": "src/ui/Contatto.ts",
+          "byte": 103
+        }
+      ]
+    },
+    {
+      "pezzo": "assets/index-CVbDr-g5.js",
+      "byte": 3668,
+      "gzip": 1757,
+      "impalcatura": 928,
+      "famiglie": [
+        {
+          "nome": "codice del progetto",
+          "byte": 2740,
+          "gzipMarginale": 1203
+        }
+      ],
+      "moduli": [
+        {
+          "nome": "src/core/Ripiego.ts",
+          "byte": 1649
+        },
+        {
+          "nome": "src/main.ts",
+          "byte": 1091
+        }
+      ]
+    }
+  ],
+  "modelloAuto": {
+    "file": "public/modelli/auto_parti.glb",
+    "byte": 682660,
+    "MB": 0.68,
+    "MiB": 0.65,
+    "gzip": 494441,
+    "dichiaratoDalSito": "2.9 MB",
+    "dichiarazioneVera": false,
+    "estensioni": [
+      "EXT_meshopt_compression",
+      "KHR_mesh_quantization"
+    ],
+    "mesh": 3,
+    "immagini": 0,
+    "scaricatoVolte": 0
+  },
+  "corse": {
+    "piena": {
+      "traguardi": {
+        "esperienza": 615.1000000238419,
+        "lastra": 615.1000000238419,
+        "scena": 2322.3000000715256,
+        "ambiente": 2322.3000000715256,
+        "auto": 3674.100000023842,
+        "fcp": 5032.800000071526,
+        "lcp": 19840
+      },
+      "completa": true,
+      "muroMs": 22466,
+      "totale": {
+        "file": 46,
+        "rete": 7224965,
+        "steso": 8182631
+      },
+      "aTraguardo": {
+        "fcp": {
+          "quandoMs": 5032.800000071526,
+          "file": 45,
+          "rete": 7173564,
+          "steso": 8131530,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 5,
+              "rete": 92148,
+              "steso": 90648
+            },
+            "JS": {
+              "n": 3,
+              "rete": 410759,
+              "steso": 1346070
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            },
+            "panorama": {
+              "n": 2,
+              "rete": 639446,
+              "steso": 638846
+            },
+            "modelli": {
+              "n": 3,
+              "rete": 1683812,
+              "steso": 1682912
+            },
+            "tessiture": {
+              "n": 17,
+              "rete": 4078360,
+              "steso": 4073260
+            },
+            "immagini": {
+              "n": 13,
+              "rete": 252334,
+              "steso": 248434
+            }
+          }
+        },
+        "scena": {
+          "quandoMs": 2322.3000000715256,
+          "file": 21,
+          "rete": 3322222,
+          "steso": 4287388,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 5,
+              "rete": 92148,
+              "steso": 90648
+            },
+            "JS": {
+              "n": 3,
+              "rete": 410759,
+              "steso": 1346070
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            },
+            "panorama": {
+              "n": 2,
+              "rete": 639446,
+              "steso": 638846
+            },
+            "modelli": {
+              "n": 1,
+              "rete": 682960,
+              "steso": 682660
+            },
+            "tessiture": {
+              "n": 5,
+              "rete": 1438908,
+              "steso": 1437408
+            },
+            "immagini": {
+              "n": 3,
+              "rete": 41296,
+              "steso": 40396
+            }
+          }
+        },
+        "ambiente": {
+          "quandoMs": 2322.3000000715256,
+          "file": 21,
+          "rete": 3322222,
+          "steso": 4287388,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 5,
+              "rete": 92148,
+              "steso": 90648
+            },
+            "JS": {
+              "n": 3,
+              "rete": 410759,
+              "steso": 1346070
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            },
+            "panorama": {
+              "n": 2,
+              "rete": 639446,
+              "steso": 638846
+            },
+            "modelli": {
+              "n": 1,
+              "rete": 682960,
+              "steso": 682660
+            },
+            "tessiture": {
+              "n": 5,
+              "rete": 1438908,
+              "steso": 1437408
+            },
+            "immagini": {
+              "n": 3,
+              "rete": 41296,
+              "steso": 40396
+            }
+          }
+        },
+        "auto": {
+          "quandoMs": 3674.100000023842,
+          "file": 21,
+          "rete": 3322222,
+          "steso": 4287388,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 5,
+              "rete": 92148,
+              "steso": 90648
+            },
+            "JS": {
+              "n": 3,
+              "rete": 410759,
+              "steso": 1346070
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            },
+            "panorama": {
+              "n": 2,
+              "rete": 639446,
+              "steso": 638846
+            },
+            "modelli": {
+              "n": 1,
+              "rete": 682960,
+              "steso": 682660
+            },
+            "tessiture": {
+              "n": 5,
+              "rete": 1438908,
+              "steso": 1437408
+            },
+            "immagini": {
+              "n": 3,
+              "rete": 41296,
+              "steso": 40396
+            }
+          }
+        }
+      },
+      "risorse": [
+        {
+          "percorso": "/",
+          "tipo": "HTML",
+          "rete": 8748,
+          "compresso": 8448,
+          "steso": 20563,
+          "inizioMs": 0,
+          "fineMs": 85.4,
+          "come": "documento"
+        },
+        {
+          "percorso": "/font/switzer-500.woff2",
+          "tipo": "font",
+          "rete": 19864,
+          "compresso": 19564,
+          "steso": 19564,
+          "inizioMs": 92.1,
+          "fineMs": 102.3,
+          "come": "link"
+        },
+        {
+          "percorso": "/font/clash-display-600.woff2",
+          "tipo": "font",
+          "rete": 15584,
+          "compresso": 15284,
+          "steso": 15284,
+          "inizioMs": 92.9,
+          "fineMs": 115.8,
+          "come": "link"
+        },
+        {
+          "percorso": "/assets/index-Lm2QosMn.css",
+          "tipo": "CSS",
+          "rete": 7957,
+          "compresso": 7657,
+          "steso": 30797,
+          "inizioMs": 93.6,
+          "fineMs": 122.3,
+          "come": "link"
+        },
+        {
+          "percorso": "/assets/index-CVbDr-g5.js",
+          "tipo": "JS",
+          "rete": 2021,
+          "compresso": 1721,
+          "steso": 3625,
+          "inizioMs": 93.2,
+          "fineMs": 123.2,
+          "come": "script"
+        },
+        {
+          "percorso": "/assets/Contatto-CFsHzj6Y.js",
+          "tipo": "JS",
+          "rete": 3683,
+          "compresso": 3383,
+          "steso": 7627,
+          "inizioMs": 93.4,
+          "fineMs": 123.7,
+          "come": "other"
+        },
+        {
+          "percorso": "/hdri/corte_pano_ambiente.webp",
+          "tipo": "panorama",
+          "rete": 135856,
+          "compresso": 135556,
+          "steso": 135556,
+          "inizioMs": 104,
+          "fineMs": 127.3,
+          "come": "link"
+        },
+        {
+          "percorso": "/hdri/corte_pano.webp",
+          "tipo": "panorama",
+          "rete": 503590,
+          "compresso": 503290,
+          "steso": 503290,
+          "inizioMs": 104.7,
+          "fineMs": 131.5,
+          "come": "link"
+        },
+        {
+          "percorso": "/modelli/auto2.glb",
+          "tipo": "modelli",
+          "rete": 682960,
+          "compresso": 682660,
+          "steso": 682660,
+          "inizioMs": 104.3,
+          "fineMs": 132,
+          "come": "link"
+        },
+        {
+          "percorso": "/font/switzer-600.woff2",
+          "tipo": "font",
+          "rete": 19940,
+          "compresso": 19640,
+          "steso": 19640,
+          "inizioMs": 152,
+          "fineMs": 158.9,
+          "come": "css"
+        },
+        {
+          "percorso": "/font/switzer-700.woff2",
+          "tipo": "font",
+          "rete": 19732,
+          "compresso": 19432,
+          "steso": 19432,
+          "inizioMs": 152.5,
+          "fineMs": 159.8,
+          "come": "css"
+        },
+        {
+          "percorso": "/font/switzer-400.woff2",
+          "tipo": "font",
+          "rete": 17028,
+          "compresso": 16728,
+          "steso": 16728,
+          "inizioMs": 152.3,
+          "fineMs": 160.6,
+          "come": "css"
+        },
+        {
+          "percorso": "/assets/avvio-CeVfO66P.js",
+          "tipo": "JS",
+          "rete": 405055,
+          "compresso": 404755,
+          "steso": 1334818,
+          "inizioMs": 147.5,
+          "fineMs": 244.2,
+          "come": "script"
+        },
+        {
+          "percorso": "/texture/pelle_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 68630,
+          "compresso": 68330,
+          "steso": 68330,
+          "inizioMs": 608.6,
+          "fineMs": 619.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/nero_nor.webp",
+          "tipo": "tessiture",
+          "rete": 186252,
+          "compresso": 185952,
+          "steso": 185952,
+          "inizioMs": 608.6,
+          "fineMs": 624.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/every.webp",
+          "tipo": "immagini",
+          "rete": 12956,
+          "compresso": 12656,
+          "steso": 12656,
+          "inizioMs": 608.7,
+          "fineMs": 625.6,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/nero_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 83102,
+          "compresso": 82802,
+          "steso": 82802,
+          "inizioMs": 608.7,
+          "fineMs": 626.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/pelle_nor.webp",
+          "tipo": "tessiture",
+          "rete": 460846,
+          "compresso": 460546,
+          "steso": 460546,
+          "inizioMs": 608.4,
+          "fineMs": 628.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/masseria.webp",
+          "tipo": "immagini",
+          "rete": 13648,
+          "compresso": 13348,
+          "steso": 13348,
+          "inizioMs": 608.8,
+          "fineMs": 629.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/nero_col.webp",
+          "tipo": "tessiture",
+          "rete": 640078,
+          "compresso": 639778,
+          "steso": 639778,
+          "inizioMs": 608.6,
+          "fineMs": 632.9,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/panino.webp",
+          "tipo": "immagini",
+          "rete": 14692,
+          "compresso": 14392,
+          "steso": 14392,
+          "inizioMs": 608.8,
+          "fineMs": 633.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/modelli/faro.glb",
+          "tipo": "modelli",
+          "rete": 64552,
+          "compresso": 64252,
+          "steso": 64252,
+          "inizioMs": 3661.4,
+          "fineMs": 3685.8,
+          "come": "fetch"
+        },
+        {
+          "percorso": "/texture/buccia_nor.webp",
+          "tipo": "tessiture",
+          "rete": 7704,
+          "compresso": 7404,
+          "steso": 7404,
+          "inizioMs": 3664.9,
+          "fineMs": 3687.8,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/carbonio_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 4706,
+          "compresso": 4406,
+          "steso": 4406,
+          "inizioMs": 3665.7,
+          "fineMs": 3691.4,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/carbonio_nor.webp",
+          "tipo": "tessiture",
+          "rete": 21086,
+          "compresso": 20786,
+          "steso": 20786,
+          "inizioMs": 3665.9,
+          "fineMs": 3692.6,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_nor.webp",
+          "tipo": "tessiture",
+          "rete": 90104,
+          "compresso": 89804,
+          "steso": 89804,
+          "inizioMs": 3665.5,
+          "fineMs": 3693,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_orm.webp",
+          "tipo": "tessiture",
+          "rete": 264566,
+          "compresso": 264266,
+          "steso": 264266,
+          "inizioMs": 3665.2,
+          "fineMs": 3694.8,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_emi.webp",
+          "tipo": "tessiture",
+          "rete": 81446,
+          "compresso": 81146,
+          "steso": 81146,
+          "inizioMs": 3666.3,
+          "fineMs": 3716.2,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/masseria.webp",
+          "tipo": "immagini",
+          "rete": 13648,
+          "compresso": 13348,
+          "steso": 13348,
+          "inizioMs": 3666.8,
+          "fineMs": 3717.9,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/every.webp",
+          "tipo": "immagini",
+          "rete": 12956,
+          "compresso": 12656,
+          "steso": 12656,
+          "inizioMs": 3667.1,
+          "fineMs": 3718.8,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_col.webp",
+          "tipo": "tessiture",
+          "rete": 256712,
+          "compresso": 256412,
+          "steso": 256412,
+          "inizioMs": 3666.1,
+          "fineMs": 3719.8,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/panino.webp",
+          "tipo": "immagini",
+          "rete": 14692,
+          "compresso": 14392,
+          "steso": 14392,
+          "inizioMs": 3667.4,
+          "fineMs": 3720.2,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/stefania.webp",
+          "tipo": "immagini",
+          "rete": 12762,
+          "compresso": 12462,
+          "steso": 12462,
+          "inizioMs": 3669.6,
+          "fineMs": 3729.6,
+          "come": "img"
+        },
+        {
+          "percorso": "/modelli/volante.glb",
+          "tipo": "modelli",
+          "rete": 936300,
+          "compresso": 936000,
+          "steso": 936000,
+          "inizioMs": 3668.9,
+          "fineMs": 3738.5,
+          "come": "fetch"
+        },
+        {
+          "percorso": "/lavori/studio.webp",
+          "tipo": "immagini",
+          "rete": 8694,
+          "compresso": 8394,
+          "steso": 8394,
+          "inizioMs": 3669.9,
+          "fineMs": 3741,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/fusto.webp",
+          "tipo": "immagini",
+          "rete": 12028,
+          "compresso": 11728,
+          "steso": 11728,
+          "inizioMs": 3670.1,
+          "fineMs": 3742.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/orologio.webp",
+          "tipo": "immagini",
+          "rete": 9612,
+          "compresso": 9312,
+          "steso": 9312,
+          "inizioMs": 3670.2,
+          "fineMs": 3743.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/pianoforte.webp",
+          "tipo": "immagini",
+          "rete": 10678,
+          "compresso": 10378,
+          "steso": 10378,
+          "inizioMs": 3670.5,
+          "fineMs": 3743.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/flow.webp",
+          "tipo": "immagini",
+          "rete": 6592,
+          "compresso": 6292,
+          "steso": 6292,
+          "inizioMs": 3670.8,
+          "fineMs": 3744.2,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/velocity.webp",
+          "tipo": "immagini",
+          "rete": 109376,
+          "compresso": 109076,
+          "steso": 109076,
+          "inizioMs": 3671.1,
+          "fineMs": 3775.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/abitacolo_apertura.webp",
+          "tipo": "tessiture",
+          "rete": 14324,
+          "compresso": 14024,
+          "steso": 14024,
+          "inizioMs": 3672.2,
+          "fineMs": 3777.7,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/asfalto_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 267624,
+          "compresso": 267324,
+          "steso": 267324,
+          "inizioMs": 3671.5,
+          "fineMs": 3788.6,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/abitacolo.webp",
+          "tipo": "tessiture",
+          "rete": 391054,
+          "compresso": 390754,
+          "steso": 390754,
+          "inizioMs": 3671.8,
+          "fineMs": 3791.4,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/asfalto_col.webp",
+          "tipo": "tessiture",
+          "rete": 514474,
+          "compresso": 514174,
+          "steso": 514174,
+          "inizioMs": 3671.3,
+          "fineMs": 3794.6,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/asfalto_nor.webp",
+          "tipo": "tessiture",
+          "rete": 725652,
+          "compresso": 725352,
+          "steso": 725352,
+          "inizioMs": 3671.4,
+          "fineMs": 3799.7,
+          "come": "img"
+        },
+        {
+          "percorso": "/poster/hero_orizzontale.avif",
+          "tipo": "immagini",
+          "rete": 51401,
+          "compresso": 51101,
+          "steso": 51101,
+          "inizioMs": 15695.6,
+          "fineMs": 15704.6,
+          "come": "img"
+        }
+      ]
+    },
+    "lento": {
+      "traguardi": {
+        "fcp": 808.8000000715256,
+        "lcp": 27572,
+        "esperienza": 7588.800000071526,
+        "lastra": 7588.900000095367,
+        "scena": 7801.100000023842,
+        "ambiente": 9826.900000095367,
+        "auto": 13272.900000095367
+      },
+      "completa": true,
+      "muroMs": 35034,
+      "totale": {
+        "file": 46,
+        "rete": 7224965,
+        "steso": 8182631
+      },
+      "aTraguardo": {
+        "fcp": {
+          "quandoMs": 808.8000000715256,
+          "file": 6,
+          "rete": 57857,
+          "steso": 97460,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 2,
+              "rete": 35448,
+              "steso": 34848
+            },
+            "JS": {
+              "n": 2,
+              "rete": 5704,
+              "steso": 11252
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            }
+          }
+        },
+        "scena": {
+          "quandoMs": 7801.100000023842,
+          "file": 11,
+          "rete": 655468,
+          "steso": 1623634,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 5,
+              "rete": 92148,
+              "steso": 90648
+            },
+            "JS": {
+              "n": 3,
+              "rete": 410759,
+              "steso": 1346070
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            },
+            "panorama": {
+              "n": 1,
+              "rete": 135856,
+              "steso": 135556
+            }
+          }
+        },
+        "ambiente": {
+          "quandoMs": 9826.900000095367,
+          "file": 13,
+          "rete": 1227688,
+          "steso": 2195254,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 5,
+              "rete": 92148,
+              "steso": 90648
+            },
+            "JS": {
+              "n": 3,
+              "rete": 410759,
+              "steso": 1346070
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            },
+            "panorama": {
+              "n": 2,
+              "rete": 639446,
+              "steso": 638846
+            },
+            "tessiture": {
+              "n": 1,
+              "rete": 68630,
+              "steso": 68330
+            }
+          }
+        },
+        "auto": {
+          "quandoMs": 13272.900000095367,
+          "file": 19,
+          "rete": 2221298,
+          "steso": 3187064,
+          "perTipo": {
+            "HTML": {
+              "n": 1,
+              "rete": 8748,
+              "steso": 20563
+            },
+            "font": {
+              "n": 5,
+              "rete": 92148,
+              "steso": 90648
+            },
+            "JS": {
+              "n": 3,
+              "rete": 410759,
+              "steso": 1346070
+            },
+            "CSS": {
+              "n": 1,
+              "rete": 7957,
+              "steso": 30797
+            },
+            "panorama": {
+              "n": 2,
+              "rete": 639446,
+              "steso": 638846
+            },
+            "modelli": {
+              "n": 1,
+              "rete": 682960,
+              "steso": 682660
+            },
+            "tessiture": {
+              "n": 3,
+              "rete": 337984,
+              "steso": 337084
+            },
+            "immagini": {
+              "n": 3,
+              "rete": 41296,
+              "steso": 40396
+            }
+          }
+        }
+      },
+      "risorse": [
+        {
+          "percorso": "/",
+          "tipo": "HTML",
+          "rete": 8748,
+          "compresso": 8448,
+          "steso": 20563,
+          "inizioMs": 0,
+          "fineMs": 197,
+          "come": "documento"
+        },
+        {
+          "percorso": "/assets/index-CVbDr-g5.js",
+          "tipo": "JS",
+          "rete": 2021,
+          "compresso": 1721,
+          "steso": 3625,
+          "inizioMs": 184.8,
+          "fineMs": 415.4,
+          "come": "script"
+        },
+        {
+          "percorso": "/assets/Contatto-CFsHzj6Y.js",
+          "tipo": "JS",
+          "rete": 3683,
+          "compresso": 3383,
+          "steso": 7627,
+          "inizioMs": 185.1,
+          "fineMs": 466.6,
+          "come": "other"
+        },
+        {
+          "percorso": "/assets/index-Lm2QosMn.css",
+          "tipo": "CSS",
+          "rete": 7957,
+          "compresso": 7657,
+          "steso": 30797,
+          "inizioMs": 185.4,
+          "fineMs": 554.2,
+          "come": "link"
+        },
+        {
+          "percorso": "/font/clash-display-600.woff2",
+          "tipo": "font",
+          "rete": 15584,
+          "compresso": 15284,
+          "steso": 15284,
+          "inizioMs": 184.4,
+          "fineMs": 697.4,
+          "come": "link"
+        },
+        {
+          "percorso": "/font/switzer-500.woff2",
+          "tipo": "font",
+          "rete": 19864,
+          "compresso": 19564,
+          "steso": 19564,
+          "inizioMs": 183.7,
+          "fineMs": 787.4,
+          "come": "link"
+        },
+        {
+          "percorso": "/font/switzer-600.woff2",
+          "tipo": "font",
+          "rete": 19940,
+          "compresso": 19640,
+          "steso": 19640,
+          "inizioMs": 562,
+          "fineMs": 1423.1,
+          "come": "css"
+        },
+        {
+          "percorso": "/font/switzer-400.woff2",
+          "tipo": "font",
+          "rete": 17028,
+          "compresso": 16728,
+          "steso": 16728,
+          "inizioMs": 562.2,
+          "fineMs": 1454,
+          "come": "css"
+        },
+        {
+          "percorso": "/font/switzer-700.woff2",
+          "tipo": "font",
+          "rete": 19732,
+          "compresso": 19432,
+          "steso": 19432,
+          "inizioMs": 562.3,
+          "fineMs": 2071.4,
+          "come": "css"
+        },
+        {
+          "percorso": "/hdri/corte_pano_ambiente.webp",
+          "tipo": "panorama",
+          "rete": 135856,
+          "compresso": 135556,
+          "steso": 135556,
+          "inizioMs": 197.5,
+          "fineMs": 3491.4,
+          "come": "link"
+        },
+        {
+          "percorso": "/assets/avvio-CeVfO66P.js",
+          "tipo": "JS",
+          "rete": 405055,
+          "compresso": 404755,
+          "steso": 1334818,
+          "inizioMs": 559.9,
+          "fineMs": 7457.8,
+          "come": "script"
+        },
+        {
+          "percorso": "/hdri/corte_pano.webp",
+          "tipo": "panorama",
+          "rete": 503590,
+          "compresso": 503290,
+          "steso": 503290,
+          "inizioMs": 198.4,
+          "fineMs": 9585.1,
+          "come": "link"
+        },
+        {
+          "percorso": "/texture/pelle_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 68630,
+          "compresso": 68330,
+          "steso": 68330,
+          "inizioMs": 7582.8,
+          "fineMs": 9677.2,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/every.webp",
+          "tipo": "immagini",
+          "rete": 12956,
+          "compresso": 12656,
+          "steso": 12656,
+          "inizioMs": 7582.9,
+          "fineMs": 10221.4,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/masseria.webp",
+          "tipo": "immagini",
+          "rete": 13648,
+          "compresso": 13348,
+          "steso": 13348,
+          "inizioMs": 7583,
+          "fineMs": 10803.2,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/panino.webp",
+          "tipo": "immagini",
+          "rete": 14692,
+          "compresso": 14392,
+          "steso": 14392,
+          "inizioMs": 7583,
+          "fineMs": 11407,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/nero_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 83102,
+          "compresso": 82802,
+          "steso": 82802,
+          "inizioMs": 7582.9,
+          "fineMs": 11936,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/nero_nor.webp",
+          "tipo": "tessiture",
+          "rete": 186252,
+          "compresso": 185952,
+          "steso": 185952,
+          "inizioMs": 7582.9,
+          "fineMs": 12552.5,
+          "come": "img"
+        },
+        {
+          "percorso": "/modelli/auto2.glb",
+          "tipo": "modelli",
+          "rete": 682960,
+          "compresso": 682660,
+          "steso": 682660,
+          "inizioMs": 198,
+          "fineMs": 13187.2,
+          "come": "link"
+        },
+        {
+          "percorso": "/texture/buccia_nor.webp",
+          "tipo": "tessiture",
+          "rete": 7704,
+          "compresso": 7404,
+          "steso": 7404,
+          "inizioMs": 13269.3,
+          "fineMs": 13664,
+          "come": "img"
+        },
+        {
+          "percorso": "/modelli/faro.glb",
+          "tipo": "modelli",
+          "rete": 64552,
+          "compresso": 64252,
+          "steso": 64252,
+          "inizioMs": 13269.1,
+          "fineMs": 15241.2,
+          "come": "fetch"
+        },
+        {
+          "percorso": "/texture/carbonio_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 4706,
+          "compresso": 4406,
+          "steso": 4406,
+          "inizioMs": 13269.5,
+          "fineMs": 15544.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_nor.webp",
+          "tipo": "tessiture",
+          "rete": 90104,
+          "compresso": 89804,
+          "steso": 89804,
+          "inizioMs": 13269.4,
+          "fineMs": 15969.2,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/carbonio_nor.webp",
+          "tipo": "tessiture",
+          "rete": 21086,
+          "compresso": 20786,
+          "steso": 20786,
+          "inizioMs": 13269.5,
+          "fineMs": 16299,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_emi.webp",
+          "tipo": "tessiture",
+          "rete": 81446,
+          "compresso": 81146,
+          "steso": 81146,
+          "inizioMs": 13269.5,
+          "fineMs": 18811.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/pelle_nor.webp",
+          "tipo": "tessiture",
+          "rete": 460846,
+          "compresso": 460546,
+          "steso": 460546,
+          "inizioMs": 7582.7,
+          "fineMs": 19091.7,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/masseria.webp",
+          "tipo": "immagini",
+          "rete": 13648,
+          "compresso": 13348,
+          "steso": 13348,
+          "inizioMs": 13269.7,
+          "fineMs": 19371.4,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/every.webp",
+          "tipo": "immagini",
+          "rete": 12956,
+          "compresso": 12656,
+          "steso": 12656,
+          "inizioMs": 13269.7,
+          "fineMs": 19601.4,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/panino.webp",
+          "tipo": "immagini",
+          "rete": 14692,
+          "compresso": 14392,
+          "steso": 14392,
+          "inizioMs": 13269.8,
+          "fineMs": 19918.6,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/stefania.webp",
+          "tipo": "immagini",
+          "rete": 12762,
+          "compresso": 12462,
+          "steso": 12462,
+          "inizioMs": 13270.6,
+          "fineMs": 20117.3,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/studio.webp",
+          "tipo": "immagini",
+          "rete": 8694,
+          "compresso": 8394,
+          "steso": 8394,
+          "inizioMs": 13270.8,
+          "fineMs": 20303.8,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/fusto.webp",
+          "tipo": "immagini",
+          "rete": 12028,
+          "compresso": 11728,
+          "steso": 11728,
+          "inizioMs": 13270.9,
+          "fineMs": 20571.8,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_orm.webp",
+          "tipo": "tessiture",
+          "rete": 264566,
+          "compresso": 264266,
+          "steso": 264266,
+          "inizioMs": 13269.3,
+          "fineMs": 20652.9,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/orologio.webp",
+          "tipo": "immagini",
+          "rete": 9612,
+          "compresso": 9312,
+          "steso": 9312,
+          "inizioMs": 13271.1,
+          "fineMs": 20718.6,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/flow.webp",
+          "tipo": "immagini",
+          "rete": 6592,
+          "compresso": 6292,
+          "steso": 6292,
+          "inizioMs": 13271.3,
+          "fineMs": 21003.7,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/pianoforte.webp",
+          "tipo": "immagini",
+          "rete": 10678,
+          "compresso": 10378,
+          "steso": 10378,
+          "inizioMs": 13271.2,
+          "fineMs": 21015.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/auto2_col.webp",
+          "tipo": "tessiture",
+          "rete": 256712,
+          "compresso": 256412,
+          "steso": 256412,
+          "inizioMs": 13269.5,
+          "fineMs": 23066.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/nero_col.webp",
+          "tipo": "tessiture",
+          "rete": 640078,
+          "compresso": 639778,
+          "steso": 639778,
+          "inizioMs": 7582.9,
+          "fineMs": 23821,
+          "come": "img"
+        },
+        {
+          "percorso": "/lavori/velocity.webp",
+          "tipo": "immagini",
+          "rete": 109376,
+          "compresso": 109076,
+          "steso": 109076,
+          "inizioMs": 13271.4,
+          "fineMs": 23891.4,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/abitacolo_apertura.webp",
+          "tipo": "tessiture",
+          "rete": 14324,
+          "compresso": 14024,
+          "steso": 14024,
+          "inizioMs": 13271.7,
+          "fineMs": 24466.9,
+          "come": "img"
+        },
+        {
+          "percorso": "/poster/hero_orizzontale.avif",
+          "tipo": "immagini",
+          "rete": 51401,
+          "compresso": 51101,
+          "steso": 51101,
+          "inizioMs": 26731.2,
+          "fineMs": 28402.4,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/asfalto_rgh.webp",
+          "tipo": "tessiture",
+          "rete": 267624,
+          "compresso": 267324,
+          "steso": 267324,
+          "inizioMs": 13271.6,
+          "fineMs": 30016.9,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/abitacolo.webp",
+          "tipo": "tessiture",
+          "rete": 391054,
+          "compresso": 390754,
+          "steso": 390754,
+          "inizioMs": 13271.6,
+          "fineMs": 32917.2,
+          "come": "img"
+        },
+        {
+          "percorso": "/texture/asfalto_col.webp",
+          "tipo": "tessiture",
+          "rete": 514474,
+          "compresso": 514174,
+          "steso": 514174,
+          "inizioMs": 13271.5,
+          "fineMs": 33222.1,
+          "come": "img"
+        },
+        {
+          "percorso": "/modelli/volante.glb",
+          "tipo": "modelli",
+          "rete": 936300,
+          "compresso": 936000,
+          "steso": 936000,
+          "inizioMs": 13270.4,
+          "fineMs": 34651.2,
+          "come": "fetch"
+        },
+        {
+          "percorso": "/texture/asfalto_nor.webp",
+          "tipo": "tessiture",
+          "rete": 725652,
+          "compresso": 725352,
+          "steso": 725352,
+          "inizioMs": 13271.5,
+          "fineMs": 34957.8,
+          "come": "img"
+        }
+      ]
+    }
+  },
+  "giudizio": [
+    {
+      "titolo": "/lavori/every.webp viene scaricato 2 volte",
+      "perche": "il preannuncio in index.html e il caricamento vero non hanno lo stesso modo CORS, quindi il browser tratta le due richieste come due file diversi. Il modello dell'auto ha `crossOrigin: anonymous` sul preannuncio e infatti arriva una volta sola; il panorama no.",
+      "byte": 12956,
+      "guadagno": "62 ms",
+      "dove": [
+        "/lavori/every.webp (img, finisce a 10221 ms)",
+        "/lavori/every.webp (img, finisce a 19601 ms)"
+      ]
+    },
+    {
+      "titolo": "/lavori/masseria.webp viene scaricato 2 volte",
+      "perche": "il preannuncio in index.html e il caricamento vero non hanno lo stesso modo CORS, quindi il browser tratta le due richieste come due file diversi. Il modello dell'auto ha `crossOrigin: anonymous` sul preannuncio e infatti arriva una volta sola; il panorama no.",
+      "byte": 13648,
+      "guadagno": "65 ms",
+      "dove": [
+        "/lavori/masseria.webp (img, finisce a 10803 ms)",
+        "/lavori/masseria.webp (img, finisce a 19371 ms)"
+      ]
+    },
+    {
+      "titolo": "/lavori/panino.webp viene scaricato 2 volte",
+      "perche": "il preannuncio in index.html e il caricamento vero non hanno lo stesso modo CORS, quindi il browser tratta le due richieste come due file diversi. Il modello dell'auto ha `crossOrigin: anonymous` sul preannuncio e infatti arriva una volta sola; il panorama no.",
+      "byte": 14692,
+      "guadagno": "70 ms",
+      "dove": [
+        "/lavori/panino.webp (img, finisce a 11407 ms)",
+        "/lavori/panino.webp (img, finisce a 19919 ms)"
+      ]
+    },
+    {
+      "titolo": "il pezzo grosso di JavaScript parte 375 ms dopo gli altri",
+      "perche": "e' un import() dinamico, e il lettore anticipato del browser dentro il JavaScript non guarda: quel pezzo per lui esiste solo dopo che il primo modulo e' stato scaricato ED ESEGUITO. La divisione era nata per non farlo scaricare a chi finiva nella pagina di ripiego; ma Ripiego.esamina() si limita a leggere data-ripiego sulla radice, e index.html non lo scrive piu' (la ragione sta scritta li'). Quel caso non capita piu', mentre il ritardo che costava si paga a ogni visita.",
+      "byte": 0,
+      "guadagno": "375 ms, con un <link rel=\"modulepreload\"> in index.html (la divisione resta)",
+      "dove": [
+        "/assets/avvio-CeVfO66P.js parte a 560 ms, /assets/index-CVbDr-g5.js a 185 ms"
+      ]
+    },
+    {
+      "titolo": "110 kB di roba dei capitoli successivi scaricata PRIMA che l'auto sia pronta",
+      "perche": "partono tutte insieme all'avvio della scena e si spartiscono la banda con il modello dell'automobile, che e' l'unica cosa per cui chi guarda sta aspettando. Il progetto sa gia' rimandare - carbonio, buccia, faro e ruota partono DOPO che l'auto e' arrivata - quindi non c'e' un meccanismo da inventare, c'e' da estenderlo.",
+      "byte": 109926,
+      "guadagno": "524 ms sull'auto pronta, su una rete satura",
+      "dove": [
+        "68,6 kB in 1 file - l'abitacolo, che si vede solo entrandoci",
+        "41,3 kB in 3 file - le miniature dei lavori, in fondo alla pagina"
+      ]
+    },
+    {
+      "titolo": "il JavaScript della scena e' un pezzo unico da 404 kB compressi",
+      "perche": "il 69% dei byte e' three.js (costo compresso misurato: 286 kB), l'9% e' codice del progetto. Non e' un difetto: e' il prezzo di una scena in tre dimensioni. Va saputo, perche' e' l'unico pezzo di codice che sta fra il primo fotogramma e la scena.",
+      "byte": 403781,
+      "guadagno": "su 4G lento questo pezzo da solo vale 1925 ms di attesa",
+      "dove": [
+        "247 kB stesi, cioe' il 19% del pezzo, sono le tabelle della RectAreaLight (RectAreaLightTexturesLib.js): un blocco di numeri che three porta appresso, e che qui serve davvero perche' Luci.ts chiama RectAreaLightUniformsLib.init(). Senza, le luci rettangolari esistono e non illuminano."
+      ]
+    },
+    {
+      "titolo": "brotli al posto di gzip toglierebbe 84,5 kB dai file di testo",
+      "perche": "i byte sono gia' quelli giusti, e' l'involucro che e' vecchio: vite preview comprime in gzip e quasi tutti gli host sanno fare brotli. Non si tocca una riga di codice, si tocca una casella nella configurazione di chi ospita.",
+      "byte": 84518,
+      "guadagno": "403 ms su 4G lento, tutti sul percorso critico della scena",
+      "dove": [
+        "assets/avvio-CeVfO66P.js: 404 kB in gzip contro 322 kB in brotli"
+      ]
+    }
+  ]
+}

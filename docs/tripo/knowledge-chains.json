@@ -1,0 +1,106 @@
+{
+ "MODEL_PRODUCING_TYPES": {},
+ "STEPS": [
+  {
+   "name": "refine",
+   "endpoint": "/v3/models/refine",
+   "produces": "refine_model",
+   "accepts": [
+    "text_to_model"
+   ],
+   "acceptsFile": false
+  },
+  {
+   "name": "texture",
+   "endpoint": "/v3/models/texture",
+   "produces": "texture_model",
+   "accepts": "any-model",
+   "acceptsFile": true
+  },
+  {
+   "name": "stylize",
+   "endpoint": "/v3/models/stylize",
+   "produces": "stylize_model",
+   "accepts": "any-model",
+   "acceptsFile": true
+  },
+  {
+   "name": "convert",
+   "endpoint": "/v3/models/convert",
+   "produces": "convert_model",
+   "accepts": "any-model",
+   "acceptsFile": true
+  },
+  {
+   "name": "import",
+   "endpoint": "/v3/models/import",
+   "produces": "import_model",
+   "accepts": [],
+   "acceptsFile": true
+  },
+  {
+   "name": "rig-check",
+   "endpoint": "/v3/animations/rig-check",
+   "produces": "animate_prerigcheck",
+   "accepts": "any-model",
+   "acceptsFile": true,
+   "passthrough": true,
+   "aliases": [
+    "check",
+    "rigcheck"
+   ]
+  },
+  {
+   "name": "rig",
+   "endpoint": "/v3/animations/rig",
+   "produces": "animate_rig",
+   "accepts": "any-model",
+   "acceptsFile": true
+  },
+  {
+   "name": "retarget",
+   "endpoint": "/v3/animations/retarget",
+   "produces": "animate_retarget",
+   "accepts": [
+    "animate_rig"
+   ],
+   "acceptsFile": false,
+   "aliases": [
+    "animate"
+   ]
+  },
+  {
+   "name": "segment",
+   "endpoint": "/v3/mesh/segment",
+   "produces": "mesh_segmentation",
+   "accepts": "any-model",
+   "acceptsFile": true
+  },
+  {
+   "name": "complete",
+   "endpoint": "/v3/mesh/complete",
+   "produces": "mesh_completion",
+   "accepts": [
+    "mesh_segmentation"
+   ],
+   "acceptsFile": false
+  },
+  {
+   "name": "decimate",
+   "endpoint": "/v3/mesh/decimate",
+   "produces": "highpoly_to_lowpoly",
+   "accepts": "any-model",
+   "acceptsFile": true,
+   "aliases": [
+    "lowpoly"
+   ]
+  },
+  {
+   "name": "smartsegment",
+   "endpoint": "/v3/mesh/smartsegment",
+   "produces": "smartsegment_model",
+   "accepts": [],
+   "acceptsFile": true
+  }
+ ]
+}

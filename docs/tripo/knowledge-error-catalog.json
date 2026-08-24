@@ -1,0 +1,233 @@
+{
+ "ERROR_CATALOG": [
+  {
+   "code": 1000,
+   "zh": "服务端未知错误,请携带 request_id 联系支持",
+   "en": "Unknown server-side error; contact support with the request id",
+   "retryable": true,
+   "exitCode": 7
+  },
+  {
+   "code": 1001,
+   "zh": "服务端严重错误,请携带 request_id 联系支持",
+   "en": "Fatal server-side error; contact support with the request id",
+   "retryable": false,
+   "exitCode": 7
+  },
+  {
+   "code": 1002,
+   "zh": "认证失败:API Key 无效或区域不匹配(国内 Key 打了海外 API?),运行 tripo doctor 自动诊断",
+   "en": "Authentication failed: invalid key or wrong region (cn key against the ov API?) — run \"tripo doctor\" to auto-diagnose",
+   "retryable": false,
+   "exitCode": 3
+  },
+  {
+   "code": 1003,
+   "zh": "请求体格式不合法",
+   "en": "The request body is malformed",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 1004,
+   "zh": "一个或多个参数不合法,请对照文档检查",
+   "en": "One or more parameters are invalid (check the docs)",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 1005,
+   "zh": "无权访问该资源,请检查账号权限",
+   "en": "Not allowed to access this resource (check permissions)",
+   "retryable": false,
+   "exitCode": 3
+  },
+  {
+   "code": 1007,
+   "zh": "请求过于频繁,触发全局速率限制",
+   "en": "Rate limit exceeded — too many requests in a short time",
+   "retryable": true,
+   "exitCode": 9
+  },
+  {
+   "code": 2000,
+   "zh": "触发生成并发上限,同系列任务共享并发池",
+   "en": "Generation concurrency limit hit (task families share a pool)",
+   "retryable": true,
+   "exitCode": 9
+  },
+  {
+   "code": 2001,
+   "zh": "任务不存在(确认任务属于当前 Key、区域正确)",
+   "en": "Task not found (same key that created it? right region?)",
+   "retryable": false,
+   "exitCode": 8
+  },
+  {
+   "code": 2002,
+   "zh": "该任务类型不受支持",
+   "en": "This task type is not supported",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2003,
+   "zh": "输入图片文件为空,请检查文件是否损坏",
+   "en": "The image file is empty (corrupted upload?)",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2004,
+   "zh": "不支持的图片文件类型",
+   "en": "Unsupported image file type",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2005,
+   "zh": "draft 任务不是成功状态,请用成功的任务重试",
+   "en": "The draft task is not a success; retry with a successful one",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2006,
+   "zh": "上游任务类型不受支持,请检查任务链",
+   "en": "The original task type is not supported for this operation",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2007,
+   "zh": "上游任务不是成功状态",
+   "en": "The original task has not succeeded",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2008,
+   "zh": "输入违反内容政策,请更换输入",
+   "en": "Input violates the content policy; change the input",
+   "retryable": false,
+   "exitCode": 5
+  },
+  {
+   "code": 2009,
+   "zh": "prompt 含有非法字符,请修改后重试",
+   "en": "The prompt contains invalid characters",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2010,
+   "zh": "积分不足",
+   "en": "Insufficient credits",
+   "retryable": false,
+   "exitCode": 4
+  },
+  {
+   "code": 2011,
+   "zh": "rig-check 的输入任务没有模型产物",
+   "en": "The rig-check input task has no model output",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2012,
+   "zh": "retarget 只接受 rig 任务作为输入",
+   "en": "retarget only accepts a rig task as input",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2013,
+   "zh": "priority 取值无效(更高优先级需联系支持)",
+   "en": "Invalid priority (contact support for higher priority)",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2014,
+   "zh": "内容审核过程出错,请联系支持",
+   "en": "Error occurred during content auditing; contact support",
+   "retryable": false,
+   "exitCode": 1
+  },
+  {
+   "code": 2015,
+   "zh": "模型版本已弃用,请升级 model 参数",
+   "en": "Model version deprecated; upgrade the model parameter",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2016,
+   "zh": "该请求类型已弃用,请改用其他类型",
+   "en": "This request type is deprecated; use an alternative",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2017,
+   "zh": "model 版本取值无效",
+   "en": "The model version value is invalid",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2018,
+   "zh": "模型太复杂无法重网格化,降低 face_limit 或简化输入",
+   "en": "Model too complex to remesh; lower face_limit or simplify input",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2019,
+   "zh": "文件不存在,请确认上传是否成功、file_token 是否过期",
+   "en": "File not found (upload succeeded? token expired?)",
+   "retryable": false,
+   "exitCode": 8
+  },
+  {
+   "code": 2020,
+   "zh": "图片 URL 无效,请确认可公开访问",
+   "en": "The image URL is invalid (must be publicly reachable)",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2021,
+   "zh": "文件大小超过上限,请压缩后重试",
+   "en": "File size exceeds the limit; reduce and retry",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 2022,
+   "zh": "图片尺寸超过上限,请缩小后重试",
+   "en": "Image size exceeds the limit; reduce and retry",
+   "retryable": false,
+   "exitCode": 2
+  },
+  {
+   "code": 4001,
+   "zh": "请求的接口不存在,请检查 API 路径",
+   "en": "The requested endpoint does not exist (check the API path)",
+   "retryable": false,
+   "exitCode": 8
+  }
+ ],
+ "EXIT": {
+  "OK": 0,
+  "FATAL": 1,
+  "USAGE": 2,
+  "AUTH": 3,
+  "BALANCE": 4,
+  "CONTENT_POLICY": 5,
+  "TASK_FAILED": 6,
+  "NETWORK": 7,
+  "NOT_FOUND": 8,
+  "RATE_LIMIT": 9
+ }
+}
