@@ -81,14 +81,28 @@ export function documento(): Plugin {
           `<meta property="og:site_name" content="Giuseppe Villani" />`,
           `<meta property="og:title" content="Giuseppe Villani — Freelance Creative Developer" />`,
           `<meta property="og:description" content="Siti che non si guardano. Si attraversano." />`,
-          `<meta property="og:image" content="${abs('/poster/hero_orizzontale.webp')}" />`,
+          /* IL JPEG E NON IL WEBP, e il rapporto e' 1200x630 reso apposta.
+             Il WebP nelle anteprime sociali e' supportato in modo disomogeneo:
+             dove non lo e', la piattaforma torna al rettangolo grigio e non lo
+             dice. Il JPEG non ha eccezioni da nessuna parte, e su un'immagine
+             che deve funzionare su piattaforme che non controlliamo la
+             compatibilita' vale piu' dei chilobyte.
+             E il rapporto e' RESO, non ritagliato: `hero_orizzontale` e' 1,60,
+             le anteprime vogliono ~1,91, e ritagliare avrebbe tolto il 16%
+             dell'altezza proprio dove sta l'automobile. Vedi
+             `strumenti/poster.mjs`. */
+          `<meta property="og:image" content="${abs('/poster/hero_social.jpeg')}" />`,
+          `<meta property="og:image:type" content="image/jpeg" />`,
           `<meta property="og:image:width" content="1200" />`,
-          `<meta property="og:image:height" content="750" />`,
+          `<meta property="og:image:height" content="630" />`,
+          `<meta property="og:image:alt" content="La hero di VELOCITY: una hypercar nera su un podio di marmo, dentro una corte al crepuscolo." />`,
+          `<meta property="og:url" content="${abs('/')}" />`,
+          `<meta property="og:locale:alternate" content="en_US" />`,
           `<meta property="og:locale" content="it_IT" />`,
           `<meta name="twitter:card" content="summary_large_image" />`,
           `<meta name="twitter:title" content="Giuseppe Villani — Freelance Creative Developer" />`,
           `<meta name="twitter:description" content="Siti che non si guardano. Si attraversano." />`,
-          `<meta name="twitter:image" content="${abs('/poster/hero_orizzontale.webp')}" />`,
+          `<meta name="twitter:image" content="${abs('/poster/hero_social.jpeg')}" />`,
           `<script type="application/ld+json">${JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'Person',
@@ -96,7 +110,8 @@ export function documento(): Plugin {
             jobTitle: 'Freelance Creative Developer',
             description: 'Non progetto pagine: progetto macchine in cui si entra.',
             url: sito || undefined,
-            image: abs('/poster/hero_orizzontale.webp'),
+            image: abs('/poster/hero_social.jpeg'),
+            email: 'servizi.villani@gmail.com',
             knowsAbout: ['WebGL', 'three.js', 'GSAP', 'Motion design', 'Creative development', 'Salesforce'],
             makesOffer: voci.map((v) => ({
               '@type': 'CreativeWork', name: v.nome, description: v.soggetto,

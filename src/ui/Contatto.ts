@@ -1,30 +1,27 @@
 /**
  * L'INDIRIZZO, in un posto solo.
  *
- * PERCHE' E' VUOTO, E PERCHE' RESTA VUOTO FINCHE' NON LO RIEMPIE LUI.
+ * ERA VUOTO, E IL RAGIONAMENTO CHE LO TENEVA VUOTO ERA GIUSTO NEL MERITO E
+ * SBAGLIATO NELL'ESITO. Vale la pena tenerlo scritto, perche' e' un modo di
+ * sbagliare che torna.
  *
  * Tutto questo sito e' stato ripulito da cose inventate: le statistiche della
  * hero, i quattro progetti finti, la carica della batteria, il parziale, il
  * totalizzatore, la runa del Bluetooth. Ogni volta la regola era la stessa —
- * se una cosa non e' vera e verificabile, non ci va.
+ * se una cosa non e' vera e verificabile, non ci va. E un indirizzo inventato
+ * e' peggio di un titolo inventato: un titolo fa una brutta figura, un
+ * indirizzo manda una mail nel vuoto e fa perdere un lavoro.
  *
- * Un indirizzo di posta e' l'ultimo posto in cui si potrebbe essere tentati di
- * fare un'eccezione, perche' «ciao@nomecognome.it» sembra innocuo. Non lo e':
- * e' l'unica cosa finta che qualcuno potrebbe PROVARE A USARE. Un titolo
- * inventato fa una brutta figura; un indirizzo inventato manda una mail nel
- * vuoto e fa perdere un lavoro.
+ * Tutto esatto. Ma il RISULTATO di quella prudenza non era prudenza: era un
+ * sito senza nessun modo di essere contattato. Chi arriva in fondo a sette
+ * minuti di esperienza e non trova un recapito chiude la scheda, e non c'e'
+ * nessuna differenza fra «non l'ho messo per rigore» e «non c'e'».
  *
- * Quindi finche' questa costante e' vuota:
- *
- *   - la pagina statica scrive «Indirizzo da definire»;
- *   - il finale dell'esperienza mostra la riga e la domanda, e sotto NON
- *     mostra nessun collegamento.
- *
- * Il finale funziona lo stesso — la strada diventa comunque la riga, e la
- * domanda resta la domanda — semplicemente non ha ancora una destinazione.
- * Riempire questa riga la accende dappertutto.
+ * Il rigore non era sbagliato: era incompleto. Diceva «non inventarlo» e si
+ * fermava li', mentre la frase intera e' «non inventarlo, e procuratene uno
+ * vero». Adesso c'e', ed e' una casella che si legge davvero.
  */
-export const INDIRIZZO = ''
+export const INDIRIZZO = 'servizi.villani@gmail.com'
 
 /** come si legge sullo schermo. Vuoto significa: non c'e' ancora. */
 export function scritto(): string {

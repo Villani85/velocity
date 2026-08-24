@@ -1367,7 +1367,7 @@ export const FINITURE: Finitura[] = [
        sotto e' l'alluminio: appena piu' rosso nel canale basso, che e' quello
        che distingue l'alluminio dall'acciaio. */
     nome: 'NERO LIQUIDO',
-    campione: '#8d9095',
+    campione: '#0d0f14',
     /* QUASI UNO, E NON MEZZO — perche' adesso sotto c'e' una MAPPA.
        Con una carrozzeria senza texture la tinta ERA il colore, e 0,52 dava un
        grigio giusto. Da quando la scocca porta la sua mappa di colore, three
