@@ -146,10 +146,25 @@
     //    Un preannuncio con l'indirizzo sbagliato non da' errore: da' un 404
     //    che nessuno guarda, ed e' la stessa famiglia di difetto dei numeri
     //    scritti a mano che smettono di essere veri.
+    // LE PRIORITA' C'ERANO NEL COMMENTO E NON NEL CODICE. La riga qui sotto
+    // legge `d[i].pri`, e nessuno dei tre oggetti aveva quella chiave: il ramo
+    // non si eseguiva mai, quindi la strategia descritta qui sopra per venti
+    // righe non veniva applicata. E' la stessa famiglia dei numeri scritti a
+    // mano che smettono di essere veri — con l'aggravante che qui il codice e
+    // il commento dicevano cose diverse, e a crederci era il commento.
+    //   ALTA all'ambiente: e' il file da cui si cuoce la mappa che illumina
+    //     tutto, e finche' non c'e' la scena non puo' nemmeno cominciare.
+    //     Pesa 132 kB, cioe' e' anche il piu' economico da anticipare.
+    //   BASSA al panorama: sono 491 kB, e serve a farsi GUARDARE, non a far
+    //     funzionare la scena. Un fondo che arriva un secondo dopo si nota
+    //     meno di una vettura nera dentro il buio.
+    //   Alla carrozzeria non si dichiara niente: il valore di serie e' gia'
+    //     quello giusto, e dichiarare urgenti due file su tre significa non
+    //     dichiarare niente.
     var d = [
-      { as: 'image', href: '/hdri/corte_pano_ambiente.webp', cors: true },
+      { as: 'image', href: '/hdri/corte_pano_ambiente.webp', cors: true, pri: 'high' },
       { as: 'fetch', href: '/modelli/auto2.glb', cors: true },
-      { as: 'image', href: '/hdri/corte_pano.webp', cors: true },
+      { as: 'image', href: '/hdri/corte_pano.webp', cors: true, pri: 'low' },
     ]
     for (var i = 0; i < d.length; i++) {
       var l = document.createElement('link')
