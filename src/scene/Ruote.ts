@@ -492,6 +492,19 @@ export class Ruote {
          sembrava staccata dall'altro lato: su una hypercar la ruota sta quasi
          A FILO della carrozzeria. Si rientra di due terzi, non di tutto. */
       perno.position.z -= verso * SPORGENZA * 0.62
+      /* L'IMPRONTA A TERRA, ottenuta AFFONDANDO invece che schiacciando.
+         Un pneumatico perfettamente circolare che tocca il suolo in UN PUNTO
+         e' la firma piu' riconoscibile del render amatoriale: una gomma vera
+         si deforma sotto il peso e appoggia su una superficie.
+         La cura ovvia — schiacciare i vertici bassi di 8-12 mm — qui sarebbe
+         SBAGLIATA, e la ragione e' che queste ruote GIRANO: un appiattimento
+         cotto nella geometria girerebbe con loro, e si vedrebbe una gomma
+         ovale che rotola. Affondare la ruota di 11 mm nel piano da' la stessa
+         lettura — il pavimento taglia il pneumatico e l'appoggio diventa una
+         superficie — e resta corretta a ruota ferma e a ruota in moto.
+         Undici millimetri e non venti: e' la deflessione di un pneumatico
+         ribassato sotto il peso di una vettura, non una gomma a terra. */
+      perno.position.y -= 0.011
       perno.add(contenitore)
       this.gruppo.add(perno)
       this.ruoteVere.push(perno)

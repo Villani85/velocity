@@ -450,7 +450,23 @@ export async function montaPanorama(
      meno del fondo — e quel poco che perde e' giusto che lo perda, perche' su
      una vernice a specchio quello che si vede E' la villa.
      Costa zero: nessuna passata nuova, nessuna immagine in piu'. */
-  scena.backgroundBlurriness = 0.03
+  /* 0,14 E NON 0,03 — ed e' la profondita' di campo, che non c'era da nessuna
+     parte nella catena (`RenderPass -> GTAO -> Bloom -> OutputPass -> SMAA ->
+     Grado`). Il colonnato della villa era nitido quanto la lamiera, e per
+     questo i mockup del carosello leggevano come adesivi incollati su una
+     fotografia invece che come oggetti a una distanza.
+     NON serve un `BokehPass`: costa, e fa artefatti proprio sui bordi
+     speculari, che su una carrozzeria nera sono la cosa piu' preziosa che ci
+     sia. E non serve nemmeno cuocere un secondo panorama sfocato: three sfoca
+     il fondo da solo, e sfoca SOLO il fondo — l'ambiente che l'auto specchia
+     resta quello nitido, che e' esattamente la divisione giusta. Zero byte
+     sul percorso critico.
+     0,055 E NON 0,14. A 0,14 la villa si dissolve in una macchia beige: il
+     fondo smette di essere un LUOGO e diventa un gradiente, e con lui se ne va
+     l'unica cosa che rendeva fotografica la scena. La sfocatura deve staccare
+     il soggetto, non cancellare cio' da cui lo stacca — il colonnato deve
+     restare leggibile come colonnato. */
+  scena.backgroundBlurriness = 0.055
   scena.environmentIntensity = 1.0
   /* NON TORNA PIU' LA FOTOGRAFIA. Tornava il fondo, e adesso quando questa
      funzione finisce il fondo non e' ancora arrivato: chi lo volesse dovrebbe
