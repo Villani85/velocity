@@ -420,7 +420,11 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
        cioe' la cima. La quarta potenza fa morire il rimando in fretta salendo,
        come fa la luce riflessa da un pavimento — lineare darebbe una fascia. */
     const v = i / 63
-    const f = Math.pow(1 - v, 4.0)
+    /* SESTA POTENZA E NON QUARTA: con l'emissione bassa serve che quel poco
+       stia tutto sull'ORLO invece di essere spalmato su tutta la fascia. Una
+       caduta piu' ripida da' una riga di contatto, una piu' dolce da' un
+       pannello — ed e' il pannello il difetto. */
+    const f = Math.pow(1 - v, 6.0)
     const c = Math.round(f * 255)
     gc.fillStyle = 'rgb(' + c + ',' + c + ',' + c + ')'
     gc.fillRect(0, 63 - i, 1, 1)
@@ -432,7 +436,25 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
   mappaRimando.generateMipmaps = false
   m.emissive.setRGB(0.62, 0.70, 0.86)
   m.emissiveMap = mappaRimando
-  m.emissiveIntensity = 0.95
+  /* 0,12 E NON 0,95, ED E' UNA REGRESSIONE MIA CORRETTA DAL COMMITTENTE.
+     A 0,95 la minigonna e' diventata un CUNEO CHIARO E PIATTO sotto
+     l'automobile — «sembra un cartoncino incollato», e nel suo ingrandimento e'
+     la cosa piu' evidente del fotogramma.
+     L'errore non e' il numero: e' che l'ho tarato guardando UN TEMPO SOLO.
+     Nell'orbita quella superficie e' quasi di taglio, quindi occupa pochi pixel
+     e ne serve tanta per vederla; nel tre quarti basso e' di FACCIA, e la
+     stessa quantita' si sfonda. Una luce PROPRIA si comporta cosi' per
+     costruzione — non cambia con l'angolo, quindi e' fioca di taglio e violenta
+     di faccia. E' esattamente il contrario di una superficie illuminata, che
+     invece cala con il coseno.
+     La lezione, e vale oltre questo pezzo: una manopola tarata su una sola
+     inquadratura e' tarata sul caso in cui la si stava guardando. Da qui in poi
+     questa si verifica su due tempi, e uno dei due dev'essere quello in cui il
+     pezzo si vede di faccia.
+     Resta acceso un filo — 0,12 — perche' il difetto di partenza era vero: a
+     zero la fascia era 0,5 su 255, cioe' un ritaglio nero. Un filo sull'orlo
+     racconta il contatto senza costruire un pannello. */
+  m.emissiveIntensity = 0.12
   m.name = 'SOTTOSCOCCA'
 
   /* ============================================================ IL RIMANDO

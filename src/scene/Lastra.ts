@@ -490,7 +490,25 @@ const STRADA = {
    * si vede niente. Con 150, o con 200, si vedrebbe un salto ogni due
    * chilometri e sarebbe impossibile da diagnosticare.
    */
-  giro: 156.0,
+  /* 780 E NON 156 — e il numero vecchio non era sbagliato, era corto.
+     Il commento qui sopra dice giusto sul PERCHE' si ripiega e su come si
+     sceglie il numero, e quella parte resta: 156 e' divisibile per 12 (il
+     tratteggio), per 26 (i pali) e per 1,5 (la piastrella), quindi al
+     ripiegamento tutti i motivi ricadono su se stessi.
+     Quello che il commento non diceva e' che il ripiegamento non e' solo un
+     conto di precisione: e' anche la LUNGHEZZA DEL FILM. A 295 all'ora
+     l'automobile percorre 82 metri al secondo, quindi 156 metri sono UN
+     SECONDO E NOVE DECIMI. Ogni due secondi la strada torna esattamente
+     com'era. Finche' tutto sul manto sta su una griglia regolare non si nota —
+     un pettine regolare e' identico a se stesso comunque lo si tagli — ma
+     appena si mette una cosa irregolare, quella cosa diventa un motivo che
+     ritorna ogni due secondi, che e' peggio del pettine.
+     780 e' cinque volte 156, quindi conserva OGNI divisibilita' (780/12 = 65,
+     780/26 = 30, 780/13 = 60, 780/1,5 = 520) e porta il film a nove secondi e
+     mezzo. E la precisione regge senza discussione: i sei centimetri di passo
+     citati sopra valgono a un MILIONE di metri; a ottocento un float a 32 bit
+     ha un passo di cinque centesimi di millimetro. */
+  giro: 780.0,
   /**
    * LA PIASTRELLA DELL'ASFALTO, in metri, e la misura NON e' libera.
    *
@@ -930,7 +948,17 @@ const FONDO = {
    *  smettono di essere alberi e diventano lo skyline di una citta' lontana —
    *  e largo tre, che a quattrocento metri fanno un paio di pixel */
   passoCipresso: 26.0,
-  celle: 6.0,
+  /* TRENTA CELLE E NON SEI, perche' il giro e' passato da 156 a 780.
+     Sei celle da 26 metri facevano esattamente 156: il motivo dei cipressi si
+     ripeteva sul giro, ed era giusto cosi' finche' il giro era quello. Con 780
+     resterebbe un motivo di sei celle ripetuto cinque volte dentro il film —
+     cioe' la fila d'alberi tornerebbe uguale ogni 156 metri mentre tutto il
+     resto ha nove secondi e mezzo di respiro.
+     Trenta celle (780/26) danno una disposizione che non si ripete dentro il
+     giro. La selezione resta la stessa — `fract(j*0,37 + 0,11)` sopra 0,55 —
+     e su trenta celle produce una sequenza molto meno regolare che su sei:
+     e' la stessa aritmetica che con piu' spazio smette di sembrare un motivo. */
+  celle: 30.0,
   cipressoMeta: 1.5,
   cipressoBasso: 4.0,
   cipressoAlto: 7.5,
