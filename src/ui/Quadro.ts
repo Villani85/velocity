@@ -1,5 +1,6 @@
 import { LAVORI, datiLavoro, quantiInLinea, quantiRicerca } from './Lavori'
 import { t } from './Lingua'
+import { RIDOTTO, rincorsa } from '../core/Moto'
 import {
   DataTexture,
   LinearFilter,
@@ -713,8 +714,17 @@ export class Quadro {
   }
 
   aggiorna(avvio: number, spinta: number, dt: number) {
-    this.ingresso += (Math.min(Math.max(spinta, 0), 1) - this.ingresso) * Math.min(dt * 6, 1)
-    this.tempo += dt
+    this.ingresso += (Math.min(Math.max(spinta, 0), 1) - this.ingresso) * rincorsa(Math.min(dt * 6, 1))
+    /* L'OROLOGIO DEL QUADRO SI FERMA CON IL MOVIMENTO RIDOTTO.
+       Non serve a leggere niente: serve al minimo irregolare — le due
+       sinusoidi incommensurabili poco piu' sotto — e al lampeggio delle luci
+       di cambiata. Sono le due sole cose di questo pannello che si muovono a
+       pagina ferma, e sono entrambe DECORATIVE nel senso stretto: il numero
+       dei giri, la marcia, la velocita' e le spie restano identici.
+       Congelato, il minimo resta irregolare come prima — la lancetta sta a un
+       punto qualunque della modulazione, non su un valore tondo — semplicemente
+       non ci ondeggia sopra. */
+    if (!RIDOTTO) this.tempo += dt
     this.acceso = Math.min(Math.max(avvio, 0), 1)
     if (this.acceso <= 0.001) { this.mesh.visible = false; return }
     this.mesh.visible = true
@@ -750,7 +760,14 @@ export class Quadro {
       // velocita' in un fotogramma, e la parte che si vede di piu' e'
       // proprio il RITARDO fra il gesto e la risposta
       const bersaglio = spinta * 330
-      this.velocita += (bersaglio - this.velocita) * Math.min(dt * 1.35, 1)
+      /* E ANCHE QUI L'INERZIA SPARISCE CON IL MOVIMENTO RIDOTTO, e il
+         commento qui sopra resta vero: il ritardo fra il gesto e la risposta
+         E' la parte che si vede di piu', ed e' quello che rende il tachimetro
+         un tachimetro invece di un numero. Ma e' anche, alla lettera, un
+         movimento che continua dopo che la mano si e' fermata — la lancetta
+         scende per un paio di secondi buoni dopo l'ultimo scatto di rotella.
+         Con `rincorsa` il valore finale e' identico e sparisce il tragitto. */
+      this.velocita += (bersaglio - this.velocita) * rincorsa(Math.min(dt * 1.35, 1))
 
       // la marcia si sceglie dalla velocita': si sale quando si supera il
       // massimo del rapporto, si scala quando si scende sotto il 78% del
@@ -769,7 +786,10 @@ export class Quadro {
       const inMarcia = 1400 + Math.min(Math.max(dentro, 0), 1.05) * (GIRI_MAX - 1400)
       const voluti = this.velocita < 3 ? minimo : inMarcia
       // i giri seguono in fretta ma non all'istante: un motore ha un'inerzia
-      this.giri += (voluti - this.giri) * Math.min(dt * 9, 1)
+      // e per la stessa ragione della velocita' qui sopra, con il movimento
+      // ridotto l'inerzia del motore va a zero: i giri arrivano al valore che
+      // gli tocca dentro il fotogramma in cui gli tocca
+      this.giri += (voluti - this.giri) * rincorsa(Math.min(dt * 9, 1))
 
     }
 
@@ -1622,7 +1642,17 @@ export class Quadro {
     // accendono dal centro verso i lati a partire dal 74% del regime
     const n = 9
     const t2 = Math.max(0, (this.giri / GIRI_MAX - 0.74) / 0.26)
-    const lampeggia = t2 > 0.97 && Math.sin(this.tempo * 26) > 0
+    /* IL LAMPEGGIO DELLA CAMBIATA DIVENTA UNA LUCE FISSA.
+       A fondo scala i nove segmenti sbattono a quattro hertz: e' quello che fa
+       una centralina vera, e a quella frequenza e' anche la cosa piu' vicina a
+       uno stroboscopio che ci sia in questa pagina. Con il movimento ridotto
+       l'informazione resta tutta — «sei al limite, cambia» — e la porta una
+       fila accesa invece di una fila che sbatte.
+       Il conto non si tocca: `this.tempo` e' gia' fermo (vedi `aggiorna`),
+       quindi senza questa riga il seno restituirebbe un valore congelato e le
+       luci sarebbero accese o spente a seconda di dove si e' fermato
+       l'orologio — cioe' a caso. Qui si dice quale delle due. */
+    const lampeggia = t2 > 0.97 && (RIDOTTO || Math.sin(this.tempo * 26) > 0)
     for (let i = 0; i < n; i++) {
       const q = i / (n - 1)
       const a = -Math.PI * 0.86 + q * Math.PI * 0.72

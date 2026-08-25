@@ -53,6 +53,7 @@ import { Abitacolo } from '../scene/Abitacolo'
 import { Quadro } from '../ui/Quadro'
 import { Palpebra } from '../scene/Palpebra'
 import { Scritta } from '../scene/Scritta'
+import { RIDOTTO } from './Moto'
 import { Qualita, applicaLuciCorte, type Impostazioni } from './Qualita'
 import { costruisciLuci } from '../scene/Luci'
 import { Riflesso } from '../scene/Riflesso'
@@ -115,6 +116,20 @@ export class Esperienza {
    * stesse parole. Cambia quanto costa disegnarli.
    */
   readonly qualita: Qualita
+
+  /**
+   * SE CHI GUARDA HA CHIESTO MENO MOVIMENTO.
+   *
+   * Non e' uno stato del motore: e' una FINESTRA su `core/Moto.ts`, che e'
+   * l'unico posto che interroga il sistema. Sta qui perche' una preferenza
+   * onorata dentro l'esperienza dev'essere anche VERIFICABILE dall'esterno —
+   * `strumenti/fermo.mjs` la legge da `window.esperienza.ridotto` prima di
+   * cominciare a misurare, e senza questa riga uno strumento che non trova
+   * movimento non saprebbe distinguere «la preferenza e' arrivata e ha
+   * funzionato» da «la preferenza non e' mai arrivata».
+   */
+  get ridotto(): boolean { return RIDOTTO }
+
   private luciCorte: PointLight[] = []
   private forzeCorte: number[] = []
   private ombraLuce: DirectionalLight | null = null
@@ -329,6 +344,12 @@ export class Esperienza {
   /** e lo stesso istante in progresso GREZZO: comanda la regia del controllo,
    *  che e' un copione a soglie e non un movimento di camera */
   finaleGrezzo = 0
+  /** l'ultimo valore passato alla strada: serve solo con il movimento ridotto,
+   *  per non riscrivere un numero che non e' cambiato — vedi `fotogramma()`,
+   *  dove c'e' scritto perche' riscriverlo farebbe lampeggiare la pattuglia.
+   *  NaN e non 0 come partenza: 0 e' un valore legittimo del finale, e con
+   *  quello il primo fotogramma non avrebbe mai scritto niente sulla strada. */
+  private finaleScritto = NaN
   readonly quadro = new Quadro()
   /** la cornice in cui il quadro e' incastonato: vedi `scene/Palpebra.ts` */
   readonly palpebra = new Palpebra()
@@ -909,10 +930,18 @@ export class Esperienza {
     }
 
     applicaLuciCorte(this.luciCorte, this.forzeCorte, q.luciCorte)
-    // CHI CHIEDE MENO MOVIMENTO non riceve meno sito: riceve meno movimento
-    // AUTOMATICO. Si spegne l'inerzia dello scorrimento — cioe' la scena
-    // segue il dito uno a uno invece di scivolare — e i beat restano tutti.
-    this.scorrimento.inerzia = this.qualita.motoRidotto ? 1 : 0.14
+    /* QUI SI SCRIVEVA L'INERZIA DELLO SCORRIMENTO, e la riga diceva la cosa
+       giusta: «chi chiede meno movimento non riceve meno sito, riceve meno
+       movimento AUTOMATICO — la scena segue il dito uno a uno invece di
+       scivolare, e i beat restano tutti». E' ancora la regola del progetto.
+       Sbagliato era il POSTO. Questo metodo esiste apposta per girare SOLO al
+       cambio di livello — lo dice il commento in testa, ed e' la ragione per
+       cui ogni riga qui dentro rialloca qualcosa. Ma la preferenza di
+       movimento non e' una conseguenza del livello: non cambia quando cambiano
+       i fotogrammi al secondo, e cambia quando il livello sta fermo. Su una
+       macchina che regge il livello alto per tutta la visita, questa riga non
+       veniva eseguita nemmeno una volta dopo la costruzione.
+       Adesso `core/Scorrimento.ts` legge da se' `RIDOTTO` a ogni fotogramma. */
     this.ridimensiona()
   }
 
@@ -1630,7 +1659,30 @@ export class Esperienza {
      * La cura e' la stessa: dichiarare quale spazio usa chi, e non mescolarli.
      */
     this.finaleGrezzo = this.regia.beat === 'contatto' ? this.regia.locale : 0
-    this.lastra.finale = this.finale
+    /* IL FINALE SI SCRIVE SULLA STRADA SOLO QUANDO CAMBIA, e solo con il
+     * movimento ridotto. Non e' un'ottimizzazione: e' l'unico modo di fermare
+     * il lampeggiante senza mettere le mani in `scene/Lastra.ts`.
+     *
+     * Dentro quel setter c'e' l'unico orologio dichiarato del progetto — «una
+     * pattuglia lampeggia anche se ci si ferma, anzi soprattutto se ci si
+     * ferma» — e l'argomento e' giusto per chi il movimento lo vuole. Per chi
+     * ha chiesto di non riceverne, un blu e un rosso che sbattono due volte al
+     * secondo su tutto il fotogramma sono la cosa peggiore che questa pagina
+     * possa fare: e' moto puro, non richiesto, ad alto contrasto.
+     *
+     * `finale` e' una funzione dello scorrimento. Se lo scorrimento sta fermo
+     * il valore non cambia, quindi non riscriverlo non toglie NIENTE — l'unico
+     * effetto di riscriverlo sarebbe far avanzare quell'orologio. Appena si
+     * scorre di nuovo il valore cambia, il setter gira, e la strada si
+     * riallinea nello stesso fotogramma.
+     *
+     * Il lampeggiante resta congelato sul valore che aveva, che puo' essere
+     * acceso o spento: e' una pattuglia con la barra accesa, non una pattuglia
+     * che sbatte. */
+    if (!RIDOTTO || this.finale !== this.finaleScritto) {
+      this.finaleScritto = this.finale
+      this.lastra.finale = this.finale
+    }
     /* LA PATTUGLIA PRENDE IL BATTITO DALLA STRADA, non da un orologio suo.
        La luce che getta sulla carreggiata la disegna lo shader, quella che
        cade sulla carrozzeria la fanno due sorgenti: se battessero su due
@@ -1694,11 +1746,49 @@ export class Esperienza {
     const rampa = inAvvio
       ? Math.min(Math.max((this.regia.locale - 0.34) / 0.50, 0), 1)
       : 1
+    /* CON IL MOVIMENTO RIDOTTO LA STRADA STA FERMA, ed e' la rinuncia piu'
+     * grossa di tutto il capitolo. Va scritta per intero perche' non e' ovvia.
+     *
+     * COS'E' DAVVERO QUESTA STRADA. `avanzamento` e' un INTEGRALE DEL TEMPO:
+     * ogni fotogramma somma `andatura * dt`. Lo scorrimento entra come
+     * ACCELERATORE — decide quanto si va forte — non come posizione. Quindi a
+     * mano ferma la carreggiata continua a correre alla velocita' di crociera,
+     * ed e' l'unico oggetto del sito che si muove a schermo pieno senza che
+     * nessuno stia facendo niente. Chiunque abbia il disturbo per cui questa
+     * preferenza esiste, e' questa la cosa che lo fa star male.
+     *
+     * PERCHE' NON SI E' LEGATA ALLO SCORRIMENTO INVECE DI FERMARLA. Si
+     * potrebbe: `avanzamento` e' pubblico, e scriverci dentro una funzione del
+     * progresso globale darebbe una strada che avanza col dito e torna
+     * indietro se si risale — cioe' movimento GUIDATO, che la preferenza non
+     * chiede di togliere. Non e' stato fatto qui per una ragione sola: quel
+     * legame vuole un numero — quanti metri di asfalto per un giro di rotella
+     * — e quel numero non si ricava da niente di misurato. Inventarlo vorrebbe
+     * dire mettere in scena una velocita' finta, e su questo progetto i numeri
+     * inventati sono la cosa che e' costata di piu'. Resta come lavoro da
+     * fare, con una misura davanti.
+     *
+     * FERMA NON VUOL DIRE SPARITA. La carreggiata c'e', con il suo manto, il
+     * tratteggio, i lampioni e i riflessi; l'automobile e' ancora
+     * un'automobile in una strada di notte. E' una fotografia invece che una
+     * ripresa — che e' esattamente il patto: la scena resta, il moto no.
+     */
     this.lastra.aggiorna(
-      inAvvio || this.regia.beat === 'velocita' || this.regia.beat === 'contatto',
-      this.scorrimento.velocita,
-      Math.max(this.controllo?.frenata(this.finaleGrezzo) ?? 0, 1 - rampa),
+      RIDOTTO ? false : inAvvio || this.regia.beat === 'velocita' || this.regia.beat === 'contatto',
+      RIDOTTO ? 0 : this.scorrimento.velocita,
+      RIDOTTO ? 1 : Math.max(this.controllo?.frenata(this.finaleGrezzo) ?? 0, 1 - rampa),
     )
+    /* E L'ANDATURA SI AZZERA DOPO, perche' il freno da solo non basta.
+       Frenando, `Lastra` porta l'andatura a zero con una costante di tempo di
+       un secondo e mezzo: e' il comportamento giusto — una vettura non si
+       ferma in un fotogramma — ma e' un'INERZIA, cioe' del movimento che
+       continua dopo che chi guarda ha smesso di chiederlo. E' la stessa cosa
+       che si e' tolta allo scorrimento, vista da un altro file.
+       Il campo e' pubblico e si scrive da qui invece di aggiungere un
+       interruttore dentro `scene/Lastra.ts`: quel file e' in mano a qualcun
+       altro in questa passata, e la decisione di chi guarda non e' una
+       proprieta' della strada — e' una proprieta' della visita. */
+    if (RIDOTTO) this.lastra.andatura = 0
 
     // l'accensione attraversa il confine fra due beat, quindi legge il
     // progresso globale e non quello locale
@@ -1913,7 +2003,12 @@ export class Esperienza {
       this.quadro.aggiorna(avvio, spinta, dt)
       // le ruote girano sulla STESSA spinta del tachimetro, non su un
       // numero loro: sono la prova visiva della cifra che il quadro mostra
-      this.ruote?.aggiorna(spinta, dt)
+      /* E CON IL MOVIMENTO RIDOTTO NON GIRANO. Anche loro sono un integrale
+         del tempo — `angolo += velocita * dt * 14` — quindi seguono la sorte
+         della strada: ferma la carreggiata, delle ruote che continuano a
+         girare sarebbero anche un errore di continuita'. Restano dove sono,
+         con i cerchi e le gomme al loro posto. */
+      if (!RIDOTTO) this.ruote?.aggiorna(spinta, dt)
       // LA PALPEBRA RESTA SPENTA finche' il quadro sta sul parabrezza: una
       // cornice in pelle intorno a una proiezione su un vetro e' un
       // controsenso — la palpebra esiste per incassare uno schermo dentro un
@@ -1939,7 +2034,19 @@ export class Esperienza {
     this.specchioPiattaforma(this.riflesso.attivo)
     this.riflesso.aggiorna(this.renderer, this.scena, this.camera)
     if (this.grado) {
-      this.grado.uniforms.tempo.value = ora * 0.001
+      /* LA GRANA SI FERMA, MA RESTA — ed e' l'esempio che spiega tutto il
+         capitolo meglio di qualunque frase.
+         `tempo` non muove niente nella scena: entra in `post/Grado.ts` dentro
+         un `floor(tempo * 24.0)`, cioe' RISEMINA il fiocco di pellicola
+         ventiquattro volte al secondo. E' l'unica cosa del sito che si muove
+         su OGNI PIXEL del fotogramma anche quando la pagina e' immobile: da
+         sola vale piu' differenza fra due fotogrammi di tutto il resto messo
+         insieme, ed e' il primo movimento che un misuratore trova.
+         Congelandola a zero il fotogramma non perde la grana: la conserva
+         identica, con la stessa densita' e lo stesso peso sulle basse luci —
+         diventa una texture invece di uno sfarfallio. Cioe' esattamente cio'
+         che la preferenza chiede: la stessa immagine, senza il movimento. */
+      this.grado.uniforms.tempo.value = RIDOTTO ? 0 : ora * 0.001
       // IL FONDO SOTTO IL TESTO: quattro numeri gia' misurati da `ui/Voci.ts`,
       // nessuna lettura di impaginazione dentro il ciclo di disegno
       const r = RIQUADRO_TESTO

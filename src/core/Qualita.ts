@@ -1,4 +1,5 @@
 import type { PointLight } from 'three'
+import { RIDOTTO } from './Moto'
 
 /**
  * QUANTO PUO' COSTARE UN FOTOGRAMMA SU QUESTA MACCHINA.
@@ -719,8 +720,25 @@ export class Qualita {
    * Chi soffre di disturbi vestibolari sta male per il movimento che non
    * controlla, non per il movimento in se'. Un sito che alla richiesta
    * risponde togliendo contenuti ha capito la domanda al contrario.
+   *
+   * IL VALORE NON NASCE PIU' QUI, E IL RAGIONAMENTO QUI SOPRA RESTA GIUSTO.
+   *
+   * Fin qui questo campo era la lettura vera: un `matchMedia` nel costruttore
+   * e un ascolto del cambio. Cio' che diceva il commento era corretto — la
+   * distinzione fra movimento voluto e movimento automatico e' esattamente
+   * quella — e cio' che mancava era che nessuno la applicava: l'unico
+   * consumatore era `Esperienza.applicaQualita()`, che gira SOLO al cambio di
+   * livello. Chi accendeva la preferenza a pagina aperta poteva non vedere mai
+   * l'effetto, perche' l'unica cosa che lo avrebbe portato in scena e' un calo
+   * di fotogrammi che magari non arriva.
+   *
+   * Adesso la lettura sta in `core/Moto.ts`, che e' il posto che si va a
+   * cercare quando si vuole sapere come il sito onora quella richiesta, e
+   * questo resta un getter di comodo per chi ha gia' in mano il gestore di
+   * qualita' — la scheda tecnica, gli strumenti — senza che diventi una
+   * SECONDA lettura che puo' divergere dalla prima.
    */
-  motoRidotto: boolean
+  get motoRidotto(): boolean { return RIDOTTO }
 
   /** cosa si sapeva della macchina prima di disegnare: serve al registro e agli strumenti */
   readonly indizi: Indizi
@@ -797,12 +815,12 @@ export class Qualita {
     this.indizi = raccogliIndizi(gl)
     this.livello = livelloIniziale(this.indizi)
 
-    const query = matchMedia('(prefers-reduced-motion: reduce)')
-    this.motoRidotto = query.matches
-    // si ascolta il cambio: e' una preferenza di sistema e si puo' accendere
-    // mentre la pagina e' aperta, cosa che capita davvero a chi la accende
-    // proprio PERCHE' un sito gli sta dando fastidio
-    query.addEventListener('change', (e) => { this.motoRidotto = e.matches })
+    /* QUI C'ERANO IL `matchMedia` E L'ASCOLTO DEL CAMBIO, e l'ascolto era la
+       parte giusta: una preferenza di sistema si puo' accendere a pagina
+       aperta, e chi la accende in quel momento la accende proprio perche' un
+       sito gli sta dando fastidio. Quell'ascolto non e' sparito, si e'
+       spostato in `core/Moto.ts` — dove serve a tutti e non solo a chi ha in
+       mano il gestore di qualita'. Vedi il getter `motoRidotto`. */
   }
 
   /**
@@ -1139,10 +1157,18 @@ export function applicaLuciCorte(luci: PointLight[], forze: number[], quante: nu
  *
  *      new Abitacolo({ mobile: this.qualita.impostazioni.abitacoloMobile })
  *
- * (12) E per `prefers-reduced-motion`, dove il resto del codice lo legge:
+ * (12) E per `prefers-reduced-motion`, QUESTO PASSO NON VA PIU' FATTO QUI.
  *
- *      this.scorrimento.inerzia = this.qualita.motoRidotto ? 0 : 1
+ *      Diceva: `this.scorrimento.inerzia = this.qualita.motoRidotto ? 0 : 1`.
+ *      La frase che lo accompagnava — «si spegne l'inerzia e la deriva
+ *      automatica della camera, NON i beat» — era ed e' la cosa giusta, ed e'
+ *      il cuore di tutto il capitolo. Sbagliati erano i due numeri (in
+ *      `core/Scorrimento.ts` inerzia 1 vuol dire ISTANTANEO e 0 vuol dire
+ *      fermo: erano al contrario, e cosi' scritto avrebbe congelato la camera
+ *      invece di toglierle il ritardo) e soprattutto il POSTO: questa lista
+ *      descrive `applicaQualita()`, che gira solo al cambio di livello.
  *
- *      (il nome del campo dipende da `core/Scorrimento.ts`: il punto e' che
- *      si spegne l'inerzia e la deriva automatica della camera, NON i beat.)
+ *      Adesso lo scorrimento legge da se' `RIDOTTO` da `core/Moto.ts` a ogni
+ *      fotogramma, quindi non c'e' niente da riportargli e la preferenza vale
+ *      anche se il livello non cambia mai.
 \* ------------------------------------------------------------------ */

@@ -3480,60 +3480,178 @@ body {
    qui non si aggiunge niente. Le cose sono le stesse, nello stesso posto, con
    la stessa forma. Cambia SOLO quando arrivano. E' montaggio, non effetto.
 
-   L'ORDINE HA UNA LOGICA, e non e' l'ordine del documento. Prima l'automobile,
-   che c'e' gia' e resta sola per quattro decimi: e' il momento in cui chi
-   arriva decide se restare, e va speso sul soggetto. Poi chi sei. Poi cosa
-   dici. Poi le prove — il peso, i comandi, la rotaia — che sono la parte che
-   si legge dopo aver deciso di leggere.
+   ----------------------------------------------------------------------
+   SECONDA TARATURA, e il commento di prima resta perche' aveva ragione su
+   quasi tutto. Diceva: prima l'automobile, che c'e' gia' e resta sola per
+   qualche decimo — e' il momento in cui chi arriva decide se restare, e va
+   speso sul soggetto; poi chi sei; poi cosa dici; poi le prove, che sono la
+   parte che si legge dopo aver deciso di leggere. E diceva anche «finisce
+   presto: sopra i due secondi una comparsa scaglionata smette di essere un
+   ingresso e diventa un'attesa, e un'attesa dopo un velo di caricamento e'
+   due attese in fila». Quei due argomenti sono la ragione per cui questo
+   blocco esiste, e non si toccano.
 
-   E FINISCE PRESTO. Un secondo e sette in tutto: sopra i due secondi una
-   comparsa scaglionata smette di essere un ingresso e diventa un'attesa, e
-   un'attesa dopo un velo di caricamento e' due attese in fila.
+   Quattro cose gli mancavano, e la revisione nuova le ha trovate contando:
+   «auto, tre anteprime, titolo, dati tecnici, comandi, rotaia e cornice
+   competono contemporaneamente» — otto fuochi nel primo fotogramma, che e'
+   quello su cui una giuria decide.
+
+   IL TITOLO NON DEVE ENTRARE: DEVE ESSERCI. Stava a 0,55 s insieme agli
+   altri, cioe' era trattato come una delle cose che arrivano. Ma nel primo
+   fotogramma devono restarci tre cose sole — l'automobile, il titolo, il
+   sommario — e il titolo e' l'unica che dice DI CHE SI TRATTA: farlo
+   aspettare mezzo secondo vuol dire alzare il sipario su una scena muta. E'
+   lo stesso argomento che in `ui/Voci.ts` ha tolto l'`entra` alla hero, solo
+   che li' valeva per lo scorrimento e qui vale per il tempo. Adesso `.voci`
+   non e' nella coreografia: e' cio' RISPETTO A CUI la coreografia e' in
+   ritardo.
+
+   IL CONTO NON TORNAVA. «Un secondo e sette in tutto» era il ritardo
+   dell'ultimo, non la fine: piu' i 0,62 s della sua dissolvenza fanno 2,40 —
+   sopra il limite che il commento stesso si era dato, e ce n'era mezzo
+   secondo di troppo senza che nessuno lo avesse deciso. Adesso i cinque passi
+   stanno nella finestra 0,84–1,40 s, a centoquaranta millisecondi l'uno, e la
+   dissolvenza dura 0,38: si chiude a 1,78. Centoquaranta millisecondi e' la
+   distanza in cui uno scaglionamento SI SENTE e non si guarda — se un
+   estraneo se ne accorge, e' troppo.
+
+   UN INGRESSO E' UN'ANIMAZIONE, NON UNA TRANSIZIONE. `transition-delay` non
+   se ne va piu': resta appiccicato all'elemento per tutta la vita della
+   pagina, e qui costava due difetti veri. `.voci` si ritrovava una
+   dissolvenza di 620 ms al posto dei 180 ms lineari che ha in proprio — e la
+   sua opacita' non e' un effetto, e' una funzione dello scorrimento (vedi
+   `ui/Voci.ts`), quindi mezzo secondo di ritardo la stacca dalla mano di chi
+   scorre. E `.spina` si ritrovava una transizione sul `transform`, che pero'
+   glielo riscrive il codice a ogni fotogramma per tenerla accanto alla
+   rotaia: la sua posizione avrebbe inseguito se stessa. Un `@keyframes` con
+   riempimento `backwards` fa la stessa cosa una volta sola e poi si toglie di
+   mezzo, lasciando a ognuno le transizioni che aveva.
+
+   E IL SOLLEVAMENTO DI OTTO PIXEL SE N'E' ANDATO, ma il commento che lo
+   difendeva aveva ragione: «otto pixel sono un arrivo, venti sono un volo» e'
+   vero, e su un elemento qualunque quel gesto e' meglio di una dissolvenza
+   nuda. Non su questi. Su `.testa` un `transform` fa dell'intestazione il
+   riquadro di riferimento dei suoi discendenti `position: fixed`, e
+   `.testa::before` — la sfumatura che tiene leggibile il nome sopra
+   l'intonaco illuminato della villa — e' esattamente uno di quelli: si
+   rimpicciolisce alla misura del menu e poi scatta al suo posto. Su `.spina`
+   litiga con lo stile in linea, come sopra. Restava la sola rotaia, e un
+   elemento che scivola mentre gli altri tre sfumano non e' piu' un montaggio:
+   e' l'unica cosa che si muove nel fotogramma, cioe' quella che si guarda.
+   Sale ancora una cosa sola, i comandi, che il sollevamento ce l'avevano gia'
+   in proprio ed e' l'unica del gruppo che deve dire «questo si tocca».
+
+   E DUE PEZZI NON CI ERANO PROPRIO, perche' il foglio di stile non li vede:
+   le tre insegne stanno nella scena in tre dimensioni, e i comandi avevano un
+   orologio loro che partiva dal CARICAMENTO DELLA PAGINA. Adesso contano lo
+   stesso ritardo dalla stessa origine di qui. Vedi `scene/Insegne.ts` e
+   `ui/Comandi.ts`.
+
+   L'ORIGINE DEL TEMPO E' UNA SOLA, ed e' la riga piu' importante di tutto il
+   blocco: `.e-svelato` non arriva al `load`, arriva quando LA SCENA E'
+   PRONTA — `esperienza.ambientePronto`, vedi `avvio.ts`. Un ritardo contato
+   dal caricamento, su una rete lenta, scade mentre il velo e' ancora su: la
+   coreografia si consuma dietro il sipario e quando il sipario si alza c'e'
+   di nuovo tutto insieme, cioe' il difetto da cui si era partiti. E' successo
+   davvero ai comandi, ed e' il tipo di guasto che su una macchina da sviluppo
+   non si vede mai — `strumenti/avvio.mjs 16 900 lenta` lo vede.
+
+   LA CORNICE DI PAGINA RESTA DOV'E', e non e' una dimenticanza. La revisione
+   la conta fra gli otto fuochi e ha ragione a nominarla, ma non e' un centro
+   d'attenzione: non ha contenuto, non si legge, non chiede niente — e' il
+   CONTENITORE. Una cornice che si materializza non toglie densita': dice che
+   la pagina si sta ancora costruendo, che e' l'unica cosa che uno
+   scaglionamento non deve mai far vedere.
    ------------------------------------------------------------------------ */
 
+/* PRIMA DEL SIPARIO NON C'E' NIENTE IN CAMPO.
+   Vale anche per `.voci`, che pure entra a ritardo zero: il velo e' opaco e
+   copre tutto, ma da `seguiLAttesa` esce gia' oggi una strada in cui il velo
+   non c'e' (vedi `avvio.ts`), e su quella strada questa riga e' l'unica cosa
+   che impedisce di leggere il titolo sopra una tela ancora vuota. */
 html:not(.e-svelato) .testa,
 html:not(.e-svelato) .voci,
 html:not(.e-svelato) .spina,
 html:not(.e-svelato) .comandi,
 html:not(.e-svelato) .rotaia {
   opacity: 0;
-  /* il sollevamento e' minimo: otto pixel sono un arrivo, venti sono un volo */
-  transform: translateY(8px);
 }
+
+/* UN SOLO FOTOGRAMMA CHIAVE, E TOCCA SOLO L'OPACITA'.
+   `from` e basta: il `to` implicito e' il valore che l'elemento ha in quel
+   momento, quindi la scheda tecnica che non e' ancora `e-viva` sfuma da zero
+   a zero e non lampeggia — e la stessa cosa vale per chiunque altro arrivi
+   spento. E' lo stesso schema di `letturaEntra` piu' su, che in questo foglio
+   c'e' da prima: non e' un meccanismo nuovo da imparare. */
+@keyframes ingresso { from { opacity: 0; } }
 
 .e-svelato .testa,
-.e-svelato .voci,
 .e-svelato .spina,
-.e-svelato .comandi,
 .e-svelato .rotaia {
-  transition: opacity .62s ease, transform .62s cubic-bezier(.16, 1, .3, 1);
+  animation: ingresso .38s ease backwards;
 }
 
-/* i ritardi: e' qui che sta tutta la coreografia */
-/* I RITARDI, SECONDA TARATURA. Alla prima il titolo entrava a 0,42 e nella
-   tavola di contatto era gia' in campo al primo scatto: l'automobile non aveva
-   nessun istante da sola, che era tutto il punto. Il primo scatto utile arriva
-   circa due decimi e mezzo dopo la classe — il tempo di un giro di macchina —
-   quindi tutto quello che sta sotto quel valore e' un ritardo che non esiste.
-   Adesso il soggetto ha mezzo secondo pieno prima che compaia una parola. */
-.e-svelato .testa   { transition-delay: .70s; }
-.e-svelato .voci    { transition-delay: .55s; }
-.e-svelato .spina   { transition-delay: 1.25s; }
-.e-svelato .comandi { transition-delay: 1.55s; }
-.e-svelato .rotaia  { transition-delay: 1.78s; }
+/* I RITARDI: e' qui che sta tutta la coreografia — ma non tutta qui dentro.
+   In mezzo ce ne sono due che da questo foglio non si vedono, e vanno letti
+   insieme a questi o la spaziatura non si capisce:
+
+       0,84 s   .testa      chi sei
+       0,98 s   le insegne  le prove: tre siti veri  — scene/Insegne.ts
+       1,12 s   .spina      il dato misurato
+       1,26 s   .comandi    la cosa che si tocca     — ui/Comandi.ts
+       1,40 s   .rotaia     dove sei nel viaggio
+
+   L'ordine e' un racconto, e l'ultima e' l'ultima apposta: sapere a che punto
+   del viaggio si e' serve solo a chi ha gia' deciso di farlo.
+
+   E QUI STAVA IL COMMENTO DELLA TARATURA PRECEDENTE, che resta perche' porta
+   una misura e una obiezione. La misura: «il primo scatto utile arriva circa
+   due decimi e mezzo dopo la classe — il tempo di un giro di macchina —
+   quindi tutto quello che sta sotto quel valore e' un ritardo che non
+   esiste». Vale ancora, e adesso lavora al contrario: dice che mettere il
+   titolo a zero non e' un caso limite fragile, e' l'unico modo di scrivere
+   «c'e' gia'» — qualunque numero sotto due decimi e mezzo sarebbe lo stesso
+   valore travestito da scelta.
+
+   L'obiezione: «alla prima taratura il titolo entrava a 0,42 e nella tavola
+   di contatto era gia' in campo al primo scatto: l'automobile non aveva
+   nessun istante da sola, che era tutto il punto». E' vera, e adesso l'istante
+   da sola l'automobile non ce l'ha piu' per davvero. Il motivo per cui va
+   bene lo stesso e' che quell'istante serviva a una cosa — che il primo
+   sguardo cada sul soggetto — e quella cosa qui la fa un'altra leva: nel
+   primo fotogramma i fuochi sono TRE invece di otto, e fra un'automobile
+   grande al centro e due blocchi di testo allineati a destra non c'e' gara.
+   Comprare l'attenzione con mezzo secondo di silenzio era il rimedio giusto
+   quando in campo c'erano tredici cose; con tre, il silenzio si paga in
+   ritardo e non compra piu' niente. */
+.e-svelato .testa  { animation-delay: .84s; }
+.e-svelato .spina  { animation-delay: 1.12s; }
+.e-svelato .rotaia { animation-delay: 1.40s; }
 
 /* CHI CHIEDE MENO MOVIMENTO NON ASPETTA. Uno scaglionamento e' movimento
    automatico per definizione — nessuno l'ha chiesto, parte da solo — quindi e'
    esattamente cio' che `prefers-reduced-motion` deve spegnere. E si spegne
    togliendo i ritardi, non l'ingresso: le cose arrivano tutte insieme, come
-   prima, che e' il comportamento che quella preferenza descrive. */
+   prima, che e' il comportamento che quella preferenza descrive.
+
+   `animation: none` e non `animation-delay: 0s`: senza fotogramma chiave non
+   resta niente da riempire, quindi l'elemento sta subito al suo valore. Con
+   il solo ritardo azzerato resterebbe una dissolvenza di 380 ms, che e' poca
+   cosa ma e' comunque una cosa che si muove da sola.
+
+   I comandi non hanno un fotogramma chiave da spegnere — hanno una
+   transizione e un sollevamento in proprio — e vanno tolti tutti e due qui.
+   Il RITARDO invece se lo toglie `ui/Comandi.ts`, che legge lo stesso
+   `RIDOTTO` di `core/Moto.ts`: e' una decisione di tempo, e i tempi di quel
+   gruppo stanno la'. */
 @media (prefers-reduced-motion: reduce) {
   .e-svelato .testa,
-  .e-svelato .voci,
   .e-svelato .spina,
-  .e-svelato .comandi,
   .e-svelato .rotaia {
+    animation: none;
+  }
+  .comandi {
     transition-duration: .01ms;
-    transition-delay: 0s;
+    transform: none;
   }
 }

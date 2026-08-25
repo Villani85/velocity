@@ -26,10 +26,22 @@
  *    - la modalita' lettura si apre, si chiude con Esc e non perde il fuoco;
  *    - ogni testo ha la sua traduzione.
  *
- *  E RESTA UN'ESPOSIZIONE, che va detta e non nascosta: chi apre con
- *  `prefers-reduced-motion` riceve comunque l'esperienza in movimento. E' una
- *  scelta consapevole, non una svista — ma su una scheda di candidatura e'
- *  esattamente il controllo che si fa per primo.
+ *  RESTAVA UN'ESPOSIZIONE, ed e' stata chiusa. La riga qui sopra diceva: «chi
+ *  apre con `prefers-reduced-motion` riceve comunque l'esperienza in
+ *  movimento; e' una scelta consapevole, non una svista — ma su una scheda di
+ *  candidatura e' esattamente il controllo che si fa per primo». Era onesta e
+ *  aveva ragione a due terzi: la scelta di NON mandare alla pagina statica e'
+ *  consapevole, e resta. Cio' che mancava e' che «l'esperienza» e «l'esperienza
+ *  IN MOVIMENTO» non sono la stessa cosa, e il sito le trattava come tali.
+ *
+ *  Adesso la preferenza si onora DENTRO l'esperienza — la scena, il modello e i
+ *  materiali restano, il movimento autonomo si ferma, lo scorrimento perde
+ *  l'inerzia — e a leggerla e' un posto solo, `src/core/Moto.ts`.
+ *
+ *  Questo strumento continua a controllare le transizioni decorative, che sono
+ *  la meta' che si vede dal foglio di stile. L'altra meta' si vede solo
+ *  fotografando la scena, e la misura `strumenti/fermo.mjs`: quanti pixel
+ *  cambiano fra due fotogrammi lontani due secondi, a pagina ferma.
  */
 import { chromium } from 'file:///C:/Users/Giuseppe/hce-audio-rec/node_modules/playwright/index.mjs'
 
@@ -78,11 +90,21 @@ const nuovo = async (opz = {}) => {
     const voci = document.querySelector('.voci')
     return {
       viva: !!window.esperienza,
+      ridotto: window.esperienza?.ridotto ?? null,
       transizioniSpente: voci ? getComputedStyle(voci).transitionDuration : '(niente)',
     }
   })
   console.log('\nMOVIMENTO RIDOTTO')
   dice('la scena parte lo stesso (scelta del committente)', s.viva === true)
+  /* E LA PREFERENZA ARRIVA FINO ALLA SCENA — il controllo che mancava.
+     `esperienza.ridotto` e' la finestra su `src/core/Moto.ts`, cioe' sull'unico
+     posto del progetto che interroga il sistema. Se qui e' falso, tutto cio'
+     che il sito fa per onorare la preferenza semplicemente non viene eseguito
+     — e nessuno degli altri controlli se ne accorgerebbe, perche' guardano il
+     foglio di stile, che continuerebbe a rispondere giusto.
+     QUANTO movimento resta davvero lo misura `strumenti/fermo.mjs`. Qui si
+     verifica solo che il filo sia collegato. */
+  dice('la preferenza arriva fino alla scena', s.ridotto === true, 'esperienza.ridotto = ' + s.ridotto)
   /* SI LEGGE IL NUMERO, non la stringa. Il valore tornava `1e-05s` — dieci
      microsecondi, cioe' la regola FUNZIONA — e il confronto testuale lo
      bocciava perche' cercava «0s» o «0ms». Un controllo che non sa leggere il

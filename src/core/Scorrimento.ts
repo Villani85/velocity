@@ -1,3 +1,5 @@
+import { RIDOTTO } from './Moto'
+
 /**
  * IL PROGRESSO DELLO SCORRIMENTO.
  *
@@ -33,15 +35,26 @@ export class Scorrimento {
    *   una camera e non un cursore.
    */
   /**
-   * PUBBLICA, perche' il livello di qualita' la spegne.
+   * PUBBLICA, e la ragione originale era «perche' il livello di qualita' la
+   * spegne». Vale ancora per gli strumenti di misura, che devono poter
+   * togliere lo smorzamento per fotografare una scena ripetibile.
    *
-   * Chi ha `prefers-reduced-motion: reduce` non deve ricevere meno sito: deve
-   * ricevere meno movimento AUTOMATICO. Portando l'inerzia a 1 la scena segue
-   * il dito uno a uno invece di scivolargli dietro — spariscono le code di
-   * movimento che partono da sole, restano tutti i beat e tutte le pose.
+   * IL RAGIONAMENTO CHE C'ERA SCRITTO QUI ERA GIUSTO E RESTA, PAROLA PER
+   * PAROLA: chi ha `prefers-reduced-motion: reduce` non deve ricevere meno
+   * sito, deve ricevere meno movimento AUTOMATICO — la scena segue il dito uno
+   * a uno invece di scivolargli dietro, spariscono le code di movimento che
+   * partono da sole, restano tutti i beat e tutte le pose.
    *
-   * E' l'unico caso in cui questo numero cambia dopo la costruzione, quindi
-   * resta un campo semplice e non una proprieta' con setter.
+   * Cio' che mancava e' che nessuno lo faceva. L'unico posto che scriveva
+   * questo campo era `Esperienza.applicaQualita()`, che gira SOLO al cambio di
+   * livello di qualita': su una macchina che non cala mai — cioe' su una
+   * macchina buona — la preferenza non arrivava mai fin qui, e chi l'aveva
+   * accesa riceveva l'inerzia come tutti gli altri.
+   *
+   * Adesso la lettura sta in `aggiorna`, dove il valore serve, e viene da
+   * `core/Moto.ts`, che e' l'unico posto del progetto che interroga il
+   * sistema. Costa un confronto per fotogramma e toglie di mezzo un'intera
+   * classe di casi in cui la promessa vale «di solito».
    */
   constructor(public inerzia = 0.14) {}
 
@@ -49,14 +62,35 @@ export class Scorrimento {
     const corsa = document.documentElement.scrollHeight - window.innerHeight
     this.crudo = corsa > 0 ? Math.min(Math.max(window.scrollY / corsa, 0), 1) : 0
 
+    /* CON IL MOVIMENTO RIDOTTO L'INERZIA VALE 1, cioe' la camera SEGUE la
+       posizione invece di INSEGUIRLA.
+       E' il punto piu' importante di tutto il capitolo: quello che fa star male
+       chi ha un disturbo vestibolare non e' che ci sia un oggetto in tre
+       dimensioni sullo schermo, e' che l'immagine continui a muoversi dopo che
+       la mano si e' fermata. Un movimento che finisce esattamente quando
+       finisce il gesto e' un movimento che chi guarda comanda, e un movimento
+       comandato non e' quello che la preferenza chiede di togliere.
+       Il valore 1 non e' un caso speciale scritto a parte: la formula qui sotto
+       lo accetta e produce `k = 1`, cioe' l'inseguimento istantaneo. */
+    const inerzia = RIDOTTO ? 1 : this.inerzia
     // il passo dello smorzamento si corregge con il tempo trascorso, se no
     // la scena si muove piu' in fretta sui monitor a 144 Hz che a 60
-    const k = 1 - Math.pow(1 - this.inerzia, dt * 60)
+    const k = 1 - Math.pow(1 - inerzia, dt * 60)
     this.morbido += (this.crudo - this.morbido) * k
 
     const delta = Math.abs(this.morbido - this.precedente)
     this.precedente = this.morbido
-    // anche la velocita' si smorza: altrimenti e' rumore, non un segnale
-    this.velocita += (delta / Math.max(dt, 1 / 240) - this.velocita) * 0.12
+    /* E ANCHE LA VELOCITA' PERDE LA SUA CODA, che e' la seconda meta' della
+       stessa cosa e la meta' piu' facile da dimenticare.
+       Lo smorzamento a 0,12 esiste per una buona ragione — senza, questo
+       numero e' rumore e non un segnale, e comanda il campo visivo, la spinta
+       della strada e il tachimetro — ma e' un filtro che IMPIEGA CIRCA UN
+       SECONDO a scendere a zero. Con `morbido` ormai istantaneo, sarebbe
+       rimasto lui l'unico pezzo di scena che continua a cambiare dopo che ci
+       si e' fermati: il campo visivo che si richiude da solo, la strada che
+       decelera da sola. Cioe' esattamente il difetto, spostato di un file. */
+    const grezza = delta / Math.max(dt, 1 / 240)
+    if (RIDOTTO) this.velocita = grezza
+    else this.velocita += (grezza - this.velocita) * 0.12
   }
 }

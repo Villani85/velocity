@@ -1,5 +1,6 @@
 import { PerspectiveCamera, Vector3 } from 'three'
 
+import { RIDOTTO } from '../core/Moto'
 import { morbido, type Regia } from '../core/Regia'
 import { AUTO } from '../scene/Esterno'
 import { Attraversamento, SOGLIA } from './Attraversamento'
@@ -580,7 +581,16 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
       camera.fov = 40 + 16 * morbido(t) * (0.35 + 0.65 * spinta)
       // micro-vibrazione: e' la cosa che rende credibile la lastra, perche'
       // il piano fuori si muove di conseguenza mentre l'abitacolo trema
-      const s = 0.0016 * t * (0.3 + 0.7 * spinta)
+      /* E CON IL MOVIMENTO RIDOTTO VALE ZERO — e' il caso piu' semplice di
+         tutto il capitolo, perche' non c'e' niente da bilanciare.
+         Questa vibrazione e' fatta con `Math.random()`: non e' una funzione
+         dello scorrimento, non e' una funzione di niente. Chi si ferma a
+         guardare, con la mano lontana dal trackpad, vede comunque il
+         fotogramma tremare — e un fotogramma che trema senza causa e'
+         esattamente il moto non richiesto per cui la preferenza esiste.
+         Toglierla non toglie nessuna informazione: la lastra fuori resta la
+         stessa, l'abitacolo resta lo stesso, sparisce il tremolio. */
+      const s = RIDOTTO ? 0 : 0.0016 * t * (0.3 + 0.7 * spinta)
       camera.position.x += (Math.random() - 0.5) * s
       camera.position.y += (Math.random() - 0.5) * s
       break
@@ -636,7 +646,13 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
       // la vibrazione si spegne prima di tutto il resto: e' l'unica cosa del
       // fotogramma che non e' una funzione dello scorrimento, e in un finale
       // che deve poter stare FERMO sarebbe l'unico rumore rimasto
-      const s2 = 0.0016 * (1 - Math.min(q / 0.35, 1))
+      /* IL RAGIONAMENTO QUI SOPRA E' LO STESSO DEL MOVIMENTO RIDOTTO, arrivato
+         prima e per un'altra strada: qui il finale deve poter stare fermo
+         perche' ci si legge sopra un indirizzo, li' perche' l'ha chiesto chi
+         guarda. Cio' che mancava e' che la conclusione valeva solo per gli
+         ultimi trentacinque centesimi di un beat su sette. Con `RIDOTTO` vale
+         subito e dappertutto. */
+      const s2 = RIDOTTO ? 0 : 0.0016 * (1 - Math.min(q / 0.35, 1))
       camera.position.x += (Math.random() - 0.5) * s2
       camera.position.y += (Math.random() - 0.5) * s2
       break

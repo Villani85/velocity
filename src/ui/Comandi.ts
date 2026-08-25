@@ -1,5 +1,6 @@
 import { FINITURE, applicaFinitura } from '../scene/Materiali'
 import type { Beat, Regia } from '../core/Regia'
+import { RIDOTTO } from '../core/Moto'
 import { t } from './Lingua'
 
 /**
@@ -223,12 +224,48 @@ export class Comandi {
     if (this.nome) this.nome.textContent = FINITURE[this.finitura].nome
   }
 
-  /** da quanto la pagina e' aperta: vedi `aggiorna` */
-  private eta = 0
+  /**
+   * DA QUANTO IL SIPARIO E' ALZATO — e prima era «da quanto la pagina e'
+   * aperta», che e' un'altra cosa e su rete lenta e' un'altra cosa di molto.
+   *
+   * Il contatore partiva alla costruzione dell'interfaccia, cioe' appena il
+   * modulo arrivava. Il velo di caricamento pero' resta su finche' la scena
+   * non e' pronta, e `strumenti/carico.mjs` dice che su una rete da telefono
+   * l'ambiente ci mette ventun secondi: il secondo e mezzo scadeva al
+   * ventiduesimo di quei ventuno, dietro il velo, e quando il velo si alzava
+   * i comandi erano gia' li' insieme a tutto il resto. Il ritardo esisteva
+   * solo per chi non ne aveva bisogno.
+   *
+   * Adesso il conto parte da quando la scena e' pronta. L'istante e' quello
+   * in cui `avvio.ts` mette `e-svelato` sulla radice del documento — la
+   * stessa classe che fa partire la coreografia in `stile.css`, e quindi la
+   * stessa origine del tempo. Si legge dal DOM e non da una bandiera di
+   * `Esperienza` per non allargare la firma di `aggiorna` fino a qui: la
+   * classe c'e' gia', e' pubblica, e chi la mette dichiara nel suo commento
+   * che e' la condizione perche' il sito si veda.
+   *
+   * E SI MISURA CON L'OROLOGIO, NON SOMMANDO I `dt`. La somma dei passi era
+   * quello che c'era, ed era comoda: il ciclo il suo `dt` ce l'ha in mano.
+   * Solo che `dt` ha un tetto a un decimo di secondo — ci sta apposta, se no
+   * tornando su questa scheda dopo un minuto altrove il passo varrebbe
+   * sessanta — e quel tetto trasforma «un secondo e un quarto» in «dodici
+   * fotogrammi e mezzo». Su una macchina che ne fa sessanta al secondo sono
+   * la stessa cosa; su una che ne fa tre, il ritardo diventa quattro secondi.
+   * Misurato in provino headless, dove il disegno e' in software: la rotaia
+   * arrivava al suo posto e i comandi erano ancora via.
+   * E' il modo peggiore in cui una coreografia si rompe, perche' si rompe
+   * SOLO sulle macchine lente, cioe' quelle per cui la si e' fatta gentile.
+   * Il foglio di stile conta in millisecondi veri (`animation-delay`): se
+   * questo contasse in fotogrammi, i cinque passi si aprirebbero a ventaglio
+   * proprio dove non devono.
+   */
+  private sipario = 0
 
-  aggiorna(regia: Regia, dt = 0) {
-    this.eta += dt
-    // SOLO NELLA PRIMA SCHERMATA, e ARRIVANO DA SOLI DOPO UN SECONDO E MEZZO.
+  aggiorna(regia: Regia, _dt = 0) {
+    if (!this.sipario && document.documentElement.classList.contains('e-svelato')) {
+      this.sipario = performance.now()
+    }
+    // SOLO NELLA PRIMA SCHERMATA, e ARRIVANO DA SOLI, PER QUARTI.
     //
     // Prima la condizione era `regia.locale > 0.12`, cioe' «compaiono quando si
     // e' gia' cominciato a scorrere». Era sbagliata nel modo peggiore: chi
@@ -238,11 +275,30 @@ export class Comandi {
     // averle gia' creduto.
     //
     // Il ritardo resta, e la ragione resta quella: una prova arriva dopo
-    // l'affermazione, e il titolo deve avere il tempo di entrare. Ma si misura
+    // l'affermazione, e il titolo deve avere il tempo di esserci. Ma si misura
     // sul TEMPO, che scorre da solo, invece che sullo scorrimento, che e'
     // un'azione dell'altro.
+    //
+    // 1260 MILLISECONDI E NON PIU' 1,5 SECONDI, e il numero non e' arrotondato
+    // a caso: e' il quarto dei cinque passi della coreografia d'ingresso —
+    // 840 la testata, 980 le insegne, 1120 la scheda, 1260 questi, 1400 la
+    // rotaia, centoquaranta l'uno — e la tabella completa sta in `stile.css`,
+    // sotto «LA COREOGRAFIA D'INGRESSO». Chi muove questo numero deve
+    // guardare quella. In millisecondi e non in secondi perche' e' la stessa
+    // unita' dell'`animation-delay` che governa gli altri tre: due numeri che
+    // descrivono lo stesso istante devono almeno essere confrontabili a occhio.
+    //
+    // E IL TEMPO LO CONTA QUESTO FILE E NON IL FOGLIO DI STILE, che pure
+    // saprebbe farlo con un `animation-delay` come per gli altri tre. La
+    // ragione e' la riga qui sotto: `inert`. Un ritardo scritto nel CSS
+    // renderebbe i comandi invisibili ma raggiungibili col tabulatore per un
+    // secondo e un quarto, cioe' proprio la trappola che quella riga esiste
+    // per chiudere. Chi decide quando si vedono deve essere lo stesso che
+    // decide quando si toccano.
+    const RITARDO = RIDOTTO ? 0 : 1260
     const suoTempo: Beat[] = ['hero']
-    const vivi = suoTempo.includes(regia.beat) && this.eta > 1.5
+    const vivi = suoTempo.includes(regia.beat)
+      && this.sipario > 0 && performance.now() - this.sipario >= RITARDO
     this.radice.classList.toggle('e-vivo', vivi)
     // `inert` e non solo l'opacita': un pulsante invisibile ma raggiungibile col
     // tasto di tabulazione e' una trappola per chi naviga da tastiera

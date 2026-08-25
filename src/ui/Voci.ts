@@ -485,6 +485,23 @@ export class Voci {
     //
     // Il titolo della hero deve esserci prima che si tocchi qualcosa: e'
     // l'unica cosa che dice di che si tratta.
+    //
+    // E LA STESSA COSA VALE PER IL TEMPO, non solo per lo scorrimento — e per
+    // un giro non e' stato cosi'. La coreografia d'ingresso di `stile.css`
+    // trattava `.voci` come una delle cose che ARRIVANO, a 0,55 s dal sipario:
+    // l'argomento qui sopra vinceva contro `entra` e perdeva contro un
+    // `transition-delay`. Adesso `.voci` non e' nella coreografia; e' cio'
+    // rispetto a cui la coreografia e' in ritardo, e nel primo fotogramma
+    // restano tre cose sole — l'automobile, questo titolo, questo sommario.
+    //
+    // Ne e' venuto fuori anche un difetto che non c'entrava con la densita':
+    // quel `transition-delay` portava con se' un `transition` di 620 ms, che
+    // sostituiva i 180 ms lineari dichiarati su `.voci` PER SEMPRE, non solo
+    // all'ingresso. Cioe' l'opacita' del testo — che qui sotto e' calcolata
+    // apposta come funzione del progresso, per tornare indietro insieme a chi
+    // torna indietro — arrivava allo schermo con mezzo secondo di ritardo su
+    // ogni movimento della mano. Un ingresso e' un'animazione: una
+    // transizione, una volta accesa, non se ne va piu'.
     const esce = voce.esce ?? 1
     const dentro = voce.entra === undefined
       ? 1

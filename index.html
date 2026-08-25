@@ -33,6 +33,44 @@
 <link rel="preload" as="font" type="font/woff2" href="/font/switzer-500.woff2" crossorigin />
 <link rel="preload" as="font" type="font/woff2" href="/font/clash-display-600.woff2" crossorigin />
 <link rel="stylesheet" href="/src/stile.css" />
+
+<!--
+  LE TRANSIZIONI FRA I TEMPI DIVENTANO DISSOLVENZE, NON TRASLAZIONI.
+
+  `src/stile.css` gia' spegne la transizione e la traslazione della SCHEDA del
+  testo (`.voci`), e la nota che ci sta accanto e' giusta: una transizione e'
+  l'unica cosa di quel livello che ha un orologio proprio, e l'opacita' resta
+  agganciata al progresso, quindi il testo continua a comparire scorrendo.
+
+  Cio' che quella regola non copriva sono i CINQUE EFFETTI D'INGRESSO delle
+  righe — `.voci[data-effetto="…"] .mascherina i` — che sono scritti sul figlio
+  e sopravvivevano intatti. Non hanno un orologio (li muove `--p`, cioe' lo
+  scorrimento) ma sono traslazioni vere e proprie: ogni riga di ogni tempo
+  arriva da 108% piu' in basso, e in piu' ruota di ventotto gradi (giro), si
+  ingrandisce e si sfoca (risucchio), o si sfilaccia in tre copie (scia). Sono
+  esattamente il genere di spostamento a schermo intero che chi ha attivato la
+  preferenza vuole non ricevere — anche se e' lui a comandarlo.
+
+  Tolti la trasformazione e la sfocatura, resta l'opacita', che e' gia' una
+  funzione di `--p`: il testo si dissolve dentro invece di entrare da sotto.
+  Nessuna parola si perde, nessun tempo cambia.
+
+  PERCHE' QUI E NON IN `src/stile.css`, che sarebbe il posto giusto: in questa
+  passata quel file e' in mano a qualcun altro. Va spostato li' appena si puo',
+  accanto al blocco «movimento ridotto» a cui appartiene — un secondo posto in
+  cui si legge la stessa preferenza e' il difetto che tutto il resto di questo
+  capitolo esiste per togliere.
+-->
+<style>
+@media (prefers-reduced-motion: reduce) {
+  .voci[data-effetto] .mascherina i {
+    transform: none;
+    filter: none;
+    text-shadow: none;
+  }
+}
+</style>
+
 <!--
   LA PRIMA DECISIONE DEL SITO STA QUI DENTRO, IN UNO SCRIPT DI VENTI RIGHE,
   E NON PUO' STARE DA NESSUN'ALTRA PARTE.

@@ -1,4 +1,5 @@
 import { Box3, Matrix4, Mesh, Object3D, PerspectiveCamera, Vector3 } from 'three'
+import { rincorsa } from '../core/Moto'
 import type { Regia } from '../core/Regia'
 
 /**
@@ -155,7 +156,12 @@ export class Telaio {
     const vuole = regia.beat === 'hero'
       ? Math.min(Math.max((regia.locale - 0.06) / 0.18, 0), 1) * (1 - Math.min(Math.max((regia.locale - 0.72) / 0.24, 0), 1))
       : 0
-    this.presenza += (vuole - this.presenza) * Math.min(dt * 3.2, 1)
+    /* LA COMPARSA SEGUE LO SCORRIMENTO, IL SUO RITARDO NO. `vuole` e' gia' una
+       funzione di `regia.locale`, quindi la scatola entra ed esce col dito; lo
+       smorzamento serve solo a non farla apparire di scatto. Con il movimento
+       ridotto quel ritardo diventa la solita coda che continua a pagina ferma,
+       e la dissolvenza resta comunque — la fa `vuole`, non il filtro. */
+    this.presenza += (vuole - this.presenza) * rincorsa(Math.min(dt * 3.2, 1))
     const acceso = this.presenza > 0.004
     this.radice.style.opacity = acceso ? this.presenza.toFixed(3) : '0'
     if (!acceso || !this.scatola || !this.soggetto) return

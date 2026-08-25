@@ -3,6 +3,7 @@ import {
   MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3,
 } from 'three'
 import { inCoda } from '../core/Salita'
+import { RIDOTTO } from '../core/Moto'
 import { quantoDiLato } from '../transizioni/Camera'
 import { LAVORI } from '../ui/Lavori'
 import { t } from '../ui/Lingua'
@@ -676,8 +677,8 @@ varying vec3 vVistaIns;`)
 export class Insegne {
   readonly gruppo = new Group()
   private pannelli: Mesh[] = []
-  /** secondi da quando la scena gira: serve al ritardo d'ingresso */
-  private eta = 0
+  /** quando il sipario si e' alzato, in millisecondi d'orologio. 0 = non ancora */
+  private sipario = 0
   private presenza = 0
   /** con quale formato di schermo l'arco e' stato posato l'ultima volta */
   private aspettoPosato = 1.6
@@ -1012,14 +1013,65 @@ export class Insegne {
        hero al primo posto. Il documento le sue cose le scaglione nel foglio di
        stile (vedi `.e-svelato`), ma queste stanno nella scena e il foglio di
        stile non le vede: il ritardo lo devono contare da sole.
-       Un secondo dall'inizio: l'automobile ha il suo mezzo secondo, il titolo
-       arriva, e solo dopo arrivano le prove. */
-    this.eta += dt
-    const entrata = Math.min(Math.max((this.eta - 1.0) / 0.55, 0), 1)
+
+       E LO CONTAVANO DA UN'ORIGINE SBAGLIATA, che e' la correzione di adesso.
+       Il commento di prima diceva «un secondo dall'inizio: l'automobile ha il
+       suo mezzo secondo, il titolo arriva, e solo dopo arrivano le prove»: la
+       sequenza e' giusta e resta, l'errore era l'INIZIO. `dt` comincia a
+       scorrere quando la scena comincia a girare, cioe' molto prima che si
+       veda qualcosa — il velo di caricamento sta su finche' l'ambiente non e'
+       pronto, e `strumenti/carico.mjs` misura ventun secondi su una rete da
+       telefono. Il ritardo si consumava tutto dietro il velo, e chi guarda
+       trovava le tre insegne gia' accese insieme a tutto il resto: cioe' la
+       coreografia esisteva solo per chi non ne aveva bisogno.
+       Adesso il conto parte da quando il sipario si alza — `e-svelato` sulla
+       radice del documento, la stessa classe e lo stesso istante da cui parte
+       la coreografia in `stile.css`. Una sola origine del tempo per il
+       documento e per la scena, se no sono due coreografie che si scavalcano.
+
+       980 MILLISECONDI E NON PIU' UN SECONDO, ed e' il secondo dei cinque
+       passi: 840 la testata, 980 queste, 1120 la scheda tecnica, 1260 i
+       comandi, 1400 la rotaia — centoquaranta l'uno. La tabella completa sta
+       in `stile.css`, sotto «LA COREOGRAFIA D'INGRESSO»; chi muove questo
+       numero deve guardare quella.
+       La rampa scende da 0,55 a 0,38 s per la stessa ragione per cui e' scesa
+       quella del documento: lo scaglionamento si deve sentire, non guardare.
+
+       E SI CONTA CON L'OROLOGIO, NON SOMMANDO I `dt`. Sommare i passi era
+       quello che c'era ed era la cosa naturale — il `dt` arriva gia' qui — ma
+       il `dt` di questo ciclo ha un tetto (vedi `Esperienza`), quindi «un
+       secondo» in realta' vuol dire «dieci fotogrammi». Su una macchina che
+       ne fa sessanta al secondo e' la stessa cosa; su una che ne fa tre il
+       ritardo diventa tre secondi, mentre il foglio di stile — che conta in
+       millisecondi veri — ha gia' fatto entrare tutti gli altri. La
+       coreografia si aprirebbe a ventaglio esattamente sulle macchine lente,
+       cioe' quelle per cui e' stata fatta gentile. Misurato in provino
+       headless, dove Chromium disegna in software: le insegne arrivavano
+       secondi dopo la rotaia, che e' l'ultima. */
+    if (!this.sipario && typeof document !== 'undefined'
+      && document.documentElement.classList.contains('e-svelato')) {
+      this.sipario = performance.now()
+    }
+    const daSipario = this.sipario > 0 ? performance.now() - this.sipario : -1
+    /* CHI CHIEDE MENO MOVIMENTO NON ASPETTA, ed e' la stessa regola del foglio
+       di stile: uno scaglionamento e' movimento che parte da solo, quindi e'
+       esattamente cio' che `prefers-reduced-motion` deve spegnere. Non si
+       spegne l'ingresso — le insegne ci sono lo stesso — si spegne l'attesa.
+       La preferenza si legge da `core/Moto.ts`, che e' il posto unico dove il
+       progetto la legge: sette `matchMedia` sparsi sono sette letture che
+       possono divergere, e il suo commento in testa spiega perche'. */
+    const entrata = daSipario < 0
+      ? 0
+      : RIDOTTO ? 1 : Math.min(Math.max((daSipario - 980) / 380, 0), 1)
     const vuole = regia.beat === 'hero'
       ? entrata * (1 - Math.min(Math.max((regia.locale - 0.52) / 0.34, 0), 1))
       : 0
-    this.presenza += (vuole - this.presenza) * Math.min(dt * 3.4, 1)
+    /* E LO SMORZAMENTO E' UN'INERZIA, quindi con il movimento ridotto vale
+       uno: e' la distinzione di `core/Moto.ts` — un valore inseguito continua
+       a muoversi DOPO che chi guarda ha smesso di fare qualcosa, ed e' moto
+       autonomo travestito. Il valore d'arrivo e' identico, sparisce solo il
+       tragitto. */
+    this.presenza += (vuole - this.presenza) * (RIDOTTO ? 1 : Math.min(dt * 3.4, 1))
     const acceso = this.presenza > 0.005
     this.gruppo.visible = acceso
     if (!acceso) return

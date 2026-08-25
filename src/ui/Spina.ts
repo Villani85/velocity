@@ -301,6 +301,23 @@ export class Spina {
        che non si vede e' falsa.
        Quindi cade solo lei. E' la stessa regola del sito statico: si onora il
        vincolo DENTRO la cosa, non sostituendola. */
+    /* QUANDO LA SCHEDA SI VEDE LA PRIMA VOLTA NON LO DECIDE QUESTA RIGA.
+       Qui si dice solo che c'e' qualcosa di cui parlare. Il momento in cui
+       compare all'atterraggio e' il terzo dei cinque passi della coreografia
+       d'ingresso — 1,12 s dopo che il sipario si e' alzato — e sta in
+       `stile.css`, sotto «LA COREOGRAFIA D'INGRESSO», come `animation-delay`
+       su `.e-svelato .spina`.
+       E' li' e non qui per una ragione che vale la pena di sapere prima di
+       cercare il difetto: il fotogramma chiave ha riempimento `backwards`,
+       quindi durante il ritardo l'opacita' e' tenuta a zero DALL'ANIMAZIONE,
+       che vince su qualunque cosa dica il foglio di stile. `e-viva` puo'
+       accendersi prima — succede, perche' la bocca del faro esiste appena
+       l'ottica e' innestata e questo puo' capitare a un decimo dal sipario —
+       e la scheda resta comunque invisibile fino al suo turno. Chi guardasse
+       solo questa riga concluderebbe che il ritardo non c'e'.
+       Il fotogramma chiave tocca la sola opacita' e non il `transform`, e il
+       perche' e' due righe piu' su: il `transform` di questo blocco lo scrive
+       il codice a ogni fotogramma per tenerlo accanto alla rotaia. */
     this.radice.classList.toggle('e-viva', true)
     this.disegno.classList.toggle('e-viva', inCampo)
   }

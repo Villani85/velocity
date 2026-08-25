@@ -1,4 +1,5 @@
 import { dopoAuto } from '../core/Ordine'
+import { rincorsa } from '../core/Moto'
 import {
   CanvasTexture,
   Group,
@@ -710,7 +711,13 @@ export class Vetrina3D {
     const moto = Math.min(1, Math.abs(this.bersaglio - this.angolo) / PASSO)
     // lo smorzamento: l'arco INSEGUE la scelta invece di saltarci sopra, ed e'
     // il ritardo a farlo sembrare un oggetto con un peso
-    this.angolo += (this.bersaglio - this.angolo) * Math.min(dt * 7, 1)
+    /* E CON IL MOVIMENTO RIDOTTO L'ARCO ARRIVA SUBITO. Il ritardo che gli da'
+       il peso e' proprio cio' che continua dopo il gesto: si gira una carta e
+       per mezzo secondo tre pannelli traslano e ruotano da soli, con lo zoom
+       che li accompagna. Con `rincorsa` la carta scelta e' gia' al centro nel
+       fotogramma del gesto — e il carosello cambia per dissolvenza, perche'
+       `fondoMix` e le opacita' dei pannelli restano al loro posto. */
+    this.angolo += (this.bersaglio - this.angolo) * rincorsa(Math.min(dt * 7, 1))
     // e la dissolvenza dello sfondo cammina con lo stesso passo
     this.fondoMix = Math.min(1, this.fondoMix + dt * 1.7)
 
