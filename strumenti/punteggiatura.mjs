@@ -143,6 +143,29 @@ for (let i = 1; i < letture.length; i++) {
   perBeat.get(c.b).push({ l: c.l, d: dist(a, c) })
 }
 
+/* QUANTI CAMPIONI SERVONO PER DECIDERE, e perche' senza questo il cancello era
+   BALLERINO — che di notte e' peggio di un cancello assente.
+   A passo 0,005 questo strumento passava; a passo 0,02, sugli stessi identici
+   sorgenti, bocciava. Non era un difetto della scena: e' che un tempo lungo 0,13
+   di scorrimento, campionato ogni 0,02, da' SEI letture, e con sei letture non
+   si puo' risolvere una tenuta che dura l'ultimo sesto. Il cancello non stava
+   sbagliando la risposta: stava rispondendo a una domanda che a quel passo non
+   ne ha una.
+   Un cancello che non puo' decidere deve DIRLO. Esce con 2, che qui vuol dire
+   «metro inadeguato», distinto dall'1 che vuol dire «la scena e' rotta» — la
+   stessa distinzione che fa `fermo.mjs`. Confondere le due cose e' come un
+   allarme che suona sia per il fuoco sia per la batteria scarica. */
+const MINIMI = 15
+const scarsi = [...perBeat].filter(([, v]) => v.length < MINIMI)
+if (scarsi.length) {
+  console.log('')
+  console.log('  METRO INADEGUATO: con passo ' + PASSO + ' questi tempi hanno meno di ' +
+    MINIMI + ' letture, e una tenuta di un sesto non ci si legge dentro:')
+  for (const [b, v] of scarsi) console.log('    ' + b.padEnd(12) + v.length + ' letture')
+  console.log('  Rifallo con un passo piu' + String.fromCharCode(39) + ' fitto (0.005).')
+  process.exit(2)
+}
+
 console.log('')
 console.log('  LA CORSA DENTRO OGNI TEMPO (passo ' + PASSO + ')')
 console.log('')
@@ -153,7 +176,13 @@ for (const [beat, v] of perBeat) {
      millimetri per costruzione e `taglio` di metri, quindi un'unica soglia in
      metri direbbe che l'uno e' sempre fermo e l'altro sempre in corsa. Fermo
      vuol dire «un ventesimo di quanto si e' mosso al massimo qui dentro». */
-  const soglia = dmax * 0.05
+  /* E UN FONDO ASSOLUTO SOTTO LA SOGLIA RELATIVA, che mancava e bocciava un
+     tempo perfetto. `accensione` non muove la camera di un millimetro: la sua
+     corsa massima e' 0,000, quindi il cinque per cento di zero e' ZERO, e
+     bastava un valore in virgola mobile diverso da zero all'ultima cifra per
+     dichiararlo in movimento. Il tempo piu' fermo dei sette era l'unico
+     bocciato. */
+  const soglia = Math.max(dmax * 0.05, 1e-4)
   /* IL CRITERIO NON E' «ferma esattamente dall'84%», che sarebbe tarare il
      cancello sulla risposta: e' che una pausa CI SIA, cioe' che l'ultimo
      decimo del tempo sia fermo. Se un tempo si posa al 78% o all'86% e'
@@ -193,7 +222,14 @@ for (let i = 1; i < letture.length; i++) {
     (rapporto > 3 ? '   <- SALTO' : ''))
 }
 
+/* E SI ESCE CON UN CODICE, che e' cio' che rende questo un cancello invece che
+   un cartello. L'intestazione qui sopra dichiarava di essere un cancello e poi
+   usciva SEMPRE zero: di giorno lo leggo io e non succede niente, ma dentro una
+   catena con && prosegue tutto come se fosse a posto — e di notte non c'e'
+   nessuno a leggere la riga. Un verdetto stampato non ferma niente. */
+const passa = tuttiFermi && saltoMax <= 3
 console.log('')
-console.log('  ESITO: ' + (tuttiFermi && saltoMax <= 3
+console.log('  ESITO: ' + (passa
   ? 'ogni tempo ha la sua pausa e nessun confine salta.'
   : 'NON PASSA — vedi sopra.'))
+process.exit(passa ? 0 : 1)
