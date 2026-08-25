@@ -126,6 +126,71 @@ const nuovo = async (opz = {}) => {
   await ctx.close()
 }
 
+// ------------------------------------------------- 3bis. la tabulazione
+{
+  const { ctx, p } = await nuovo()
+  await p.goto('http://localhost:5174/', { waitUntil: 'domcontentloaded' })
+  await p.waitForFunction(() => !!window.esperienza, null, { timeout: 120000 })
+  await p.waitForTimeout(3500)
+  console.log('')
+  console.log('TABULAZIONE')
+  /* IL CONTROLLO CHE MANCAVA, ed e' il motivo per cui il difetto e' arrivato
+     fino a stanotte. Il documento statico e' fuori campo ma NON inerte:
+     contiene collegamenti veri, e da `position: absolute` cadeva dopo la
+     corsa. Alla sesta pressione di TAB il fuoco ci entrava e il browser
+     portava l'elemento in vista, cioe' scaraventava la pagina al finale —
+     scavalcando tutti e sette i tempi — su un elemento che per giunta
+     `clip-path` non dipinge.
+     Due cose si misurano insieme: che nessun TAB sposti la pagina di piu' di
+     mezza finestra, e che il fuoco sia DIPINTO — se `elementFromPoint` al
+     centro del suo rettangolo non torna l'elemento stesso, quell'elemento non
+     si vede, contorno compreso. */
+  let saltoMax = 0, dettaglio = ''
+  const ciechi = []
+  for (let i = 1; i <= 8; i++) {
+    const prima = await p.evaluate(() => window.scrollY)
+    await p.keyboard.press('Tab')
+    await p.waitForTimeout(220)
+    /* SI PROTEGGE, e la ragione e' misurata: questa sequenza si e' rivelata
+       INSTABILE — corse identiche si fermavano dopo tre, cinque o otto passi,
+       perche' il server di sviluppo cade e la pagina sparisce sotto la sonda.
+       Un controllo che muore a meta' senza dirlo e' peggio di un controllo
+       assente: sembra passato. Se la pagina se ne va, lo si dichiara. */
+    let st
+    try {
+      st = await p.evaluate(() => {
+        const a = document.activeElement
+        if (!a || a === document.body) return null
+        const r = a.getBoundingClientRect()
+        const cx = Math.round(r.left + r.width / 2), cy = Math.round(r.top + r.height / 2)
+        const sotto = document.elementFromPoint(cx, cy)
+        return {
+          y: window.scrollY,
+          etichetta: (a.textContent || a.getAttribute('aria-label') || a.tagName).trim().slice(0, 34),
+          dipinto: sotto === a || a.contains(sotto) || (sotto && sotto.contains(a)),
+          sotto: sotto ? (sotto.tagName + (sotto.className ? '.' + String(sotto.className).split(' ')[0] : '')) : 'niente',
+          lettura: document.documentElement.dataset.lettura ?? '-',
+          inerte: (() => { let x = a; while (x) { if (x.hasAttribute?.('inert')) return 'si'; x = x.parentElement } return 'no' })(),
+          dentroSchermo: r.top >= -2 && r.bottom <= innerHeight + 2,
+        }
+      })
+    } catch (e) {
+      dettaglio = 'la pagina e sparita al TAB ' + i
+      break
+    }
+    if (!st) continue
+    const salto = Math.abs(st.y - prima)
+    if (salto > saltoMax) { saltoMax = salto; dettaglio = 'TAB ' + i + ' -> ' + st.etichetta }
+    if (!st.dipinto && st.dentroSchermo) ciechi.push(st.etichetta + ' [' + st.sotto + ']')
+  }
+  const mezza = await p.evaluate(() => innerHeight / 2)
+  dice('nessun TAB scaraventa la pagina', saltoMax < mezza,
+    'salto massimo ' + Math.round(saltoMax) + ' px' + (dettaglio ? ' (' + dettaglio + ')' : ''))
+  dice('il fuoco e sempre dipinto', ciechi.length === 0,
+    ciechi.length ? ciechi.join(' · ') : 'tutti visibili')
+  await ctx.close()
+}
+
 // ------------------------------------------------- 4. le traduzioni
 {
   const { ctx, p } = await nuovo()

@@ -737,7 +737,22 @@ body {
    discendenti, `white-space: nowrap` perche' senza, il testo va a capo dentro
    il pixel e alcuni lettori lo annunciano una parola per riga. */
 .documento {
-  position: absolute;
+  /* `fixed` E NON `absolute`, E VALE UN DIFETTO CHE BLOCCA LA CANDIDATURA.
+     Da `absolute` questo blocco cade dopo la corsa, a top 6776 px. Dentro c'e'
+     un collegamento vero — l'indirizzo di posta — e appena il fuoco da
+     tastiera ci arriva il browser lo porta in vista: alla SESTA pressione di
+     TAB la pagina saltava da 0 a 6099 su una corsa di 6099, cioe' al finale,
+     scavalcando tutti e sette i tempi. E il fuoco non si vedeva nemmeno,
+     perche' `clip-path` non dipinge niente: `elementFromPoint` al centro del
+     suo rettangolo tornava il CANVAS.
+     Sono WCAG 2.4.3 e 2.4.7 insieme, ed e' precisamente il controllo che una
+     giuria fa per primo — preme TAB.
+     Da `fixed` l'elemento e' sempre dentro la finestra: il browser non ha
+     niente da portare in vista e non scorre. Costa un pixel di corsa
+     (scrollHeight da 6781 a 6780) e non tocca gli altri due stati, che
+     scavalcano gia' questa riga. */
+  position: fixed;
+  top: 0; left: 0;
   width: 1px; height: 1px;
   overflow: hidden;
   clip-path: inset(50%);

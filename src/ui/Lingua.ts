@@ -376,7 +376,23 @@ export const D: Record<string, Voce> = {
     en: 'The traps that really cost you do not raise errors. A material with anisotropy but no tangents compiles and draws nothing: the scene goes black in silence, and the first symptom is a perfectly formed statistic. An occlusion map reads a second UV set the model does not have, and simply never appears. A geometry compressor drops mesh names even when told to keep them. Each of these cost hours, and each is written down in the repository together with the number that exposed it.',
   },
   docLavori: { it: 'Lavori', en: 'Work' },
-  docLavoriForte: { it: 'Un lavoro solo, e ci sei dentro.', en: 'One piece of work, and you are inside it.' },
+  /* LA FRASE NON CONTA PIU', E NON E' UNA RINUNCIA.
+     Diceva «Un lavoro solo, e ci sei dentro» quando il portfolio ne aveva uno.
+     Poi ne ha avuti dieci e la frase e' rimasta li' a mentire — la stessa
+     divergenza della lista, che infatti si e' risolta generandola.
+     Il primo rimedio e' stato far generare anche QUESTA frase al plugin, con
+     il conteggio dentro. Sbagliato due volte: la sostituzione prendeva il
+     primo `statica__forte` che capitava — cioe' il motto del progetto, in
+     tutt'altra sezione — e una frase generata non puo' avere una chiave di
+     traduzione, perche' `applica()` la riscriverebbe dal dizionario
+     annullando la generazione.
+     La cura giusta e' togliere il numero dalla frase. Il conteggio sta gia'
+     nell'elenco sotto, che e' generato: una frase che non conta non puo'
+     divergere da niente. */
+  docLavoriForte: {
+    it: 'Ogni lavoro è una macchina diversa: la meccanica cambia con quello che deve raccontare.',
+    en: 'Each piece of work is a different machine: the mechanics change with what it has to tell.',
+  },
   docQuestoSito: { it: '2026 — questo sito', en: '2026 — this site' },
   docInLavorazione: { it: 'in lavorazione', en: 'in progress' },
   docLavoriCoda: {

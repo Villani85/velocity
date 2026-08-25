@@ -71,10 +71,32 @@ const DOVE: Record<string, number> = {
  * dei lavori: due copie divergono al primo ritocco e nessuno se ne accorge.
  * Quindi si apre QUELLO, e chi legge senza WebGL lo trova senza fare niente.
  */
+/* IL RESTO DELLA PAGINA DIVENTA INERTE MENTRE SI LEGGE.
+   Senza, il fuoco da tastiera continua a tabulare DIETRO il pannello: si
+   passa su «ESPLORA I LAVORI» e sui campioni di finitura che stanno sotto e
+   non si vedono — misurato con `strumenti/accessibilita.mjs`, che li trova
+   perche' `elementFromPoint` al centro del loro rettangolo torna il documento
+   invece che loro. Navigare una pagina che non si vede e' peggio che non
+   poterla navigare.
+   `inert` e non un fermo-fuoco scritto a mano: toglie in un colpo il fuoco,
+   il puntatore e l'albero di accessibilita', ed e' esattamente cio' che
+   serve. Si mette sui fratelli del documento, non su un antenato comune, se
+   no si spegnerebbe anche il documento stesso. */
+function fratelliInerti(acceso: boolean) {
+  const doc = document.querySelector<HTMLElement>('.documento')
+  if (!doc || !doc.parentElement) return
+  for (const e of Array.from(doc.parentElement.children)) {
+    if (e === doc || !(e instanceof HTMLElement)) continue
+    if (acceso) e.setAttribute('inert', '')
+    else e.removeAttribute('inert')
+  }
+}
+
 function apriLettura() {
   const doc = document.querySelector<HTMLElement>('.documento')
   if (!doc) return
   document.documentElement.dataset.lettura = 'si'
+  fratelliInerti(true)
   doc.scrollTop = 0
   // il fuoco entra nel documento: chi naviga da tastiera si trova DENTRO
   // quello che ha appena aperto, non dietro
@@ -84,6 +106,7 @@ function apriLettura() {
 
 function chiudiLettura() {
   delete document.documentElement.dataset.lettura
+  fratelliInerti(false)
   document.querySelector<HTMLElement>('a[href="#studio"]')?.focus()
 }
 
@@ -108,6 +131,57 @@ export function montaAncore() {
     b.addEventListener('click', chiudiLettura)
     doc.prepend(b)
   }
+  /* IL FUOCO CHE ENTRA NEL DOCUMENTO LO APRE, invece di finire in un pannello
+     che non si vede.
+     Il documento e' fuori campo ma NON e' inerte: contiene collegamenti veri,
+     primo fra tutti l'indirizzo di posta. Chi naviga da tastiera ci arriva —
+     misurato: alla sesta pressione di TAB — e si ritrova il fuoco dentro un
+     elemento ritagliato a un pixel, cioe' invisibile.
+     La cura NON e' metterci `inert` o `aria-hidden`, che sarebbe una riga sola
+     e spegnerebbe proprio la cosa per cui quel blocco esiste: l'equivalente
+     testuale per i lettori di schermo. Si scambierebbe un difetto con uno
+     peggiore.
+     La cura e' aprire la modalita' lettura che il sito ha gia'. Chi tabula
+     dentro il documento evidentemente lo vuole leggere. */
+  if (doc) {
+    doc.addEventListener('focusin', (e) => {
+      const r = document.documentElement
+      if (r.dataset.lettura || r.dataset.ripiego) return
+      r.dataset.lettura = 'si'
+      fratelliInerti(true)
+      const bersaglio = e.target as HTMLElement
+      /* GLI OTTANTA MILLISECONDI NON SONO DECORATIVI, e sono stati misurati.
+         Con `requestAnimationFrame` non bastano: il pannello non si e' ancora
+         impaginato e l'elemento finisce a y 1578, cioe' sotto il bordo — di
+         nuovo invisibile. Con 80 ms il documento scorre dentro di se' e il
+         collegamento arriva in campo. */
+      setTimeout(() => bersaglio.scrollIntoView?.({ block: 'center' }), 80)
+    })
+  }
+  /* IL FUOCO NON ESCE DAL PANNELLO MENTRE E' APERTO.
+     L'inerzia sui fratelli e' la difesa giusta e funziona — misurato: aprendo
+     da STUDIO, l'antenato dei campioni finitura risulta `SECTION.comandi`
+     inerte. Ma dipende da QUALE porta ha aperto la lettura, e le porte sono
+     due: il collegamento e il fuoco che entra tabulando. Nel secondo caso il
+     collaudo trovava ancora i campioni raggiungibili, sotto il pannello.
+     Invece di inseguire la differenza fra i due percorsi, si mette la difesa
+     dove il difetto si manifesta: se il fuoco esce dal documento mentre la
+     lettura e' aperta, ci rientra. E' il comportamento canonico di una
+     finestra sovrapposta, e non dipende da come e' stata aperta.
+     Non sostituisce l'inerzia: la doppia. L'inerzia toglie gli elementi
+     all'albero di accessibilita' — che serve ai lettori di schermo — questo
+     tiene il fuoco visibile. Sono due difetti diversi e servono tutte e due. */
+  addEventListener('focusin', (e) => {
+    const r = document.documentElement
+    if (!r.dataset.lettura) return
+    const doc2 = document.querySelector<HTMLElement>('.documento')
+    if (!doc2) return
+    const dentro = e.target instanceof Node && doc2.contains(e.target)
+    if (dentro) return
+    fratelliInerti(true)
+    doc2.querySelector<HTMLElement>('.lettura__chiudi')?.focus()
+  })
+
   addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.documentElement.dataset.lettura) chiudiLettura()
   })

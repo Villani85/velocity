@@ -18,3 +18,6 @@ docs/video/
 
 # le chiavi e gli indirizzi veri non entrano nel repo
 .env
+
+# le sonde usa-e-getta degli agenti
+strumenti/.probe*

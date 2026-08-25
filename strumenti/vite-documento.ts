@@ -134,10 +134,7 @@ export function documento(): Plugin {
             /<ol class="statica__ottiche">[\s\S]*?<\/ol>/,
             `<ol class="statica__ottiche">\n${lista}\n    </ol>`,
           )
-          .replace(
-            /<p class="statica__forte"[^>]*>[\s\S]*?<\/p>/,
-            `<p class="statica__forte">${voci.length} lavori, e ci si entra dentro.</p>`,
-          )
+
           .replace(
             /<p data-t="docLavoriCoda">[\s\S]*?<\/p>/,
             `<p>Ognuno e una macchina diversa: la meccanica cambia con quello che deve raccontare.</p>`,
