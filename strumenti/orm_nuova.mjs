@@ -70,12 +70,24 @@ for (let i = 0; i < N * N; i++) {
   isola[i] = neutra ? 0 : 1
 }
 
+/* L'OCCLUSIONE COTTA, se c'e'. Il canale rosso della ORM era 1,000 dappertutto
+   — 2048x2048 gia' pagati e vuoti. `strumenti/occlusione.mjs` lo riempie con
+   un raycast a raggio corto. Se il file non c'e' si resta a 1,000 e lo si dice,
+   invece di far finta che l'occlusione ci sia. */
+import { existsSync } from 'fs'
+let AO = null
+if (existsSync('public/texture/_ao.png')) {
+  const a = await sharp('public/texture/_ao.png').raw().toBuffer({ resolveWithObject: true })
+  if (a.info.width === N) AO = { d: a.data, c: a.info.channels }
+}
+console.log(AO ? '  occlusione: cotta, entra nel canale rosso' : '  occlusione: ASSENTE, il rosso resta a 1,000')
+
 const out = Buffer.alloc(N * N * 3)
 let specchio = 0, scritti = 0, riempimento = 0
 for (let i = 0; i < N * N; i++) {
   const o = i * CH, q = i * 3
   const G = data[o + 1], B = data[o + 2]
-  out[q] = 255              // R: l'occlusione, ancora piatta - vedi sotto
+  out[q] = AO ? AO.d[i * AO.c] : 255
   if (!isola[i]) {
     out[q + 1] = Math.round(BASE * 255); out[q + 2] = 0; riempimento++
   } else if (G < 64) {
@@ -91,9 +103,14 @@ for (let i = 0; i < N * N; i++) {
    dappertutto PER COSTRUZIONE. E' saturo ed e' giusto che lo sia — ma resta
    il lavoro piu' grosso che manca su questa mappa. */
 cancelloBin(out, isola, 'ORM', [
-  // R: l'occlusione non e' ancora cotta, quindi vale 1,000 dappertutto PER
-  //    COSTRUZIONE. Saturo e giusto — ed e' il lavoro piu' grosso che manca.
-  { alto: 1.0, basso: 0.02 },
+  /* R: l'occlusione. Adesso e' cotta, ma resta saturata al 74% ED E' GIUSTO:
+     una carrozzeria e' quasi tutta CONVESSA, e con un raggio corto — 9 cm, non
+     i raggi da architettura — la maggior parte della superficie ha l'emisfero
+     libero. L'occlusione vive nel 26% che sta nelle cavita': p05 a 143 su 255.
+     Un raggio piu' lungo abbasserebbe la mediana e farebbe passare il cancello,
+     ma scurirebbe tutto senza dire niente — che e' esattamente il difetto per
+     cui `GTAOPass` a 0,9 m non serve al soggetto. */
+  { alto: 0.80, basso: 0.02 },
   // G: a 255 quasi niente, ed e' il difetto che questa versione ripara.
   //    A 0 si concede: quella e' la ruvidita' di uno SPECCHIO, cioe' canopy e
   //    cromature, e portarli via e' esattamente l'errore da cui si viene.

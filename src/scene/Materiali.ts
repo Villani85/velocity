@@ -944,6 +944,19 @@ export function scocca() {
   const orm = sua('/texture/auto2r_orm2.webp')
   m.roughnessMap = orm
   m.metalnessMap = orm
+
+  /* L'OCCLUSIONE AMBIENTALE, nel canale rosso che era vuoto.
+     Era 1,000 dappertutto: 2048x2048 gia' pagati, gia' caricati e gia'
+     trasferiti che non portavano niente. Adesso c'e' una cottura a raggio
+     corto (9 cm) fatta con `strumenti/occlusione.mjs`, e insieme a `GTAOPass`
+     — che ha raggio 0,9 m ed e' tarato sulla CORTE, non sulla vettura — coprono
+     due scale diverse: l'architettura intorno e le cavita' del soggetto.
+     `aoMapIntensity` a 0,85 e non a 1: l'occlusione cotta si somma a quella
+     dello schermo, e a uno le due si mangiano il sottosquadro. */
+  m.aoMap = orm
+  m.aoMapIntensity = Number(
+    (globalThis as unknown as { __ao?: number }).__ao ?? 0.85,
+  )
   /* LA NORMAL MAP CON L'ARCO SPIANATO — vedi `strumenti/arco_maschera.mjs`.
      Sopra la ruota, sulla fiancata, correva una linea che disegnava il
      passaruota del modello generato: era COTTA nella mappa. Isolata spegnendo
@@ -1652,6 +1665,17 @@ export function vestiAuto(radice: Object3D) {
          dividere. Vedi `scocca()` per il perche' — in due parole, tagliare la
          geometria per assegnare i materiali distruggeva le fughe. */
       mesh.material = laScocca
+      /* `aoMap` LEGGE `uv1`, NON `uv`, e questo modello ha un solo set.
+         Senza questa riga l'occlusione non compare — e NON DA' NESSUN ERRORE:
+         e' la stessa famiglia dell'`anisotropy` senza tangenti che ha spento
+         l'intera scena in silenzio. Un guasto che restituisce un risultato
+         plausibile invece di gridare.
+         Il modo per accorgersene subito e' alzare `aoMapIntensity` a 3 e
+         guardare: se non cambia niente, `uv1` non c'e'. */
+      const geo = mesh.geometry
+      if (!geo.attributes.uv1 && geo.attributes.uv) {
+        geo.setAttribute('uv1', geo.attributes.uv)
+      }
       /* LE QUOTE DELLA CARROZZERIA, per la maschera del canopy.
          La maschera adesso si chiava sull'ALTEZZA e non sul colore (vedi
          `scocca()`), e un'altezza normalizzata ha bisogno di sapere dove

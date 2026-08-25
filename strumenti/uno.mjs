@@ -52,6 +52,7 @@ await p.waitForFunction(
   () => (window.esperienza?.ruote?.ruoteVere?.length ?? 0) >= 4,
   null, { timeout: 120000 },
 ).catch(() => console.log('  (ATTENZIONE: le ruote vere non sono arrivate, nel provino ci sono i segnali)'))
+await p.addInitScript((v) => { if (v !== undefined) globalThis.__ao = v }, process.argv[5] ? Number(process.argv[5]) : undefined)
 await p.evaluate(() => window.fissaQualita('alto'))
 /* SI PUO' CHIEDERE UNA FINITURA DIVERSA: `node uno.mjs <t> <nome> <indice>`.
    Serve perche' i difetti della carrozzeria NON SI VEDONO TUTTI SULLO STESSO
