@@ -237,7 +237,16 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
   const faccia = meta * 0.55 * verso
 
   // il cerchietto esterno, quello che prende la luce di taglio
-  const labbro = new Mesh(new RingGeometry(0.230, RAGGIO_CERCHIO - 0.002, 64), M.cerchio)
+/* IL LABBRO SI ALLARGA DA 16 A 26 mm, e la ragione e' la distanza.
+     Sedici millimetri su una ruota che nel fotogramma della hero e' larga
+     sessanta pixel fanno TRE PIXEL: il bordo del cerchio c'era ma non si
+     leggeva, e il committente ha visto quello che si vedeva — «hai lasciato
+     senza cerchi». Su una ruota vera il labbro e' la parte che prende la luce
+     di taglio e disegna il bordo contro il nero della gomma: se sparisce,
+     spariscono i cerchi anche se ci sono.
+     Ventisei millimetri sono ancora meno del labbro di un cerchio da corsa, e
+     bastano a tenere la circonferenza chiusa a questa distanza. */
+  const labbro = new Mesh(new RingGeometry(0.222, RAGGIO_CERCHIO - 0.001, 64), M.cerchio)
   labbro.position.z = meta * 0.84 * verso
   labbro.rotation.y = verso < 0 ? Math.PI : 0
   labbro.name = 'CERCHIO_VERO'
@@ -301,13 +310,24 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
      parete laterale: un cilindro aperto che va dal filo del cerchio fino in
      fondo, piu' il fondo stesso. Cosi' non c'e' nessun angolo da cui si veda
      attraverso. */
-  const canna = new Mesh(new CylinderGeometry(0.238, 0.238, 0.150, 40, 1, true), M.cavita)
+/* IL RAGGIO DELLA CANNA STA SOTTO IL LABBRO, e sbagliarlo cancella il
+     cerchio. Le misure in gioco sono tre e vanno lette insieme: le razze
+     arrivano a 0,230, il labbro e' l'anello fra 0,230 e 0,246, e il tallone
+     della gomma comincia a 0,248.
+     Avevo dato alla canna 0,238 — cioe' IN MEZZO al labbro. Essendo nera gli
+     passava sopra e lo spegneva: nel provino le razze finivano nel vuoto e
+     fra loro e il pneumatico restava un anello scuro. Il committente:
+     «hai lasciato senza cerchi».
+     A 0,226 la canna sta tutta dentro il vano, il labbro resta in vista e
+     continua a fare il suo mestiere — prendere la luce di taglio, che e' la
+     cosa che disegna il bordo del cerchio contro la gomma. */
+  const canna = new Mesh(new CylinderGeometry(0.226, 0.226, 0.150, 40, 1, true), M.cavita)
   canna.rotation.x = Math.PI / 2
   canna.position.z = faccia - 0.058 * verso
   canna.name = 'CAVITA_RUOTA'
   g.add(canna)
 
-  const buio = new Mesh(new CylinderGeometry(0.240, 0.240, 0.004, 32), M.cavita)
+  const buio = new Mesh(new CylinderGeometry(0.228, 0.228, 0.004, 32), M.cavita)
   buio.rotation.x = Math.PI / 2
   buio.position.z = faccia - 0.130 * verso
   buio.name = 'CAVITA_RUOTA'
