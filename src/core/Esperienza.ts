@@ -31,6 +31,7 @@ import { SMAAPass } from 'three/examples/jsm/postprocessing/SMAAPass.js'
 import { Regia, morbido, CONFINI } from './Regia'
 import { Scorrimento } from './Scorrimento'
 import { AUTO, costruisciAmbiente, costruisciEsterno, normaliMarmo } from '../scene/Esterno'
+import { fanale } from '../scene/Fanale'
 import { montaPanorama, raccoglitoreOmbra } from '../scene/Panorama'
 import { ALTEZZA_PIATTAFORMA, applicaSpecchio, costruisciPiattaforma } from '../scene/Piattaforma'
 import { Matrix4 } from 'three'
@@ -1015,6 +1016,23 @@ export class Esperienza {
        ruota. La geometria nasce in coordinate del mondo — si legge dai vertici
        veri della carrozzeria — quindi va riportata nello spazio del perno
        prima di appenderla, o si troverebbe applicata due volte la stessa posa. */
+    /* IL FANALE POSTERIORE, che fino a ieri era un colore dentro la mappa.
+       Sta appeso al perno come il sottoscocca e per la stessa ragione: e' un
+       pezzo DELL'AUTOMOBILE e deve girare con lei. Le sue coordinate sono
+       misurate sui vertici rossi della carrozzeria — vedi «scene/Fanale.ts». */
+    const coda = fanale()
+    /* E SI RIPORTA NELLO SPAZIO DEL PERNO, come il sottoscocca due righe sotto.
+       Le sue coordinate nascono in coordinate del MONDO — `dovilrosso.mjs`
+       misura i vertici rossi dopo `applyMatrix4(matrixWorld)` — e appenderle a
+       un perno che ha gia' la sua posa vuol dire applicarla due volte.
+       Nel primo provino il fanale galleggiava in aria dietro l'automobile, un
+       metro piu' in alto e mezzo piu' indietro. Non e' un errore di misura: e'
+       un errore di SPAZIO, ed e' il piu' facile da fare e il piu' facile da
+       vedere — cosa che l'ha reso, per una volta, economico. */
+    coda.applyMatrix4(new Matrix4().copy(perno.matrixWorld).invert())
+    coda.traverse((o) => o.layers.enable(LIVELLO_SOGGETTO))
+    perno.add(coda)
+
     const sotto = sottoscocca(perno, ALTEZZA_PIATTAFORMA)
     if (sotto) {
       sotto.applyMatrix4(new Matrix4().copy(perno.matrixWorld).invert())
