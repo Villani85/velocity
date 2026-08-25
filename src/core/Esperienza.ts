@@ -38,7 +38,7 @@ import { Matrix4 } from 'three'
 
 import { ombraDiContatto } from '../scene/Appoggio'
 import { trovaArchi } from '../scene/Ruote'
-import { sottoscocca } from '../scene/Sottoscocca'
+import { sottoscocca, piantaSottoscocca } from '../scene/Sottoscocca'
 import { Ruote } from '../scene/Ruote'
 import { vestiAuto, LIVELLO_SOGGETTO } from '../scene/Materiali'
 import { caricaFaro, innestaFaro, type Faro } from '../scene/Faro'
@@ -1035,7 +1035,15 @@ export class Esperienza {
        precisa: e' `esterno` a ruotare (vedi `rotazioneScena`), e ruotando
        porta con se' sia la vettura sia la piattaforma. Appendendola al perno
        si sarebbe sommata due volte alla stessa rotazione. */
-    this.esterno.add(ombraDiContatto(misura.x, misura.z, trovaArchi(perno)))
+    /* LA PIANTA SI MISURA UNA VOLTA SOLA e la usano in due: l'ombra qui sotto e
+       la minigonna piu' avanti. Non e' un'economia di calcolo — sono due letture
+       da sessantacinquemila vertici, roba da un millesimo — e' che il buio deve
+       avere ESATTAMENTE la forma del pezzo che lo produce. Quando erano due
+       disegni indipendenti divergevano lungo il fianco, e li' il bordo netto
+       della minigonna atterrava su pavimento acceso: il «blocco geometrico»
+       che il committente ha segnalato. */
+    const pianta = piantaSottoscocca(perno)
+    this.esterno.add(ombraDiContatto(misura.x, misura.z, trovaArchi(perno), pianta?.raggi ?? null))
     /* E IL SOTTOSCOCCA, che e' l'altra meta' — quella che l'ombra non poteva
        fare. Vedi «scene/Sottoscocca.ts»: la scocca ha il fondo piatto a 0,291 e
        la pedana sta a 0,110, quindi sotto la vettura restavano diciotto
@@ -1062,7 +1070,7 @@ export class Esperienza {
     coda.traverse((o) => o.layers.enable(LIVELLO_SOGGETTO))
     perno.add(coda)
 
-    const sotto = sottoscocca(perno, ALTEZZA_PIATTAFORMA)
+    const sotto = sottoscocca(perno, ALTEZZA_PIATTAFORMA, pianta)
     if (sotto) {
       sotto.applyMatrix4(new Matrix4().copy(perno.matrixWorld).invert())
       sotto.layers.enable(LIVELLO_SOGGETTO)

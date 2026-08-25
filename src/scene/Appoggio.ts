@@ -78,7 +78,7 @@ const STACCO = 0.004
  * gradiente non ha frequenze alte da conservare, quindi la risoluzione in
  * eccesso e' solo memoria video buttata.
  */
-function macchia(ruote: Ruota[], L_m: number, A_m: number): CanvasTexture {
+function macchia(ruote: Ruota[], L_m: number, A_m: number, pianta: Float32Array | null): CanvasTexture {
   const L = 512
   const A = 256
   const c = document.createElement('canvas')
@@ -108,6 +108,66 @@ function macchia(ruote: Ruota[], L_m: number, A_m: number): CanvasTexture {
   }
 
   g.globalCompositeOperation = 'lighter'
+
+  /* PRIMA DI TUTTO IL RESTO: LA SAGOMA VERA DELLA MINIGONNA.
+   *
+   * Questo blocco nasce da un difetto che il committente ha segnalato piu'
+   * volte e che io ho attribuito due volte all'oggetto sbagliato — «un blocco
+   * geometrico grigio sotto la scocca». La prima volta ho abbassato
+   * l'emissione della minigonna da 0,95 a 0,12, e serviva; la seconda stavo per
+   * abbassarla ancora, e la misura mi ha fermato: su quel pezzo l'emissione
+   * pesa 1,2 livelli su 12,9, cioe' il NOVE PER CENTO. Non era lei.
+   *
+   * Il difetto non e' quanto e' chiara la minigonna: e' che il suo bordo basso
+   * e' una LINEA NETTA che finisce su un pavimento a mezza luce. Un profilo
+   * duro contro uno sfondo piu' chiaro si legge come un ritaglio incollato, e
+   * nessuna taratura del materiale lo cura — perche' il problema non sta nel
+   * pezzo, sta in cio' che gli sta SOTTO.
+   *
+   * E il motivo per cui non stava sotto: l'ombra era un'ellisse morbida
+   * disegnata a mano, la minigonna una sagoma misurata sui vertici. Due forme
+   * diverse per lo stesso oggetto. Lungo il fianco l'ellisse si spegneva prima,
+   * quindi proprio dove il bordo tocca terra il pavimento era ancora acceso.
+   *
+   * Adesso il buio ha la forma dell'oggetto che lo produce, perche' e' LA STESSA
+   * ARRAY — vedi `piantaSottoscocca`. Non si possono piu' scollare.
+   *
+   * IL DEBORDO E LA SFOCATURA. Il poligono si gonfia del quattro per cento e si
+   * sfoca: un'occlusione non finisce dove finisce l'oggetto, e un bordo netto
+   * nell'ombra sarebbe lo stesso difetto spostato di dieci centimetri. La tela
+   * e' 512 su 5,4 metri, cioe' 94 pixel al metro: sedici pixel di sfocatura
+   * sono diciassette centimetri di raccordo.
+   *
+   * E NON E' NERO PIENO — 0,90. A uno la pedana sparirebbe del tutto sotto la
+   * vettura e il basamento diventerebbe un buco: si perderebbe il riflesso, che
+   * e' l'altra meta' di quello che dice «appoggia». */
+  if (pianta && pianta.length > 2) {
+    const S = pianta.length
+    g.save()
+    /* VENTISEI PIXEL E NON SEDICI, cioe' ventotto centimetri di raccordo.
+       Con sedici il pavimento sotto il bordo scendeva da 46,8 a 40,8 — un calo
+       vero ma inutile, perche' il bordo restava a 3,4 volte il pezzo che gli
+       sta sopra e la linea si vedeva ancora. La coda va misurata su QUANTO
+       PAVIMENTO SI VEDE, non su quanto e' larga la vettura: sotto il brancardo
+       l'occhio ne prende una trentina di centimetri, e una coda piu' corta di
+       quella lascia scoperto proprio il pezzo che conta. */
+    g.filter = 'blur(26px)'
+    g.beginPath()
+    for (let k = 0; k <= S; k++) {
+      const j = k % S
+      const ang = (j / S) * Math.PI * 2 - Math.PI
+      const r = pianta[j] * 1.10
+      const px = ((Math.cos(ang) * r + L_m / 2) / L_m) * L
+      const py = ((Math.sin(ang) * r + A_m / 2) / A_m) * A
+      if (k === 0) g.moveTo(px, py)
+      else g.lineTo(px, py)
+    }
+    g.closePath()
+    g.fillStyle = 'rgba(255,255,255,0.95)'
+    g.fill()
+    g.restore()
+  }
+
   // la campata: tutta l'aria chiusa sotto la vettura
   /* PIU' FITTA E PIU' STRETTA DI PRIMA, e la ragione e' la stessa del
      sottoscocca: a qualita' media la pedana non riflette quasi niente, e questa
@@ -156,10 +216,12 @@ export function ombraDiContatto(
   lunghezza: number,
   larghezza: number,
   ruote: Ruota[] = [],
+  /** la pianta misurata della vettura: e' la stessa che costruisce la minigonna */
+  pianta: Float32Array | null = null,
 ): Mesh {
   const L_m = lunghezza * 1.20
   const A_m = larghezza * 1.62
-  const t = macchia(ruote, L_m, A_m)
+  const t = macchia(ruote, L_m, A_m, pianta)
   const m = new MeshBasicMaterial({
     color: 0x000000,
     // la tela porta la forma nell'alfa: `alphaMap` legge il canale verde, che

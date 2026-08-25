@@ -91,8 +91,30 @@ const RIENTRO = 0.955
 const LUCE_A_TERRA = 0.012
 /** quanti settori: a 128 l'errore sul profilo sta sotto il centimetro */
 const SETTORI = 128
+/** a che frazione dell'altezza sta l'anello di mezzo: il colmo della luce */
+const VENTRE = 0.45
 
-export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): Mesh | null {
+/**
+ * LA PIANTA VERA DELLA VETTURA, e adesso e' un pezzo a se'.
+ *
+ * Era codice privato di `sottoscocca`, ed e' uscito perche' serve a DUE
+ * clienti: la minigonna, che su questa sagoma costruisce la sua parete, e
+ * l'ombra di contatto, che su questa sagoma deve buttare il suo scuro.
+ *
+ * PERCHE' NON BASTAVA COPIARLA. Finche' l'ombra era un'ellisse morbida
+ * disegnata a mano e la minigonna una sagoma misurata sui vertici, le due
+ * forme NON COINCIDEVANO — e il difetto non era che l'ombra fosse poco
+ * scura: era che il bordo basso della minigonna, che e' una linea netta,
+ * andava a finire su un pavimento a mezza luce. Un profilo duro contro uno
+ * sfondo chiaro si legge come un RITAGLIO, ed e' esattamente la parola che
+ * ha usato il committente: «un blocco geometrico sotto la scocca».
+ *
+ * Passandola invece di ridisegnarla, le due forme non possono divergere per
+ * costruzione. E' la stessa ragione per cui le impronte delle gomme arrivano
+ * da `trovaArchi` e non da tre numeri scritti a mano: un'ombra fuori posto si
+ * nota molto piu' di un'ombra che manca.
+ */
+export function piantaSottoscocca(auto: Object3D): { raggi: Float32Array; fondo: number } | null {
   auto.updateWorldMatrix(true, true)
 
   /* IL FONDO VERO E' QUELLO DELLA SCOCCA, non della scatola di tutto l'insieme.
@@ -146,6 +168,22 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
   for (let k = 0; k < SETTORI; k++) {
     lisci[k] = (raggi[(k - 1 + SETTORI) % SETTORI] + raggi[k] * 2 + raggi[(k + 1) % SETTORI]) / 4
   }
+  return { raggi: lisci, fondo }
+}
+
+export function sottoscocca(
+  auto: Object3D,
+  quotaPiano = ALTEZZA_PIATTAFORMA,
+  /* SI PUO' PASSARE GIA' MISURATA. Chi costruisce la scena la calcola una
+     volta e la da' sia all'ombra sia a questa: leggere sessantacinquemila
+     vertici due volte non e' un problema di prestazioni, e' un modo di
+     avere due verita' dove ne serve una. */
+  piantaGia: { raggi: Float32Array; fondo: number } | null = null,
+): Mesh | null {
+  const pianta = piantaGia ?? piantaSottoscocca(auto)
+  if (!pianta) return null
+  const lisci = pianta.raggi
+  const fondo = pianta.fondo
 
   const cima = fondo + 0.012
   const orlo = Math.max(quotaPiano + LUCE_A_TERRA, cima - 0.34)
@@ -268,7 +306,23 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
     // dove la finestra e' chiusa la minigonna ha altezza zero e il rientro non
     // ha piu' senso: si riporta a uno, o il bordo alto si stringerebbe da solo
     const rientro = 1 - (1 - RIENTRO) * f
+    /* TRE ANELLI E NON DUE, ed e' la cura vera del «blocco geometrico».
+       Con due anelli il tono puo' solo essere una RAMPA: un capo chiaro, un
+       capo scuro, e in mezzo l'interpolazione. Una rampa su una parete lunga
+       quattro metri e' precisamente l'aspetto di un cartoncino verniciato a
+       sfumare — non c'e' nessuna quota a cui succede qualcosa.
+       Su un'automobile vera sotto il brancardo il tono e' una FASCIA: buio
+       dove il pezzo si infila sotto la scocca, chiaro a meta' altezza dove la
+       parete vede il pavimento lontano, buio di nuovo sull'orlo perche' li'
+       sotto c'e' un centimetro d'aria e non ci arriva piu' niente. Scuro,
+       chiaro, scuro: sono tre valori, e tre valori vogliono tre anelli.
+       Il ventre sta al quarantacinque per cento e non a meta': la parete
+       rientra scendendo, quindi la meta' geometrica cade piu' in dentro di
+       quanto l'occhio si aspetti il colmo della luce. */
+    const rv = r * (1 - (1 - rientro) * VENTRE)
+    const yv = cima - (cima - giu) * VENTRE
     punti.push(cx * r, cima, cz * r)
+    punti.push(cx * rv, yv, cz * rv)
     punti.push(cx * r * rientro, giu, cz * r * rientro)
     /* IL COLORE MOLTIPLICA, quindi il gradiente si fa AL CONTRARIO di come
        verrebbe da pensarlo: la tinta del materiale e' quella dell'ORLO — la
@@ -291,22 +345,43 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
        direzione della luce non cambia e il vecchio avvertimento — «mettere
        luce in cima direbbe che sotto c'e' spazio» — continua a essere onorato:
        li' non si mette luce, si toglie il gradino. */
-    colori.push(0.38, 0.38, 0.38)
+    colori.push(0.30, 0.30, 0.30)
     colori.push(1, 1, 1)
+    /* E L'ORLO A 0,22, DOVE PRIMA STAVA A 1 — cioe' al MASSIMO.
+       Questo era un errore di fisica, e il commento qui sopra lo difendeva con
+       convinzione: «la luce viene dal pavimento, quindi l'orlo e' la parte
+       chiara». Il ragionamento vale per una parete che il pavimento lo VEDE.
+       L'orlo sta a dodici millimetri da terra: da li' si vede una fessura di
+       un centimetro e nient'altro, ed e' il punto piu' occluso di tutta la
+       scena. Mettere li' il massimo del colore di vertice E il picco della
+       mappa di emissione voleva dire accendere esattamente il pixel che
+       dev'essere il piu' scuro — ed e' quello il cuneo chiaro che il
+       committente ha cerchiato.
+       Cio' che il vecchio commento aveva ragione a temere resta vero: se si
+       spegne TUTTA la fascia si ottiene un ritaglio nero, e a zero era 0,5 su
+       255. Ma qui non si spegne la fascia: si spegne l'ultimo quinto, e quel
+       buio non e' un buco — e' la stessa ombra che c'e' per terra un
+       centimetro piu' sotto, quindi i due neri si saldano invece di fare un
+       gradino. E' proprio quella saldatura che toglie il bordo netto. */
+    colori.push(0.22, 0.22, 0.22)
     /* E LE UV, che questa geometria non aveva: v = 1 in cima, 0 all'orlo.
        Servono alla mappa di emissione qui sotto — e' l'unico modo di sagomare
        l'emissione con three di serie, perche' `vertexColors` moltiplica il
        DIFFUSO e non l'emissione. */
     uv.push(0.5, 1)
+    uv.push(0.5, 0.55)
     uv.push(0.5, 0)
     // la normale punta in fuori e un po' in basso, come la parete che descrive
     n.set(cx, -0.32 * f, cz).normalize()
-    norm.push(n.x, n.y, n.z, n.x, n.y, n.z)
+    norm.push(n.x, n.y, n.z, n.x, n.y, n.z, n.x, n.y, n.z)
   }
   for (let k = 0; k < SETTORI; k++) {
-    const a = k * 2
-    const b = ((k + 1) % SETTORI) * 2
+    const a = k * 3
+    const b = ((k + 1) % SETTORI) * 3
+    // la fascia alta, dal sottoscocca al ventre
     indici.push(a, b, a + 1, b, b + 1, a + 1)
+    // e quella bassa, dal ventre all'orlo
+    indici.push(a + 1, b + 1, a + 2, b + 1, b + 2, a + 2)
   }
 
   /* E IL FONDO SI CHIUDE con un ventaglio fino al centro. Senza, guardando da
@@ -316,10 +391,13 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
   punti.push(0, orlo, 0)
   norm.push(0, -1, 0)
   // il vertice del fondo sta all'orlo, quindi prende il colore dell'orlo
-  colori.push(1, 1, 1)
+  // il vertice del fondo sta all'orlo e ne prende il colore, che adesso e' il
+  // piu' scuro: il ventre dell'automobile e' la superficie meno illuminata che
+  // esista in questa scena, e finalmente lo dice
+  colori.push(0.22, 0.22, 0.22)
   uv.push(0.5, 0)
   for (let k = 0; k < SETTORI; k++) {
-    indici.push(centro, ((k + 1) % SETTORI) * 2 + 1, k * 2 + 1)
+    indici.push(centro, ((k + 1) % SETTORI) * 3 + 2, k * 3 + 2)
   }
 
   const g = new BufferGeometry()
@@ -379,7 +457,16 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
 
      FREDDO: la pietra della pedana e' grigio-azzurra, non ambra. Il rimando
      prende il suo colore, non quello delle gole calde. */
-  m.color.setRGB(0.105, 0.120, 0.145)
+  /* E LA TINTA SCENDE DEL TRENTA PER CENTO, perche' adesso rappresenta un'altra
+     quota. Il colore del materiale e' quello del vertice a UNO, e con due anelli
+     quel vertice era l'ORLO; con tre e' il VENTRE, che sta a meta' parete ed e'
+     molto piu' esposto — piu' pixel, e piu' di faccia. Lasciata com'era, la
+     fascia di luce arrivava a 28 contro i 15 di prima: non perche' la manopola
+     fosse cambiata, ma perche' era stata tarata su una quota diversa.
+     E' lo stesso inganno dell'emissione qui sotto, e vale la pena dirlo due
+     volte: quando si sposta DOVE agisce un valore, il valore va ritarato anche
+     se non lo si tocca. */
+  m.color.setRGB(0.074, 0.084, 0.102)
 
   /* ============================================================ LA LUCE PROPRIA
 
@@ -424,7 +511,17 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
        stia tutto sull'ORLO invece di essere spalmato su tutta la fascia. Una
        caduta piu' ripida da' una riga di contatto, una piu' dolce da' un
        pannello — ed e' il pannello il difetto. */
-    const f = Math.pow(1 - v, 6.0)
+    /* UNA CAMPANA CENTRATA SUL VENTRE, e non piu' una rampa che culmina
+       sull'orlo. Stesso errore corretto qui sopra sui colori di vertice, e
+       stessa correzione: l'orlo e' il punto piu' occluso della scena, quindi
+       il rimando del pavimento li' non arriva. Arriva a meta' altezza, dove
+       la parete vede il pavimento a qualche decimetro di distanza.
+       La campana muore a tutti e due i capi — 0,013 sull'orlo, 0,0003 in cima
+       — quindi non riaccende ne' il bordo basso ne' il rientro sotto il
+       brancardo. E cade sullo stesso punto in cui il colore di vertice fa uno,
+       cioe' le due cose sommano dove devono invece di combattersi. */
+    const d = (v - 0.42) / 0.30
+    const f = Math.exp(-d * d * 2.2)
     const c = Math.round(f * 255)
     gc.fillStyle = 'rgb(' + c + ',' + c + ',' + c + ')'
     gc.fillRect(0, 63 - i, 1, 1)
@@ -454,7 +551,28 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
      Resta acceso un filo — 0,12 — perche' il difetto di partenza era vero: a
      zero la fascia era 0,5 su 255, cioe' un ritaglio nero. Un filo sull'orlo
      racconta il contatto senza costruire un pannello. */
-  m.emissiveIntensity = 0.12
+  /* 0,03 E NON 0,12, E IL NUMERO NON E' STATO SCELTO: E' STATO CALCOLATO.
+     Quando la mappa era una rampa che moriva in un filo sull'orlo, 0,12 valeva
+     1,2 livelli su 12,9 — il nove per cento, ininfluente. Sostituita la rampa
+     con una campana centrata sul ventre, LA STESSA INTENSITA' e' passata a
+     valere 12 livelli sulla fascia e 24,5 sull'orlo: la minigonna e' salita da
+     12,9 a 27,8 ed e' diventata piu' chiara del pavimento su cui appoggia,
+     cioe' il difetto ribaltato.
+     Non e' cambiata la manopola, e' cambiata l'AREA su cui agisce. Una campana
+     larga trenta centesimi integra circa sette volte una potenza sesta, quindi
+     la stessa intensita' emette sette volte piu' luce. E' una trappola che non
+     da' nessun segnale: si sposta un picco convinti di spostare la luce, e si
+     moltiplica la quantita'.
+     La verifica che ha dato il numero: spegnendo la sola emissione la fascia
+     misura 14,6 e l'orlo 8,3 — cioe' il diffuso a tre anelli fa gia' tutto il
+     lavoro da solo, e l'orlo e' finalmente la parte piu' scura del pezzo. Qui
+     serve un accenno, non una sorgente: 0,03 rimette un paio di livelli sul
+     ventre e lascia l'orlo dov'e'.
+     E cade anche il vecchio timore, che pero' era giusto quando e' stato
+     scritto: «a zero la fascia e' un ritaglio nero, 0,5 su 255». Lo era con due
+     anelli e il colore piatto. Con tre anelli, a emissione spenta, sono 14,6:
+     una superficie scura leggibile, non un buco. */
+  m.emissiveIntensity = 0.03
   m.name = 'SOTTOSCOCCA'
 
   /* ============================================================ IL RIMANDO
