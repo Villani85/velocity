@@ -82,6 +82,26 @@ export type Impostazioni = {
    * quarto del lavoro alla scheda, ne toglie il quarantaquattro per cento.
    * Ed e' anche quella che si vede meno, perche' tutto il resto della scena
    * e' morbido — nebbia, riflessi sfocati, bloom.
+   *
+   * ATTENZIONE A COSA E' QUESTO NUMERO NELLA TABELLA: e' il tetto DEL
+   * LIVELLO, cioe' quanto quel livello si spingerebbe a chiedere, non quello
+   * che il renderer riceve. Il numero applicato esce da tre tappi in fila, e
+   * il minore vince:
+   *
+   *     il tetto del livello        (questa colonna)
+   *     il tetto dello schermo      (`tettoPerLarghezza`, qui sotto)
+   *     la densita' vera            (`devicePixelRatio`, in `Esperienza`)
+   *
+   * `Qualita.impostazioni` restituisce il record gia' abbassato ai primi due;
+   * il terzo lo chiude `Esperienza` con il `Math.min(devicePixelRatio, ...)`
+   * che ha gia'. Sono tre tappi diversi, non tre copie dello stesso: nessuno
+   * dei tre puo' restare indietro rispetto agli altri, perche' ognuno sa una
+   * cosa che gli altri due non sanno.
+   *
+   * Chi legge `IMPOSTAZIONI[...].pixelRatio` a mano sta quindi leggendo
+   * l'ambizione del livello e non la decisione — lo fa `strumenti/qualita.mjs`
+   * apposta, per misurare cosa costa una densita' doppia su un browser di
+   * prova che gira a densita' 1.
    */
   readonly pixelRatio: number
 
@@ -330,6 +350,114 @@ export const IMPOSTAZIONI: Record<Livello, Impostazioni> = {
 // piccoli, e su una scheda integrata quei sei passaggi valgono da soli piu'
 // dell'occlusione. E l'accensione del quadro non si perde del tutto senza
 // bloom — resta un rettangolo che si illumina, solo senza alone.
+
+/* ------------------------------------------------------------------- */
+/* IL RAPPORTO DI PIXEL VA AL CONTRARIO: MENO SUL GRANDE, PIU' SUL PICCOLO */
+/* ------------------------------------------------------------------- */
+
+/** sopra questa larghezza in pixel CSS la finestra e' «grande» */
+const SOGLIA_LARGHEZZA = 768
+/** il tetto sulle finestre grandi */
+const TETTO_GRANDE = 1.25
+/** e quello sulle finestre piccole */
+const TETTO_PICCOLO = 2
+
+/**
+ * IL TETTO ALLA DENSITA' LO DECIDE LA LARGHEZZA DELLA FINESTRA.
+ *
+ *     larghezza  > 768   ->   1,25
+ *     larghezza <= 768   ->   2
+ *
+ * La prima volta che si legge sembra un errore di battitura, perche' e' il
+ * ROVESCIO di quello che fa quasi tutto il resto del mestiere: il telefono —
+ * la macchina debole — riceve la densita' ALTA, e il desktop — la macchina
+ * forte — quella bassa. La regola non guarda nemmeno che apparecchio sia:
+ * guarda quanto e' larga la finestra, che e' una cosa diversa.
+ *
+ * LA RAGIONE E' FISICA, E STA NEL RIEMPIMENTO INVECE CHE NELLA POTENZA.
+ *
+ * Il prezzo di un passaggio a schermo intero non dipende da quanto e' brava
+ * la scheda: dipende da quanti pixel deve ombreggiare, e quel numero cresce
+ * col QUADRATO della densita'. Su questa scena i passaggi a schermo intero
+ * sono quattro — il riflesso planare, l'occlusione ambientale a sedici
+ * campioni per pixel, la catena del bloom su sei bersagli, il grado finale —
+ * e su una finestra grande sono il costo dominante, molto piu' della
+ * geometria. Raddoppiare la densita' su 1440x900 vuol dire quattro volte
+ * quel costo. Un telefono ha un canvas piccolo: la' la densita' alta si paga
+ * su pochi pixel in assoluto, e in cambio si vede davvero, perche' un
+ * pannello a 3x lo si guarda a venticinque centimetri dagli occhi.
+ *
+ * I conti, sui due casi:
+ *
+ *     desktop 1440x900 a densita' 2      2880x1800 = 5,2 milioni di pixel
+ *     lo stesso desktop a 1,25           1800x1125 = 2,0 milioni
+ *     telefono 390x844 a densita' 3      1170x2532 = 3,0 milioni
+ *     lo stesso telefono a 2              780x1688 = 1,3 milioni
+ *
+ * Cioe' anche DOPO aver rovesciato la regola il desktop continua a ombreggiare
+ * una volta e mezza i pixel del telefono. Non si sta dando piu' lavoro alla
+ * macchina piccola: si sta smettendo di darne una quantita' assurda a quella
+ * grande.
+ *
+ * DA DOVE VIENE, ED E' MISURATA. E' la scelta del sito di Lando Norris, Site
+ * of the Year 2025 di Awwwards, verificata sul loro sito: un desktop 1440x900
+ * con `devicePixelRatio` 2 produce un buffer di 1800x1125, cioe' 1,25x; un
+ * iPhone con `devicePixelRatio` 3 produce 780x1688, cioe' 2x. Il sito
+ * dell'anno sotto-campiona il desktop del 37 per cento per lato — il 61 per
+ * cento dei pixel — e nessun giurato se n'e' accorto.
+ *
+ * PERCHE' NON SE NE ACCORGE NESSUNO, e vale anche qui: una scena notturna con
+ * nebbia, riflessi sfocati e bloom non ha bordi duri da perdere, e la scaletta
+ * che la densita' bassa farebbe emergere — quella sui fili di luce sottili,
+ * l'unico difetto di aliasing che in questo progetto qualcuno ha davvero
+ * indicato col dito — la cura l'antialiasing speculare dentro lo shader
+ * (`scene/Nitidezza.ts`), che sta nella matematica del materiale e non costa
+ * un pixel.
+ *
+ * QUI SERVE A COMPRARE MARGINE NELL'ABITACOLO, che e' il tratto in cui il
+ * costo per fotogramma e' piu' alto: dentro, la fotografia da 2560 px, il
+ * quadro che fiorisce e il vetro riempiono lo schermo intero e non c'e' piu'
+ * niente fuori campo da non disegnare.
+ *
+ * E' UNA SCELTA DELLA SOGLIA DI PARTENZA, NON UN SECONDO SISTEMA. Il gestore
+ * qui sotto continua a fare esattamente il suo mestiere: misura, e se i
+ * fotogrammi restano lunghi scende di livello lungo `SCALA` togliendo
+ * riflesso, occlusione, multicampione, ombra e luci. Questa riga decide solo
+ * da dove si parte.
+ *
+ * COSA SI PERDE, e va detto perche' e' un prezzo vero. Su un desktop a
+ * densita' 2 i livelli alto, medio e basso finiscono tutti e tre a 1,25,
+ * perche' 1,25 e' gia' sotto i loro tetti (2 / 1,5 / 1,25): su quel tipo di
+ * schermo la risoluzione smette di essere una manopola del degrado e restano
+ * le altre. Si accetta per due motivi. Il primo e' che si PARTE da dove prima
+ * si arrivava scendendo di due livelli — il margine c'e' gia' dal primo
+ * fotogramma invece di doverlo andare a prendere soffrendo tre secondi. Il
+ * secondo e' che su un desktop a densita' 1, che e' la maggioranza, non cambia
+ * assolutamente niente: li' i quattro livelli erano gia' appiattiti a 1 dal
+ * tappo sul `devicePixelRatio`, e nessuno l'ha mai chiamato un difetto.
+ *
+ * DUE COSE SCARTATE.
+ *
+ * Riscalare l'intera scala sul desktop (1,25 / 0,94 / 0,78 / 0,63) per
+ * riavere i gradini: sarebbero quattro numeri che nessuno ha misurato, e
+ * sotto 1 il sotto-campionamento comincia a mangiare i bordi delle insegne,
+ * che sono l'unica cosa in scena con del testo dentro.
+ *
+ * Mettere il tetto in `Esperienza`, accanto al `Math.min(devicePixelRatio,
+ * ...)` che gia' c'e': sarebbero due numeri sulla stessa cosa in due file
+ * diversi, ed e' il difetto che questo progetto ha gia' pagato — uno dei due
+ * resta indietro, non da' nessun errore, e mente. Il tetto sta qui, dove sta
+ * gia' la tabella dei livelli; `Esperienza` conserva un solo compito, chiudere
+ * sulla densita' vera dell'apparecchio, che e' l'unica cosa che sa lei.
+ *
+ * LA LARGHEZZA E' `innerWidth`, in pixel CSS come chiede la regola. Scartato
+ * `documentElement.clientWidth`, che toglierebbe la barra di scorrimento:
+ * costa una lettura che forza il calcolo del layout, e i quindici pixel di
+ * differenza contano solo per chi ha la finestra larga esattamente 768.
+ */
+export function tettoPerLarghezza(larghezza: number = innerWidth): number {
+  return larghezza > SOGLIA_LARGHEZZA ? TETTO_GRANDE : TETTO_PICCOLO
+}
 
 /* ------------------------------------------------------------------ */
 /* GLI INDIZI: cosa si puo' sapere PRIMA di aver disegnato un fotogramma */
@@ -598,6 +726,31 @@ export class Qualita {
   readonly indizi: Indizi
 
   /**
+   * IL TETTO ALLA DENSITA' DECISO DALLA LARGHEZZA — letto UNA VOLTA sola.
+   *
+   * Congelato apposta, e non per pigrizia. `Esperienza` porta il rapporto di
+   * pixel sul renderer in due soli momenti — alla costruzione e al cambio di
+   * livello — e non lo rifa' al ridimensionamento, perche' rifarlo vorrebbe
+   * dire riallocare ogni bersaglio della catena a ogni fotogramma mentre si
+   * trascina il bordo della finestra. Se questo numero si leggesse dal vivo,
+   * fra un ridimensionamento e il cambio di livello successivo direbbe una
+   * cosa diversa da quella che il renderer sta davvero usando: di nuovo due
+   * numeri sulla stessa cosa e uno indietro, solo dentro lo stesso file.
+   * Congelato non puo' succedere, e il valore resta d'accordo con
+   * `renderer.getPixelRatio()` per tutta la visita.
+   *
+   * Il caso che sembra un difetto e non lo e': un telefono girato in
+   * orizzontale misura 844 px di larghezza, cioe' sopra la soglia, e si tiene
+   * il tetto del ritratto. Va bene cosi' — ruotare non cambia il numero di
+   * pixel da ombreggiare, solo la loro forma, quindi il costo di riempimento
+   * e' identico e non c'e' niente da correggere.
+   *
+   * Pubblico perche' `descrivi()` lo stampa: una decisione che non si vede nel
+   * registro e' una decisione che nessuno verifica.
+   */
+  readonly tettoPixel = tettoPerLarghezza()
+
+  /**
    * Si puo' spegnere l'adattamento e pilotare il livello a mano — serve a
    * `strumenti/qualita.mjs`, che deve poter misurare lo STESSO percorso sui
    * quattro livelli senza che il sistema glieli cambi sotto.
@@ -652,10 +805,32 @@ export class Qualita {
     query.addEventListener('change', (e) => { this.motoRidotto = e.matches })
   }
 
-  /** le impostazioni del livello corrente: dati, sempre gli stessi oggetti */
+  /**
+   * Le impostazioni del livello corrente, col rapporto di pixel GIA' ABBASSATO
+   * al tetto dello schermo. Chi chiama non deve sapere che esiste una soglia a
+   * 768: legge un numero e lo applica.
+   *
+   * IL RECORD RESTA LO STESSO OGGETTO finche' il livello non cambia, e non e'
+   * pignoleria: `Esperienza.fotogramma()` legge questo getter sessanta volte
+   * al secondo per decidere il riflesso, e costruire li' un oggetto nuovo a
+   * ogni giro vorrebbe dire regalare al raccoglitore di rifiuti sessanta
+   * oggetti al secondo — cioe' un fotogramma lungo ogni tanto, esattamente il
+   * difetto che questo modulo esiste per evitare.
+   *
+   * Si confronta `nome` e non l'oggetto perche' e' l'unico campo che dice da
+   * quale riga della tabella viene il record: la copia risolta non e' piu'
+   * identica a `IMPOSTAZIONI[livello]`, e paragonarli darebbe sempre diverso.
+   */
   get impostazioni(): Impostazioni {
-    return IMPOSTAZIONI[this.livello]
+    const base = IMPOSTAZIONI[this.livello]
+    if (!this.risolte || this.risolte.nome !== base.nome) {
+      this.risolte = { ...base, pixelRatio: Math.min(base.pixelRatio, this.tettoPixel) }
+    }
+    return this.risolte
   }
+
+  /** la copia risolta dell'ultimo livello chiesto: vedi il getter qui sopra */
+  private risolte: Impostazioni | null = null
 
   /** il tempo medio per fotogramma misurato adesso, in millisecondi */
   get millisecondi(): number {
@@ -781,8 +956,16 @@ export class Qualita {
   /** una riga per il registro: quello che si sapeva e quello che si e' deciso */
   descrivi(): string {
     const i = this.indizi
+    // IL RAPPORTO DI PIXEL SI STAMPA DUE VOLTE, E NON E' UNA RIPETIZIONE:
+    // `dpr` e' quello che offre l'apparecchio, `px` e' quello che il renderer
+    // ricevera' davvero — cioe' il minore fra la densita' vera, il tetto dello
+    // schermo e il tetto del livello. Senza il secondo numero, una finestra
+    // larga che sotto-campiona del 37 per cento e' una decisione invisibile, e
+    // le decisioni invisibili in questo progetto sono costate settimane.
+    const px = Math.min(i.dpr, this.impostazioni.pixelRatio)
     return `[qualita] ${this.livello} (voto ${i.punteggio}) ` +
-      `nuclei ${i.nucleo || '?'} mem ${i.memoria || '?'}GB dpr ${i.dpr} ` +
+      `nuclei ${i.nucleo || '?'} mem ${i.memoria || '?'}GB dpr ${i.dpr} px ${px} ` +
+      `(largo ${innerWidth}, tetto ${this.tettoPixel}) ` +
       `${i.grossolano ? 'dito' : 'mouse'} moto${this.motoRidotto ? 'Ridotto' : 'Pieno'} ` +
       `gpu "${i.gpu || 'nascosta'}"`
   }

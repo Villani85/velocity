@@ -1,0 +1,10 @@
+# PERCHE' ESISTE: senza questo file ogni crawler chiede /robots.txt e si
+# prende un 404. Qui il sito e' una pagina sola e non c'e' un percorso da
+# tenere fuori: dirlo per esteso costa due righe e non lascia da interpretare.
+User-agent: *
+Allow: /
+
+# NIENTE RIGA `Sitemap:`, E NON E' UNA DIMENTICANZA. Una sitemap vuole URL
+# assoluti e il dominio non e' ancora deciso (vedi VITE_SITO in .env.example):
+# un sitemap.xml con un indirizzo inventato manda i crawler su pagine che non
+# esistono. Quando il dominio ci sara': Sitemap: https://dominio/sitemap.xml

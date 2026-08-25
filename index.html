@@ -6,8 +6,14 @@
 <meta name="theme-color" content="#08090b" />
 <title>Giuseppe Villani — Freelance Creative Developer</title>
 <meta name="description" content="Non progetto pagine: progetto macchine in cui si entra. Siti web creativi, WebGL, motion, sistemi interattivi." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<!-- QUI SOPRA C'ERANO DUE `preconnect` A GOOGLE, e non li reggeva piu' niente.
+     Sono il residuo della rimozione raccontata qui sotto: e' stato tolto il
+     `<link>` al foglio di stile dei caratteri e sono sopravvissuti i due
+     preavvisi di connessione, che aprivano lo stesso identico paio di
+     collegamenti TLS verso `fonts.googleapis.com` e `fonts.gstatic.com` per
+     poi non chiedere niente a nessuno dei due. I caratteri sono in
+     `public/font/`: erano due strette di mano pagate per una richiesta che
+     non parte piu'. -->
 <!-- I CARATTERI SONO IN LOCALE, e prima arrivavano da un dominio esterno.
 
      Qui c'era un `<link>` a `fonts.googleapis.com`. Tre difetti in una riga:

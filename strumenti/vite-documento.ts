@@ -70,6 +70,8 @@ export function documento(): Plugin {
           console.warn(
             '\n[documento] VITE_SITO non e impostata: og:image restera RELATIVO\n' +
             '            e le anteprime su X, LinkedIn e Slack non funzioneranno.\n' +
+            '            Gli hreflang it/en/x-default non verranno emessi affatto:\n' +
+            '            vogliono un URL assoluto e non se ne inventa uno.\n' +
             '            Mettila in .env: VITE_SITO=https://iltuodominio\n',
           )
         }
@@ -77,6 +79,40 @@ export function documento(): Plugin {
 
         const meta = [
           `<link rel="canonical" href="${abs('/')}" />`,
+          /* LE DUE LINGUE DETTE A UN MOTORE DI RICERCA, e finora non erano
+             dette a nessuno. C'era solo `og:locale:alternate`, che e' un
+             segnale SOCIALE: lo legge lo scraper che costruisce l'anteprima
+             di un link, non chi indicizza. Per la ricerca la pagina risultava
+             monolingue, cioe' meta' del testo esisteva senza che nessuno
+             sapesse in che lingua fosse.
+
+             I TRE INDIRIZZI SONO LO STESSO, ed e' vero. La lingua si cambia a
+             runtime e allo stesso URL — `src/ui/Lingua.ts`: la scelta finisce
+             in `localStorage` e la pagina si ricarica dov'era. L'alternativa
+             era annunciare un `/en/` che non esiste: un hreflang che punta a
+             un 404 e' peggio del silenzio, perche' il silenzio almeno non
+             chiede di andare da nessuna parte. Quindi qui si dichiara la cosa
+             che c'e' davvero — un indirizzo che serve tutte e due — e
+             `x-default` dice qual e' quello a cui mandare chi non chiede ne'
+             l'una ne' l'altra, che e' esattamente la regola gia' scritta in
+             `Lingua.ts` (da una terza lingua si legge l'italiano).
+
+             Non e' il sostituto di due URL veri: il giorno in cui le due
+             lingue avranno due indirizzi, di queste tre righe cambia l'`href`
+             e nient'altro — ed e' il motivo per cui stanno qui, generate,
+             invece che scritte a mano in `index.html`.
+
+             E SE IL DOMINIO NON C'E', NON ESCONO PROPRIO. `hreflang` vuole un
+             URL assoluto: un percorso relativo non e' un'annotazione debole,
+             e' un'annotazione che non vale niente. Stessa scelta di
+             `og:image` qui sopra — non si inventa un dominio. */
+          ...(sito
+            ? [
+                `<link rel="alternate" hreflang="it" href="${abs('/')}" />`,
+                `<link rel="alternate" hreflang="en" href="${abs('/')}" />`,
+                `<link rel="alternate" hreflang="x-default" href="${abs('/')}" />`,
+              ]
+            : []),
           `<meta property="og:type" content="website" />`,
           `<meta property="og:site_name" content="Giuseppe Villani" />`,
           `<meta property="og:title" content="Giuseppe Villani — Freelance Creative Developer" />`,

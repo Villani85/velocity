@@ -1,0 +1,52 @@
+# Giuseppe Villani - Freelance Creative Developer
+
+> Siti che non si guardano: si attraversano. VELOCITY e' il sito-studio di
+> Giuseppe Villani, freelance creative developer: 3D in tempo reale, movimento
+> e interfaccia nello stesso spazio, governati dallo scorrimento di chi guarda.
+> Questa nota dice chi c'e' dietro, cos'e' VELOCITY e - la parte che conta -
+> con che metodo e' stato costruito.
+
+Il sito e' bilingue italiano/inglese: la lingua si cambia dentro la pagina,
+allo stesso indirizzo. I collegamenti qui sotto sono relativi perche' il
+dominio non e' ancora configurato.
+
+## Chi
+
+- [Il sito](/): three.js puro (niente framework 3D sopra), Vite, TypeScript.
+  Chi arriva senza WebGL trova lo stesso contenuto in forma di documento, non
+  una pagina vuota: e' un solo blocco di contenuto usato in due stati.
+- [Contatto](/#contatto): l'indirizzo e' da definire, e finche' non c'e' il
+  sito non ne mostra uno finto.
+
+## VELOCITY
+
+- [L'esperienza](/): una hypercar nera su un podio di marmo, dentro una corte
+  al crepuscolo, che si attraversa scorrendo. Non una pagina con delle
+  animazioni sopra: uno spazio in cui si entra.
+- [Lavori](/#lavori): un progetto solo, VELOCITY, dichiarato come tale. Le
+  altre tre ottiche si accendono quando c'e' qualcosa da attraversare.
+
+## Il metodo
+
+Non si dichiara niente che non sia stato misurato.
+
+- [Il metodo per esteso](/#studio): le misure, e gli errori che le hanno
+  prodotte.
+- Fairness della carrozzeria: residuo da fit quadrico locale da 0,840 a
+  0,424 mm, meno 49 per cento.
+- La carrozzeria completa: 619 kB, 106.736 triangoli, compressi con meshopt.
+- Metriche costruite e buttate: 6, perche' misuravano rumore e non forma.
+  Chiunque puo' costruire una metrica; la parte difficile e' buttarla quando
+  smette di reggere.
+- Un criterio non separa due popolazioni che condividono un valore. La
+  maschera che doveva distinguere la carrozzeria dal riempimento delle isole
+  di texture ha murato vetro e cromo, perche' hanno la stessa identica firma
+  del riempimento: ruvidita' zero e metallico zero. Corretta per il novanta
+  per cento dei texel, falsa per quelli che contavano.
+- Una misura giusta puo' portare a una conclusione sbagliata, e non se ne
+  accorge nessuno perche' il numero e' vero. Luminanza 25 contro 50 sui due
+  cerchi diceva CHE erano diversi, non PERCHE': era un poligono del
+  sottoscocca davanti al passaruota, e si vedeva ingrandendo l'immagine.
+- Le trappole che costano davvero non danno errore. Un materiale con
+  anisotropia senza tangenti compila e non disegna: la scena diventa nera in
+  silenzio, e il primo sintomo e' una statistica perfettamente formata.

@@ -281,14 +281,27 @@ export const D: Record<string, Voce> = {
   inArrivo: { it: 'IN ARRIVO', en: 'COMING' },
   lavoroPrima: { it: 'Lavoro precedente', en: 'Previous work' },
   lavoroDopo: { it: 'Lavoro successivo', en: 'Next work' },
-  /* L'AVVISO DELLA PRESA — dice cosa e' successo, non cosa fare.
-     «Usa le frecce» sarebbe un ordine, e un ordine a chi non ha sbagliato
-     niente suona come un rimprovero. «I lavori si sfogliano con le frecce» e'
-     la spiegazione di quello che chi guarda ha appena visto succedere, cioe'
-     la pagina che si e' fermata: risponde alla domanda invece di dare un
-     compito. Sta in un elemento con `role="status"`, quindi un lettore di
-     schermo lo annuncia quando compare senza rubare il fuoco. */
-  frecceAvviso: { it: 'I lavori si sfogliano con le frecce', en: 'Use the arrows to browse the work' },
+  /* L'AVVISO DELLA PRESA — adesso dice cosa fare, prima diceva cosa era
+     successo.
+     Diceva «I lavori si sfogliano con le frecce», e il ragionamento che lo
+     difendeva aveva ragione su una cosa vera: «Usa le frecce» e' un ordine, e
+     un ordine a chi non ha sbagliato niente suona come un rimprovero — mentre
+     spiegare quello che e' appena successo risponde a una domanda invece di
+     assegnare un compito. Quella parte resta, e infatti nemmeno la frase nuova
+     comincia con un verbo che accusa.
+     Cio' che mancava e' che le domande erano due. «Perche' la pagina si e'
+     fermata?» aveva risposta; «e adesso come ne esco?» no. In una pastiglia che
+     vive due secondi e mezzo pesa la seconda, perche' e' la sola che si
+     trasforma in un gesto — e nel frattempo la frase mandava a cercare con gli
+     occhi due frecce, mentre la mano era gia' appoggiata sul comando giusto.
+     Adesso sono due istruzioni brevi separate da un punto in mezzo: cosa fa il
+     gesto che si sta gia' facendo, e cosa fare per andarsene (vedi `insiste()`
+     in `ui/Vetrina.ts`). Resta corta perche' la pastiglia e' `white-space:
+     nowrap` e non ha una regola per lo schermo stretto: una riga che non va a
+     capo, se cresce, esce dallo schermo da tutte e due le parti.
+     Sta in un elemento con `role="status"`, quindi un lettore di schermo lo
+     annuncia quando compare senza rubare il fuoco. */
+  frecceAvviso: { it: 'Scorri per sfogliare · due volte per uscire', en: 'Scroll to browse · twice to move on' },
 
   // ----------------------------------------------------------------- rotaia
   tappaEsterno: { it: 'ESTERNO', en: 'OUTSIDE' },

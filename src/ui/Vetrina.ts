@@ -10,6 +10,40 @@ import { t } from './Lingua'
 const SOGLIA = 92
 const RIPOSO = 330
 
+/* QUANDO LA PRESA SI MOLLA — i numeri dell'insistenza.
+   Servono tutti a distinguere UNA MANO CHE SPINGE ANCORA da una coda
+   d'inerzia, che e' l'unica distinzione che conta qui dentro: la coda del
+   trackpad e' precisamente cio' che questa presa esiste per non subire,
+   quindi non puo' essere anche il segnale con cui la si molla.
+
+   PAUSA e' il silenzio che separa un gesto dal successivo. Dentro una coda gli
+   eventi arrivano attaccati, uno per fotogramma: un silenzio lungo una decina
+   di fotogrammi li' non capita, mentre fra due colpi di una mano ci sta largo.
+
+   RAFFICA e' quanto devono essere vicini due gesti perche' siano insistenza e
+   non lettura, e sta appena sopra RIPOSO per una ragione esatta: un gesto che
+   arriva prima che la carta precedente abbia finito di girare chiede piu' di
+   quanto il carosello possa dare. Chiedere piu' del possibile e' la
+   definizione operativa di insistere — e chi sta guardando i lavori non lo fa,
+   perche' guardare costa piu' tempo di cosi'.
+
+   TESTARDO e' per la rotella vera, che non manda gesti separati: chi la gira e
+   basta produce un flusso unico. Un gesto solo, nello stesso verso, che dura
+   quasi due carte SENZA MAI CALARE e' una mano ancora appoggiata sopra.
+
+   RIARMO e' quanto silenzio ci vuole perche' la presa possa tornare.
+   Riprendersi il comando mentre la pagina sta ancora scorrendo vorrebbe dire
+   riacchiappare per la manica chi se ne stava andando. */
+const PAUSA = 140
+const RAFFICA = 380
+const TESTARDO = 620
+const RIARMO = 700
+
+/* QUANTO DEVE MUOVERSI IL DITO prima che si decida di chi e' il gesto. Sotto
+   questi pixel non si sa ancora niente: un tocco non e' un trascinamento, e
+   indovinare l'asse su due pixel vuol dire indovinarlo. */
+const ZONA_MORTA = 10
+
 /**
  * LA VETRINA — i lavori come riquadri, con due frecce.
  *
@@ -39,8 +73,10 @@ const RIPOSO = 330
  *
  * LE FRECCE SONO DUE PULSANTI, non due icone che ascoltano il puntatore.
  * Funzionano da tastiera, hanno un'etichetta accessibile, e sul telefono si
- * toccano — dove un trascinamento litigherebbe con lo scorrimento, che su
- * questo sito e' il comando di tutto il resto.
+ * toccano — dove un trascinamento VERTICALE litigherebbe con lo scorrimento,
+ * che su questo sito e' il comando di tutto il resto. La parola «verticale»
+ * e' stata aggiunta dopo, ed e' proprio la ragione per cui adesso il dito
+ * sfoglia di lato e mai in su: vedi `trascina()`.
  */
 export class Vetrina {
   private radice: HTMLElement
@@ -64,8 +100,26 @@ export class Vetrina {
   private accumulo = 0
   /** quando e' scattata l'ultima carta, per non sfogliarne dieci in un gesto */
   private ultimoScatto = -1e9
-  /** dove il dito ha toccato lo schermo l'ultima volta */
-  private ditoY = 0
+  /** dove il dito ha toccato lo schermo, all'inizio del trascinamento */
+  private partenzaX = 0
+  private partenzaY = 0
+  /** dov'era il dito al fotogramma prima, lungo l'orizzontale */
+  private ditoX = 0
+  /** di chi e' il trascinamento in corso: 1 del carosello (di lato), -1 della
+      pagina (verticale), 0 finche' non si e' mosso abbastanza da saperlo */
+  private asse: 0 | 1 | -1 = 0
+  /** quando e' arrivato l'ultimo evento di rotella: serve a separare i gesti */
+  private ultimoEvento = -1e9
+  /** quando e' cominciato il gesto di rotella in corso, e in che verso andava */
+  private inizioGesto = -1e9
+  private versoGesto = 0
+  /** quanti gesti ravvicinati nello stesso verso si sono contati di fila */
+  private insistenza = 0
+  /** il delta piu' forte del gesto in corso, e se e' gia' calato sotto meta' */
+  private picco = 0
+  private calato = false
+  /** quando la presa e' stata mollata: da li' la rotella e' della pagina */
+  private mollato = -1e9
 
   constructor(dentro: HTMLElement = document.body) {
     this.radice = document.createElement('div')
@@ -201,6 +255,37 @@ export class Vetrina {
    * Restano liberi anche Inizio e Fine, che sono l'uscita di sicurezza di chi
    * usa solo la tastiera.
    *
+   * MA LE USCITE ERANO DUE, E TUTTE E DUE ALLA FINE DI QUALCOSA. Il ragionamento
+   * qui sopra e' esatto e resta: nessuno ci resta chiuso dentro per sempre, e la
+   * posizione della pagina non viene mai forzata. Cio' che mancava e' il TEMPO —
+   * per uscire bisognava girare undici carte, cioe' fare fino in fondo proprio
+   * la cosa da cui si voleva uscire. Una via d'uscita che chiede di completare
+   * il percorso non e' una via d'uscita: e' il percorso.
+   *
+   * E la parte che non si misura e' che una giuria non guarda il meccanismo,
+   * guarda il primo mezzo secondo di dubbio. Chi legge questa presa come
+   * scroll-jacking non lo fa perche' e' fatta male: lo fa perche' e' INCONDIZIONATA
+   * finche' ci sono carte. Il difetto sta nell'aggettivo, non nel blocco.
+   *
+   * ADESSO C'E' UNA TERZA USCITA, E NON VA IMPARATA: SI INSISTE. Due gesti
+   * ravvicinati nello stesso verso, oppure la rotella tenuta girata senza mai
+   * calare, e la presa si stacca da sola — la pagina riparte da dove era, con le
+   * carte ferme dove le si e' lasciate. E' il modo di Persepolis: il comando non
+   * si prende per tutta la sezione, si prende per il tempo di allineare una
+   * carta e si restituisce prima che venga chiesto indietro.
+   *
+   * PERCHE' NON UNA SOGLIA DI VELOCITA', che era la strada corta e l'ho buttata.
+   * Un gesto forte e' esattamente quello che genera la coda d'inerzia piu'
+   * lunga: mollare sopra una certa velocita' vorrebbe dire mollare proprio nel
+   * caso che il RIPOSO qui sotto esiste per reggere, e una sola strisciata sul
+   * trackpad riporterebbe in fondo alla pagina come prima della cura. Quello che
+   * si conta non e' quanta forza c'e' in un gesto, e' QUANTI GESTI ci sono:
+   * l'inerzia ne produce uno solo, e mentre passa scende. Una mano e' l'unica
+   * cosa che possa farne un secondo, o tenere il primo alla stessa forza.
+   *
+   * SUL TELEFONO NON SI INSISTE, e non e' una dimenticanza: li' l'uscita e'
+   * l'ASSE, ed e' aperta sempre. Vedi `trascina()`.
+   *
    * IL RIPOSO FRA UNA CARTA E L'ALTRA e' la parte che si sbaglia. Un trackpad
    * non manda un evento per gesto: ne manda quaranta, con la coda d'inerzia
    * del sistema operativo dentro. Senza soglia e senza riposo, una sola
@@ -233,15 +318,93 @@ export class Vetrina {
   private rotella = (e: WheelEvent) => {
     const verso = Math.sign(e.deltaY)
     if (!this.comanda(verso)) return
-    // si consuma l'evento PRIMA di decidere se girare una carta: se lo si
-    // consumasse solo al momento dello scatto, i quaranta eventi di coda del
-    // trackpad passerebbero alla pagina e il carosello se ne andrebbe da solo
+    /* PRIMA SI CHIEDE SE LA PRESA VA MOLLATA, POI SI CONSUMA.
+       Qui c'era un `preventDefault()` incondizionato, e la riga che lo
+       difendeva aveva ragione per meta': l'evento va consumato PRIMA di
+       decidere se girare una carta, perche' consumandolo solo al momento dello
+       scatto i quaranta eventi di coda del trackpad passerebbero alla pagina e
+       il carosello se ne andrebbe da solo. Quella meta' e' rimasta identica,
+       due righe piu' sotto, e non si tocca.
+       Cio' che mancava e' che «consumare» non era mai una domanda. La presa non
+       aveva modo di accorgersi che chi guarda stava CHIEDENDO di passare, e una
+       presa che non distingue «sfoglia» da «fammi passare» tratta tutte e due
+       le richieste come la prima — che e' la definizione del difetto, non un
+       effetto collaterale. `insiste()` fa quella domanda una volta per evento,
+       e quando la risposta e' si' si esce di qui senza toccare l'evento: la
+       pagina scorre in questo fotogramma, non al gesto dopo. */
+    if (this.insiste(verso, e.deltaY)) return
     e.preventDefault()
     this.avvisa()
     this.forse(verso, e.deltaY)
   }
 
-  /** l'avviso compare al primo gesto mangiato dalla presa, e mai piu' */
+  /**
+   * SI STA INSISTENDO? — vero quando la presa va mollata e la pagina lasciata
+   * scorrere, anche se restano carte da girare.
+   *
+   * Conta i GESTI, non gli eventi, e un gesto comincia in due soli modi: dopo
+   * un silenzio, oppure quando il delta RISALE dopo essere calato. Il secondo
+   * e' quello che serve col trackpad, dove la spinta nuova arriva sopra la coda
+   * della precedente e di silenzio non ce n'e': una coda puo' solo scendere,
+   * quindi un valore che torna sopra il massimo del gesto in corso e' per
+   * forza un dito che ha spinto di nuovo. Nessuno dei due si puo' produrre
+   * lasciando il trackpad in pace, che e' l'unica proprieta' che conta.
+   */
+  private insiste(verso: number, delta: number): boolean {
+    const ora = performance.now()
+    const forte = Math.abs(delta)
+    // finche' la rotella continua ad arrivare, la presa RESTA mollata: a
+    // decidere quando puo' tornare e' il silenzio di RIARMO, non il gesto
+    // successivo — altrimenti si esce e si viene ripresi al colpo dopo
+    if (ora - this.mollato < RIARMO) { this.mollato = ora; return true }
+
+    const nuovo = ora - this.ultimoEvento > PAUSA || (this.calato && forte > this.picco)
+    this.ultimoEvento = ora
+    if (nuovo) {
+      const raffica = verso === this.versoGesto && ora - this.inizioGesto < RAFFICA
+      this.insistenza = raffica ? this.insistenza + 1 : 1
+      this.versoGesto = verso
+      this.inizioGesto = ora
+      this.picco = forte
+      this.calato = false
+    } else {
+      // dentro un gesto solo si tiene il massimo e si segna quando e' sceso
+      // sotto la meta': e' quel «sceso» che rende leggibile la risalita dopo
+      if (forte > this.picco) this.picco = forte
+      else if (forte < this.picco * 0.5) this.calato = true
+    }
+
+    // e il caso della rotella meccanica, che gesti separati non ne manda: chi
+    // la gira e basta produce un flusso unico e di forza costante. Se quel
+    // flusso non e' mai calato ed e' durato quanto due carte, la mano e'
+    // ancora li' sopra — una coda, a quel punto, sarebbe gia' scesa
+    const tenuta =
+      !this.calato && verso === this.versoGesto && ora - this.inizioGesto > TESTARDO
+    if (this.insistenza < 2 && !tenuta) return false
+    this.molla(ora)
+    return true
+  }
+
+  /** stacca la presa: da qui in avanti la rotella e' della pagina */
+  private molla(ora: number) {
+    this.mollato = ora
+    this.insistenza = 0
+    this.inizioGesto = ora
+    // l'accumulo era la strada verso la carta successiva: tenerlo vorrebbe
+    // dire girarne una nell'istante in cui la presa torna, cioe' senza che
+    // nessuno l'abbia chiesto in quel momento
+    this.accumulo = 0
+  }
+
+  /**
+   * L'AVVISO COMPARE AL PRIMO GESTO MANGIATO DALLA PRESA, E MAI PIU'.
+   *
+   * Lo chiama solo `rotella()`, e adesso e' una precisione invece che un caso:
+   * il testo dice COME SI ESCE, e come si esce dipende dal comando. Con la
+   * rotella si esce insistendo, e va detto perche' non si vede. Con un dito non
+   * c'e' niente da spiegare, perche' il verticale non viene mai preso — quindi
+   * non nasce nemmeno la domanda a cui questa pastiglia risponde.
+   */
   private avvisa() {
     if (this.avvisato) return
     this.avvisato = true
@@ -250,18 +413,56 @@ export class Vetrina {
   }
 
   private posa = (e: TouchEvent) => {
-    this.ditoY = e.touches[0]?.clientY ?? 0
+    const d = e.touches[0]
+    this.partenzaX = d?.clientX ?? 0
+    this.partenzaY = d?.clientY ?? 0
+    this.ditoX = this.partenzaX
+    this.asse = 0
     this.accumulo = 0
   }
 
+  /**
+   * IL DITO SFOGLIA DI LATO, E IL VERTICALE E' SEMPRE DELLA PAGINA.
+   *
+   * Qui il dito andava GIU' per andare avanti, come una pagina che sale, e il
+   * ragionamento era buono: stesso verso della rotella, stesso significato, una
+   * regola sola da imparare per due comandi diversi. Su quello aveva ragione, e
+   * infatti la coerenza fra i due comandi non e' andata persa — e' solo passata
+   * dal verso all'idea, «si va avanti spingendo via la carta».
+   *
+   * Cio' che mancava e' che su un telefono il verticale non e' UN modo di far
+   * scorrere la pagina: e' L'UNICO. Sulla rotella si puo' insistere e la presa
+   * si stacca — vedi `insiste()` — perche' li' il gesto e' fatto di eventi
+   * separati, che si contano. Un dito e' un dito: se il verticale se lo prende
+   * il carosello, non resta nessun altro modo di scorrere, e l'unica uscita
+   * torna a essere finire le carte. Sul telefono quella non e' una presa che
+   * dura un istante, e' un fondo chiuso — e nemmeno l'insistenza lo aprirebbe,
+   * perche' per insistere bisognerebbe ripetere il gesto che viene mangiato.
+   *
+   * Quindi decide l'asse, e decide UNA VOLTA SOLA per trascinamento. Passata la
+   * zona morta si guarda quale delle due componenti e' piu' lunga: se e' la
+   * verticale il gesto e' della pagina e non lo si tocca piu', nemmeno se poi
+   * il dito curva. Bloccare l'asse all'inizio invece di ricalcolarlo a ogni
+   * fotogramma e' la parte che conta: un dito umano non va mai dritto, e un
+   * gesto che cambia padrone a meta' e' un gesto che non risponde.
+   */
   private trascina = (e: TouchEvent) => {
-    const y = e.touches[0]?.clientY ?? 0
-    // sul telefono il dito va GIU' per andare avanti, come una pagina che sale
-    const passo = this.ditoY - y
-    this.ditoY = y
-    if (!this.comanda(Math.sign(passo))) return
+    const d = e.touches[0]
+    if (!d) return
+    if (this.asse === 0) {
+      const dx = d.clientX - this.partenzaX
+      const dy = d.clientY - this.partenzaY
+      if (Math.hypot(dx, dy) < ZONA_MORTA) return
+      this.asse = Math.abs(dx) > Math.abs(dy) ? 1 : -1
+    }
+    if (this.asse < 0) return
+    // dito verso sinistra = carta successiva, come si sfoglia qualunque cosa
+    const passo = this.ditoX - d.clientX
+    this.ditoX = d.clientX
+    const verso = Math.sign(passo)
+    if (!this.comanda(verso)) return
     e.preventDefault()
-    this.forse(Math.sign(passo), passo * 2.4)
+    this.forse(verso, passo * 2.4)
   }
 
   private tasto = (e: KeyboardEvent) => {
