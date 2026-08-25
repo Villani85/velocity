@@ -1,6 +1,6 @@
 import {
-  AdditiveBlending, CanvasTexture, Color, Group, LinearFilter, Mesh, MeshBasicMaterial,
-  PlaneGeometry, SRGBColorSpace, Vector3,
+  AdditiveBlending, BoxGeometry, CanvasTexture, Color, Group, LinearFilter, Mesh,
+  MeshBasicMaterial, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, Vector3,
 } from 'three'
 import { inCoda } from '../core/Salita'
 import { quantoDiLato } from '../transizioni/Camera'
@@ -430,6 +430,84 @@ function alonePerimetro(largo: number, alto: number) {
   return m
 }
 
+/* ============================================================ IL PROFILO
+
+   LA CORNICE E' UN OGGETTO, e questo e' il quarto giro sullo stesso pezzo.
+
+   I tre precedenti l'hanno disegnata dentro la tessitura, con opacita' e
+   spessori sempre diversi, e nessuno dei tre poteva funzionare per una ragione
+   che il committente ha detto in sette parole: «non e' lo stesso livello
+   tridimensionale». Un filo dipinto dentro un'immagine vive nel piano di
+   quell'immagine. Non ha un fianco da mostrare quando il pannello gira, non
+   riceve luce diversa in cima e di lato, non copre niente e non e' coperto da
+   niente. Puo' essere brillante quanto si vuole: resta un disegno.
+
+   Sui mockup il profilo SPORGE, e si vede perche' i pannelli sono girati —
+   quello di destra a 33 gradi mostra il fianco del suo montante. E' esattamente
+   il dettaglio che non si puo' dipingere.
+
+   QUINDI E' METALLO, NON LUCE. Quattro barre di ottone lucido intorno allo
+   schermo, spesse 26 mm e profonde 55, in piedi davanti al piano
+   dell'immagine. Il materiale non e' `MeshBasic`: un `MeshBasic` disegna lo
+   stesso colore su tutte e sei le facce e il rilievo tornerebbe a non vedersi —
+   sarebbe un disegno con piu' passaggi. Serve un metallo VERO, che prenda
+   l'ambiente: solo cosi' la faccia in cima e quella di lato restituiscono due
+   luci diverse, ed e' quella differenza a dire «spessore».
+   Un filo di emissione sotto (`emissiveIntensity`) perche' nei mockup il
+   profilo e' anche acceso, non solo lucido: senza, di notte sparirebbe.
+
+   IL MONTANTE DI SINISTRA E' PIU' PROFONDO degli altri tre. Nel riferimento
+   quella e' la barra che si nota, e la ragione e' costruttiva prima che
+   estetica: e' il montante a cui il pannello e' appeso, gli altri tre sono
+   bordi. Un profilo tutto uguale legge come una cornice da quadro. */
+const PROFILO_SP = 0.026
+const PROFILO_PR = 0.055
+
+function profiloMateriale() {
+  if (!materialeProfilo) {
+    materialeProfilo = new MeshStandardMaterial({
+      color: new Color(0.72, 0.53, 0.30),
+      metalness: 0.95,
+      roughness: 0.22,
+      emissive: new Color(0.85, 0.62, 0.34),
+      /* 0,22 e non 1,0: e' un accenno, non una lampada. A intensita' piena
+         l'emissione appiattisce tutte le facce sullo stesso valore e si torna
+         al problema di partenza — il rilievo sparisce sotto la propria luce. */
+      emissiveIntensity: 0.22,
+    })
+    materialeProfilo.name = 'PROFILO_INSEGNA'
+  }
+  return materialeProfilo
+}
+let materialeProfilo: MeshStandardMaterial | null = null
+
+function profilo(largo: number, alto: number) {
+  const g = new Group()
+  g.name = 'INSEGNA_PROFILO'
+  const M = profiloMateriale()
+  const sp = PROFILO_SP
+  const pr = PROFILO_PR
+  // il montante di sinistra: piu' profondo, ed e' quello che si vede
+  const prSx = pr * 1.7
+  const barra = (l: number, a: number, p: number, x: number, y: number) => {
+    const b = new Mesh(new BoxGeometry(l, a, p), M)
+    /* z = p/2 e non 0: le barre stanno DAVANTI al piano dell'immagine, cioe'
+       poggiate sopra invece che dentro. E' tutta qui la differenza. */
+    b.position.set(x, y, p / 2)
+    b.name = 'PROFILO_BARRA'
+    g.add(b)
+    return b
+  }
+  // sopra e sotto, lunghe quanto tutto il pannello piu' i due montanti
+  barra(largo + sp * 2, sp, pr, 0, alto / 2 + sp / 2)
+  barra(largo + sp * 2, sp, pr, 0, -alto / 2 - sp / 2)
+  // destra
+  barra(sp, alto, pr, largo / 2 + sp / 2, 0)
+  // e il montante di sinistra
+  barra(sp, alto, prSx, -largo / 2 - sp / 2, 0)
+  return g
+}
+
 function insegnaPiana(largo: number, alto: number) {
   /* due segmenti in orizzontale e non uno: la caduta angolare qui sotto legge
      la normale per vertice, e su un quadrilatero a quattro vertici il centro
@@ -550,63 +628,14 @@ export class Insegne {
          venivano scartati prima di essere rasterizzati — in scena, accesi,
          opacita' 0,99, e invisibili. Nessun errore e nessun avviso. */
       m.rotation.y = q.imbardata
-      /* ============================================================ LA BARRA
-
-         LA LAMA DI LUCE SUL BORDO — ed e' geometria, non disegno.
-
-         Nei due mockup portati dal committente ogni pannello ha una riga
-         d'ambra accesa lungo il fianco sinistro, e quella riga ESCE sopra e
-         sotto il pannello: e' un montante illuminato a cui la pagina e'
-         appesa, non un bordo del pannello. Disegnata dentro la tela finirebbe
-         al bordo e si fermerebbe li' — perderebbe esattamente la cosa che la
-         fa leggere come un oggetto della scena invece che come una decorazione
-         dell'immagine.
-
-         Sta un centimetro davanti alla faccia (`z` locale) perche' il pannello
-         adesso e' CURVO: al centro la superficie rientra di 28 cm rispetto ai
-         bordi, e una lama complanare sparirebbe dentro la geometria per meta'
-         della sua altezza. Un centimetro basta e non si vede di taglio.
-
-         `toneMapped: false` come il pannello: e' una sorgente, e una sorgente
-         che si spegne con la sera e' la cosa meno credibile che ci sia. */
-      /* 1,06 E NON 1,28, e la lama sta ADDOSSO alla cornice.
-         Al primo giro sporgeva di 5,5 cm ed era alta il 28% piu' del pannello:
-         nel provino le tre lame leggevano come tre COLONNE indipendenti in
-         mezzo alla scena, e i pannelli sembravano appesi fra loro. Nel
-         riferimento la riga e' attaccata al bordo e lo supera di poco — e'
-         il montante del pannello, non un lampione.
-         La regola generale: un elemento che deve leggersi come PARTE di un
-         altro non puo' staccarsene piu' del suo stesso spessore. */
-      /* l'alone del perimetro sta DIETRO il pannello, appena arretrato: se
-         fosse davanti velerebbe la fotografia proprio sui bordi, cioe' dove
-         c'e' la cornice da leggere */
+      /* l'alone del perimetro sta DIETRO il pannello: se fosse davanti
+         velerebbe la fotografia proprio sui bordi, cioe' dove c'e' il profilo
+         da leggere. E il profilo, che e' un oggetto, sta davanti. */
       const bagliore = alonePerimetro(LARGO, LARGO / RAPPORTO)
       bagliore.position.z = -0.012
       bagliore.renderOrder = 5
       m.add(bagliore)
-
-      const ALTA = 1.06
-      const lama = new Mesh(
-        new PlaneGeometry(0.026, (LARGO / RAPPORTO) * ALTA),
-        new MeshBasicMaterial({ color: 0xffe7c1, toneMapped: false, transparent: true, opacity: 0.95, depthWrite: false }),
-      )
-      lama.position.set(-LARGO / 2 - 0.018, 0, 0.010)
-      lama.renderOrder = 7
-      lama.name = 'INSEGNA_LAMA'
-      m.add(lama)
-      /* E L'ALONE INTORNO ALLA LAMA. Una riga di trenta millimetri a due metri
-         di distanza e' due pixel: da sola legge come un difetto di
-         antialiasing, non come una luce. L'alone e' un secondo piano largo
-         dieci volte e quasi trasparente — e' quello che dice «questa cosa
-         emette», che una riga netta non puo' dire. */
-      const alone = new Mesh(
-        new PlaneGeometry(0.16, (LARGO / RAPPORTO) * ALTA * 1.04),
-        new MeshBasicMaterial({ color: 0xc98f45, toneMapped: false, transparent: true, opacity: 0.20, depthWrite: false }),
-      )
-      alone.position.set(-LARGO / 2 - 0.018, 0, 0.006)
-      alone.renderOrder = 6
-      alone.name = 'INSEGNA_ALONE'
-      m.add(alone)
+      m.add(profilo(LARGO, LARGO / RAPPORTO))
 
       this.pannelli.push(m)
       this.gruppo.add(m)
@@ -820,26 +849,20 @@ export class Insegne {
        Due fili come altrove: uno pieno sul bordo e uno appena dentro, molto
        piu' tenue — a un filo solo la cornice legge come un contorno
        disegnato, a due legge come uno spessore. */
-/* IL FILO E' SOTTILE, E L'ALONE STA FUORI — ed e' il terzo giro su questa
-       cornice, perche' i primi due avevano capito male cosa fa la foto.
-       Primo giro: filo al 62% su 2,5 px. Troppo timido, si perdeva sopra la
-       fotografia di un sito.
-       Secondo giro: 3,5 px al 90% piu' due fasce di luce dipinte DENTRO la
-       tela. Piu' marcato, ma sbagliato — nell'ingrandimento era una striscia
-       opaca color sabbia appoggiata sull'immagine: avevo ispessito un
-       CONTORNO, mentre nel riferimento l'oro e' una LUCE.
-       La differenza si vede in una cosa sola: nella foto il bagliore cade
-       sulla scena INTORNO al pannello. Un pixel dipinto dentro la tela non
-       puo' farlo — si ferma al bordo per definizione. Quindi qui resta solo il
-       filo, sottile e quasi bianco al centro perche' una sorgente vista di
-       taglio e' sempre piu' chiara del suo colore; il bagliore e' diventato
-       geometria, e sta in `alonePerimetro`. */
-    c.strokeStyle = 'rgba(255,231,193,0.95)'
-    c.lineWidth = 2
-    c.strokeRect(1, 1, TL - 2, TA - 2)
-    c.strokeStyle = 'rgba(216,162,88,0.34)'
+/* SULLA TELA RESTA SOLO IL TAGLIO DELLO SCHERMO — la cornice se n'e' andata
+       da qui, ed e' il quarto giro.
+       Il committente: «la cornice non e' lo stesso livello tridimensionale».
+       E' esatto e si vede confrontandola con la lama di luce, che e' sempre
+       stata un oggetto a se': un filo disegnato dentro la tessitura sta ESATTAMENTE
+       nel piano dell'immagine, spessore zero, e quindi non gira con il pannello,
+       non mostra un fianco, non riceve luce diversa in cima e di lato. Sui
+       mockup la cornice e' un profilo che SPORGE, e i due pannelli girati la
+       mostrano di taglio: e' quella la cosa che non si puo' dipingere.
+       Questo filo sottile resta solo per chiudere il bordo dell'immagine sotto
+       il profilo, che altrimenti si vedrebbe finire nel nulla. */
+    c.strokeStyle = 'rgba(216,162,88,0.28)'
     c.lineWidth = 1
-    c.strokeRect(4.5, 4.5, TL - 9, TA - 9)
+    c.strokeRect(1.5, 1.5, TL - 3, TA - 3)
 
     /* IL VELO IN BASSO E' STATO TOLTO INSIEME AL NOME che ci stava sopra.
        Un velo scuro sul terzo inferiore di una fotografia si nota: e' un segno
