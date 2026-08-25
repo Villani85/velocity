@@ -15,16 +15,30 @@ dominio non e' ancora configurato.
 - [Il sito](/): three.js puro (niente framework 3D sopra), Vite, TypeScript.
   Chi arriva senza WebGL trova lo stesso contenuto in forma di documento, non
   una pagina vuota: e' un solo blocco di contenuto usato in due stati.
-- [Contatto](/#contatto): l'indirizzo e' da definire, e finche' non c'e' il
-  sito non ne mostra uno finto.
+- [Contatto](/#contatto): servizi.villani@gmail.com. Sta scritto in un posto
+  solo nel codice, e da li' arriva sia al documento sia all'ultima carta del
+  carosello.
 
 ## VELOCITY
 
-- [L'esperienza](/): una hypercar nera su un podio di marmo, dentro una corte
-  al crepuscolo, che si attraversa scorrendo. Non una pagina con delle
-  animazioni sopra: uno spazio in cui si entra.
-- [Lavori](/#lavori): un progetto solo, VELOCITY, dichiarato come tale. Le
-  altre tre ottiche si accendono quando c'e' qualcosa da attraversare.
+- [L'esperienza](/): una hypercar nera su un podio a specchio davanti a una
+  villa al crepuscolo, che si attraversa scorrendo. Non una pagina con delle
+  animazioni sopra: uno spazio in cui si entra. La camera fa sette tempi -
+  la vettura ferma, il giro intorno, la discesa sul lato guida, il passaggio
+  attraverso l'ottica del faro, l'accensione, la corsa, la fermata - e ogni
+  tempo si posa prima di finire, perche' uno stacco ha bisogno che
+  l'inquadratura prima di lui esista per un momento.
+- Si puo' cambiare finitura della vernice e punto di vista senza ricaricare:
+  quattro campioni e quattro viste (villa, piscina, tramonto, corte), che sono
+  quattro esposizioni diverse dello stesso ambiente.
+- [Lavori](/#lavori): dieci lavori su un arco in tre dimensioni, piu' una
+  carta per scrivere. Nove sono dimostrazioni e lo dichiarano: mostrarli senza
+  dirlo, dentro una scena in cui una pattuglia sta controllando dei documenti,
+  sarebbe l'unica cosa non vera del sito.
+- La carta di VELOCITY non e' un lavoro, e' IL METODO: mostra due prove vere
+  della carrozzeria prima e dopo la cura, e tre cifre misurate. Mostrare una
+  fotografia del sito dentro il sito stesso sarebbe l'unica carta il cui
+  soggetto ce l'hai gia' sotto gli occhi.
 
 ## Il metodo
 
@@ -47,6 +61,17 @@ Non si dichiara niente che non sia stato misurato.
   accorge nessuno perche' il numero e' vero. Luminanza 25 contro 50 sui due
   cerchi diceva CHE erano diversi, non PERCHE': era un poligono del
   sottoscocca davanti al passaruota, e si vedeva ingrandendo l'immagine.
+- Un metro puo' misurare benissimo la grandezza sbagliata. Per giorni il
+  committente ha segnalato "un blocco geometrico sotto la scocca", e per tre
+  volte e' stato corretto il TONO: il rapporto di luminanza fra il pezzo e il
+  pavimento e' passato da 3,5 a 2,0 e il blocco e' rimasto intero. Il difetto
+  era la FORMA - una pianta estrusa fra due quote costanti, con una normale
+  inventata uguale per ogni vertice, cioe' un prisma. Nessuna taratura di
+  tinta, emissione o ombra puo' togliere la squadratura a un prisma.
+- Un cancello che stampa un verdetto e esce con zero non e' un cancello, e' un
+  cartello: dentro una catena non ferma niente. E un cancello nuovo si prova
+  PROVOCANDOLO, rompendo di proposito la cosa che deve prendere. Uno che non
+  ha mai fallito non ha mai dimostrato di funzionare.
 - Le trappole che costano davvero non danno errore. Un materiale con
   anisotropia senza tangenti compila e non disegna: la scena diventa nera in
   silenzio, e il primo sintomo e' una statistica perfettamente formata.

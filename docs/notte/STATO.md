@@ -53,6 +53,32 @@ si leggono a occhio e non si concatenano.
 
 ---
 
+## Tornata 1a — i documenti che mentivano (corsia A, spedito)
+
+`public/llms.txt` e' un file statico che non genera nessuno, quindi nessuno si
+accorgeva che invecchiava. Tre affermazioni su tre erano false:
+
+| diceva | era |
+|---|---|
+| «Lavori: un progetto solo, VELOCITY» | **dieci** |
+| «l'indirizzo e' da definire… non ne mostra uno finto» | c'e' da tempo |
+| «dentro una corte al crepuscolo» | una **villa**; la corte e' una delle 4 viste |
+
+Verificate una per una contro il codice, non prese dall'inventario.
+
+E soprattutto: **`strumenti/coerenza.mjs`**, il cancello che mancava. Confronta
+cio' che il documento DICHIARA con cio' che il codice FA — numero dei lavori,
+indirizzo (nei due sensi: negarlo quando c'e', e pubblicarne uno inventato
+quando non c'e'), nomi delle viste. Provocato su tutti e tre i controlli, rosso
+su tutti e tre, verde sul file vero.
+
+La cura per «nessuno lo controllava» non e' «adesso lo ricontrollo»: e' qualcosa
+che lo controlla da solo a ogni giro.
+
+**Da aggiungere alla catena di §8:** `node strumenti/coerenza.mjs`.
+
+---
+
 ## Coperto finora
 
 | | |
