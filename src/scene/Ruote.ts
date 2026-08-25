@@ -1,5 +1,4 @@
 import {
-  Box3,
   BufferAttribute,
   BufferGeometry,
   CircleGeometry,
@@ -225,7 +224,6 @@ export class Ruote {
   /** la gomma di segnale appesa a ogni cerchio, per poterla nascondere */
   private gomme = new Map<Mesh, Mesh>()
   private materialeCerchio!: MeshPhysicalMaterial
-  private materialeGomma!: MeshStandardMaterial
   private gommaCorrente: Mesh | null = null
   /** radianti percorsi: si accumula, non si azzera, o la rotazione scatta
    *  a ogni fotogramma invece di scorrere */
@@ -248,10 +246,11 @@ export class Ruote {
     // stessa ragione del cerchio: l'ambiente e' sette volte piu' forte
     gomma.envMapIntensity = 0.28
     gomma.color.setRGB(0.028, 0.028, 0.03)
-    /* IL METALLO DELLA RUOTA VERA — usato solo da `vestiConModello`.
-       Non e' il `MeshBasic` del segnale: quello e' piatto per essere sempre
-       visibile, questo deve SPECCHIARE l'ambiente come una lega lucidata,
-       perche' e' proprio il riflesso che dice «cerchio in metallo». */
+    /* IL METALLO DEL CERCHIO. Il commento diceva «usato solo da
+       `vestiConModello`», che non esiste piu': adesso lo usa il ripiego, che
+       vive il tempo che ci mette la ruota vera a costruirsi. Il ragionamento
+       qui sotto resta buono — e' costato quattro giri e una prova decisiva —
+       ma va letto sapendo che riguarda un pezzo che dura due secondi. */
     /* IL CERCHIO DEVE CATTURARE LA LUCE, non solo specchiare il buio.
        Con metallo puro e ruvidita' 0,34 la lega restituiva soltanto l'ambiente
        notturno: un anello scuro in cui le razze non si leggevano. Un cerchio in
@@ -328,7 +327,6 @@ export class Ruote {
        tangenti. Finche' non c'e' quello, il verso spazzolato lo fa la sola
        ruvidita', e va detto invece che lasciato credere. */
     this.materialeCerchio.name = 'CERCHIO_VERO'
-    this.materialeGomma = gomma
     gomma.name = 'GOMMA_SEGNALE'
 
     /* IL CERCHIO EMETTE, NON RIFLETTE — ed e' la correzione piu' importante di
@@ -460,6 +458,8 @@ export class Ruote {
   costruisci(): boolean {
     if (!this.cerchi.length) return false
     const M = materialiRuota()
+    const daButtare: Object3D[] = []
+    const geometrie = new Set<BufferGeometry>()
     for (const vecchio of this.cerchi) {
       const perno = new Group()
       const gommaVecchia = this.gomme.get(vecchio)
@@ -510,168 +510,51 @@ export class Ruote {
       perno.add(costruisciRuota(M, verso))
       this.gruppo.add(perno)
       this.ruoteVere.push(perno)
-      vecchio.visible = false
-      if (gommaVecchia) gommaVecchia.visible = false
+      /* IL RIPIEGO SI BUTTA, non si nasconde — ed era nascosto da sempre.
+         `visible = false` toglie un oggetto dal DISEGNO e lo lascia in tutto il
+         resto: nel grafo, in memoria video con la sua geometria e i suoi
+         materiali, e dentro ogni ciclo che percorre la scena. Sondando le mesh
+         dell'automobile ne uscivano 32 di ripiego accanto a quelle vere —
+         `GOMMA_SEGNALE`, `CERCHIO_SEGNALE`, `RAZZA_SEGNALE` — e `aggiorna()`
+         continuava a scrivere una rotazione su quattro cerchi che nessuno
+         guarda, sessanta volte al secondo.
+         Nascondere e' la mossa giusta finche' si potrebbe tornare indietro. Qui
+         non si torna: la ruota vera c'e', ed e' costruita, non caricata. Quindi
+         si stacca dal padre e si butta.
+         Le geometrie sono CONDIVISE fra le quattro ruote (vedi `raggiera` qui
+         sopra), quindi disporle nel ciclo le distruggerebbe per le altre tre:
+         si raccolgono e si buttano dopo, una volta sola. */
+      daButtare.push(vecchio)
+      if (gommaVecchia) daButtare.push(gommaVecchia)
     }
+    for (const o of daButtare) {
+      o.parent?.remove(o)
+      o.traverse((x) => {
+        const m = x as Mesh
+        if (m.isMesh) geometrie.add(m.geometry)
+      })
+    }
+    for (const g of geometrie) g.dispose()
+    /* e la lista dei ripieghi si svuota: `aggiorna()` la percorre a ogni
+       fotogramma, e lasciarci dentro oggetti staccati dalla scena e' il modo
+       piu' rapido di tenere in vita cio' che si e' appena buttato */
+    this.cerchi.length = 0
+    this.gomme.clear()
     return true
   }
 
-  vestiConModello(scena: Object3D) {
-    /* SI CLONA LA SCENA, NON LE GEOMETRIE.
-       Il primo tentativo copiava `m.geometry` e ci cuoceva dentro `matrixWorld`:
-       con una geometria QUANTIZZATA (`KHR_mesh_quantization`, che gltfpack usa)
-       la scatola d'ingombro tornava vuota — diametro zero — mentre i vertici
-       c'erano tutti, ventunmila. Clonare l'oggetto invece della geometria si
-       porta dietro le trasformazioni come sono, senza toccare i vertici, e la
-       misura torna quella vera. */
-    const base = scena.clone(true)
-    base.updateWorldMatrix(true, true)
-    const box = new Box3().setFromObject(base)
-    const dim = new Vector3(); box.getSize(dim)
-    const diametro = Math.max(dim.x, dim.y, dim.z)
-    if (!(diametro > 0)) return false
+  /* `vestiConModello` NON C'E' PIU' — centosessanta righe che nessuno chiamava.
+     Innestava un modello di ruota caricato da `public/modelli/ruota.glb` al
+     posto del ripiego: misurava la scatola d'ingombro, ne ricavava la scala,
+     clonava la scena e la posava sui quattro archi. Era codice buono e ha
+     smesso di servire il giorno in cui la ruota ha cominciato a COSTRUIRSI
+     (vedi `scene/RuotaVera.ts`): quel GLB erano 28.700 triangoli di rumore, e
+     il file e' stato tolto da `public/` perche' nessuno lo chiedeva piu'.
+     Restava la funzione, senza chiamanti e senza un file da caricare — cioe'
+     una strada che non porta piu' da nessuna parte e che il prossimo che passa
+     avrebbe dovuto capire prima di poterla ignorare.
+     Sta nella storia di git, che e' dove le cose tolte si ritrovano davvero. */
 
-    /* LA MISURA DECIDE LA SCALA: il modello arriva a diametro qualunque e deve
-       diventare la gomma che c'era. A occhio si finisce con una ruota che
-       affonda nel piano o galleggia sopra. */
-    /* +18% DI DIAMETRO, e il revisore ha ragione sul perche'.
-       La ruota tarata sul raggio della gomma di SEGNALE risultava piccola
-       rispetto alla carena: su una hypercar la ruota riempie il passaruota, e
-       una ruota piccola dentro un arco grande e' il segnale piu' immediato di
-       "modello 3D non finito". `RAGGIO_GOMMA` restava buono per un anello
-       piatto, non per una ruota vera con spessore. */
-    const fattore = (RAGGIO_GOMMA * 2 * 1.18) / diametro
-    const centro = new Vector3(); box.getCenter(centro)
-
-    /* GOMMA E CERCHIO SONO LA STESSA MESH e si dividono per RAGGIO: oltre il
-       78% c'e' la spalla del pneumatico, dentro razze, disco e mozzo. Senza la
-       divisione si ottiene o un pneumatico cromato o un cerchio di gomma. */
-    const SOGLIA = 0.78
-    /* SI RACCOLGONO PRIMA, POI SI MODIFICA.
-       Aggiungere un figlio DENTRO `traverse` significa modificare l'albero che
-       si sta percorrendo: three lo visita a sua volta, la divisione gira sul
-       pezzo appena creato e il risultato e' che non si divide niente — tutta
-       la ruota restava metallo, centoquattordicimila triangoli in un materiale
-       solo, mentre la stessa soglia provata a freddo sullo stesso file separa
-       9.597 triangoli di pneumatico da 19.085 di cerchio. */
-    const daDividere: Mesh[] = []
-    base.traverse((o) => { if ((o as Mesh).isMesh) daDividere.push(o as Mesh) })
-    for (const m of daDividere) {
-      m.castShadow = true
-      const g = m.geometry
-      const pos = g.getAttribute('position')
-      const idx = g.getIndex()
-      if (!pos || !idx) { m.material = this.materialeCerchio; continue }
-      const dentro: number[] = []
-      const fuori: number[] = []
-      const c = new Vector3()
-      g.computeBoundingBox()
-      g.boundingBox!.getCenter(c)
-      /* IL RAGGIO SI PRENDE DALLA GEOMETRIA, NON DALLA SCATOLA DEL MONDO.
-         Prima usavo l'ingombro mondiale diviso per la scala del nodo, mentre i
-         vertici li leggo in coordinate LOCALI: due sistemi diversi, la soglia
-         non veniva mai superata e TUTTA la ruota finiva metallo — pneumatico
-         cromato, centoquattordicimila triangoli in un materiale solo. E' lo
-         stesso errore del montaggio, in piccolo: si misura dove si legge. */
-      const bs = new Vector3()
-      g.boundingBox!.getSize(bs)
-      const raggioMax = Math.max(bs.y, bs.z) / 2
-      for (let t = 0; t < idx.count; t += 3) {
-        const a0 = idx.getX(t), a1 = idx.getX(t + 1), a2 = idx.getX(t + 2)
-        let r = 0
-        for (const v of [a0, a1, a2]) {
-          const y = pos.getY(v) - c.y
-          const z = pos.getZ(v) - c.z
-          r += Math.sqrt(y * y + z * z)
-        }
-        r /= 3
-        ;(r > raggioMax * SOGLIA ? fuori : dentro).push(a0, a1, a2)
-      }
-      if (!fuori.length || !dentro.length) { m.material = this.materialeCerchio; continue }
-      const g2 = g.clone(); g2.setIndex(fuori)
-      const gomma = new Mesh(g2, this.materialeGomma)
-      gomma.castShadow = true
-      m.add(gomma)
-      const g1 = g.clone(); g1.setIndex(dentro)
-      m.geometry = g1
-      m.material = this.materialeCerchio
-    }
-
-    /* LA LARGHEZZA VA RIPORTATA A QUELLA CHE C'ERA, e non e' un dettaglio.
-       Il modello e' largo 0,353 su un diametro di 0,997: portato al diametro
-       della gomma diventa largo ventun centimetri, DUE VOLTE gli undici del
-       pneumatico di segnale. Un pneumatico due volte piu' largo, per giunta
-       centrato dove stava un anello PIATTO, esce dalla carena — ed e' quello
-       che si vedeva: le ruote sporgevano oltre il fianco. */
-    const larghezzaModello = Math.min(dim.x, dim.y, dim.z) * fattore
-    /* PNEUMATICO PIU' SPESSO: 0,145 dava una ruota sottile, "senza massa".
-       Una gomma da hypercar e' larga, ed e' la larghezza che le da' peso. */
-    const LARGHEZZA_VOLUTA = 0.205
-    const schiaccia = LARGHEZZA_VOLUTA / larghezzaModello
-
-    for (const vecchio of this.cerchi) {
-      const copia = base.clone(true)
-      copia.position.sub(centro)
-      /* si stringe lungo il MOZZO (l'asse X del modello), non in altezza:
-         il diametro deve restare quello della gomma che c'era */
-      copia.scale.x = schiaccia
-      const contenitore = new Group()
-      /* L'ASSE SI MISURA, NON SI INDOVINA: la scatola dice 0,353 x 0,997 x
-         0,995, quindi il mozzo del modello e' X mentre nella scena gira
-         attorno a Z. Un quarto di giro attorno a Y porta X su Z; con la
-         rotazione sbagliata la ruota compariva di taglio, una lama nera. */
-      contenitore.rotation.y = Math.PI / 2
-      contenitore.scale.setScalar(fattore)
-      contenitore.add(copia)
-      const perno = new Group()
-      /* SI CENTRA SULLA GOMMA, NON SULL'ANELLO. L'anello di segnale e' una
-         superficie piatta appoggiata al BORDO ESTERNO della ruota: mettere li'
-         il centro di un pneumatico che ha spessore vero lo spinge fuori di
-         mezza larghezza. Il riferimento giusto e' il cilindro della gomma, che
-         un centro ce l'ha davvero. */
-      const gommaVecchia = this.gomme.get(vecchio)
-      perno.position.copy(gommaVecchia ? gommaVecchia.position : vecchio.position)
-      /* LA RUOTA RIENTRA NELL'ARCO, e non e' una rifinitura: e' cio' che la
-         attacca alla vettura.
-         Le ruote di segnale erano spinte in FUORI di dodici centimetri
-         (`SPORGENZA`) apposta, perche' un anello piatto si vede solo se sporge
-         dal fianco. Una ruota vera messa nello stesso punto sporge per intero e
-         legge come un pezzo appiccicato accanto alla carrozzeria: questa e' una
-         streamliner a ruote CARENATE, la carena deve coprirne una parte.
-         Si rientra della sporgenza e di mezza larghezza, cosi' il fianco della
-         carena passa sopra al pneumatico invece di finirgli accanto. */
-      const verso = perno.position.z < 0 ? -1 : 1
-      /* SI RIENTRA DELLA SOLA SPORGENZA, non di piu'.
-         Rientrando anche di mezza larghezza la ruota finiva SOTTO il fianco e
-         il disegno delle razze spariva: restava un anello scuro. Rientrando
-         della sola sporgenza il centro torna sull'arco — che e' dove sta la
-         ruota di un'automobile — e la faccia del cerchio resta in vista. */
-      /* PIU' VERSO L'ESTERNO, quasi a filo carena.
-         Rientrando dell'intera sporgenza la ruota finiva sotto il fianco e
-         sembrava staccata dall'altro lato: su una hypercar la ruota sta quasi
-         A FILO della carrozzeria. Si rientra di due terzi, non di tutto. */
-      perno.position.z -= verso * SPORGENZA * 0.62
-      /* L'IMPRONTA A TERRA, ottenuta AFFONDANDO invece che schiacciando.
-         Un pneumatico perfettamente circolare che tocca il suolo in UN PUNTO
-         e' la firma piu' riconoscibile del render amatoriale: una gomma vera
-         si deforma sotto il peso e appoggia su una superficie.
-         La cura ovvia — schiacciare i vertici bassi di 8-12 mm — qui sarebbe
-         SBAGLIATA, e la ragione e' che queste ruote GIRANO: un appiattimento
-         cotto nella geometria girerebbe con loro, e si vedrebbe una gomma
-         ovale che rotola. Affondare la ruota di 11 mm nel piano da' la stessa
-         lettura — il pavimento taglia il pneumatico e l'appoggio diventa una
-         superficie — e resta corretta a ruota ferma e a ruota in moto.
-         Undici millimetri e non venti: e' la deflessione di un pneumatico
-         ribassato sotto il peso di una vettura, non una gomma a terra. */
-      perno.position.y -= 0.011
-      perno.add(contenitore)
-      this.gruppo.add(perno)
-      this.ruoteVere.push(perno)
-      vecchio.visible = false
-      if (gommaVecchia) gommaVecchia.visible = false
-    }
-    return true
-  }
 
   /** @param velocita 0..1: la stessa che guida il tachimetro */
   aggiorna(velocita: number, dt: number) {
@@ -682,7 +565,9 @@ export class Ruote {
     this.angolo += velocita * dt * 14
     // Z e' l'asse del mozzo: e' l'unico giro che non deforma il cerchio,
     // perche' e' perpendicolare al suo piano
-    for (const c of this.cerchi) c.rotation.z = this.angolo
+    /* SOLO LE RUOTE VERE. `this.cerchi` conteneva i ripieghi, che dopo
+       `costruisci()` non esistono piu' — e finche' sono esistiti questa riga
+       scriveva una rotazione su quattro oggetti invisibili a ogni fotogramma. */
     for (const r of this.ruoteVere) r.rotation.z = this.angolo
   }
 }

@@ -533,12 +533,41 @@ export async function montaPanorama(
      l'unica cosa che rendeva fotografica la scena. La sfocatura deve staccare
      il soggetto, non cancellare cio' da cui lo stacca — il colonnato deve
      restare leggibile come colonnato. */
-/* 0,035 E NON 0,055. A 0,055 la villa perdeva l'architettura: non si
-     distinguevano piu' i piani, le finestre, le palme. Una sfocatura troppo
-     forte legge come VETRO SMERIGLIATO, non come fuori fuoco — la sfocatura di
-     un obiettivo allarga i bordi ma ne conserva la struttura. Il bersaglio e'
-     «morbida ma leggibile»: si deve capire che e' una villa. */
-  scena.backgroundBlurriness = 0.035
+/* ZERO — E IL MECCANISMO ERA SBAGLIATO, NON IL VALORE.
+     Questo numero e' sceso tre volte, sempre per la stessa segnalazione: «la
+     villa legge come vetro smerigliato, non come fuori fuoco». 0,14, poi
+     0,055, poi 0,035 — e la revisione continuava a vedere il vetro smerigliato.
+     Aveva ragione, e il motivo e' che `backgroundBlurriness` non e' una
+     sfocatura: campiona i MIP della PMREM, cioe' una cascata di riduzioni a
+     meta'. E' matematicamente una convoluzione con un nucleo a piramide,
+     ripetuta — che e' esattamente il modello di una superficie ruvida, cioe'
+     del vetro smerigliato. Non e' un'approssimazione del fuori fuoco: e' la
+     cosa giusta per un'altra domanda.
+     Un fuori fuoco e' una GAUSSIANA (o un disco, se si vuole il bokeh vero):
+     allarga i bordi conservandone la struttura, invece di mescolarli. A
+     qualunque valore, un mip blur non puo' fare quello.
+     Quindi la sfocatura si cuoce nel file, una volta, con una gaussiana vera a
+     sigma 1,35 sui 4096 px del panorama.
+
+     IL SIGMA VA CONTATO IN PIXEL DI SCHERMO, non di sorgente, e al primo giro
+     l'ho sbagliato. A sigma 3,5 la villa spariva del tutto: il panorama copre
+     360 gradi in 4096 px, la hero ne inquadra una quarantina — cioe' 455 px di
+     sorgente stirati su 1200 di schermo, un ingrandimento di 2,6. Sigma 3,5
+     diventava nove pixel a schermo. 1,35 sulla sorgente fa i 3,5 veri, che e'
+     il fuori fuoco di un obiettivo lungo su un fondale a quella distanza.
+     L'originale nitido sta in `texture-sorgente/corte_pano_nitido.webp`.
+
+     E COSTA MENO DI QUANTO COSTAVA. Un'immagine sfocata non ha alte frequenze,
+     e le alte frequenze sono quasi tutto quello che un codificatore paga:
+     491 kB -> 228 kB. Duecentosessantatre kilobyte in meno sul percorso critico,
+     su un file che e' il secondo per peso. La cura di un difetto visivo che
+     alleggerisce e' rara abbastanza da meritare di essere scritta.
+
+     NON TOCCA LA LUCE: l'ambiente nasce da `corte_pano_ambiente.webp`, che e'
+     un altro file e resta nitido. La divisione fra «cio' che si vede dietro» e
+     «cio' che la carrozzeria specchia» regge, ed e' quella che rende possibile
+     questa cura. */
+  scena.backgroundBlurriness = 0
   scena.environmentIntensity = 1.0
   /* NON TORNA PIU' LA FOTOGRAFIA. Tornava il fondo, e adesso quando questa
      funzione finisce il fondo non e' ancora arrivato: chi lo volesse dovrebbe
