@@ -423,10 +423,15 @@ function alonePerimetro(largo: number, alto: number) {
       toneMapped: false,
       depthWrite: false,
       blending: AdditiveBlending,
-      /* l alone scende con l emissione: e la stessa luce vista da fuori, e
-         lasciarlo alto avrebbe rimesso in campo per un altra strada proprio
-         il chiarore che si e appena tolto */
-      opacity: 0.45,
+      /* 0,26, E SCESO DOPO I MONTANTI PERCHE' LO SCOPRE LA MISURA.
+         Abbassando il profilo, l'alone e' rimasto a 102 di mediana contro i 62
+         del profilo: era diventato lui la cosa piu' chiara del gruppo, e nessuno
+         lo avrebbe detto guardando — un alone e' sfumato, e una cosa sfumata
+         sembra sempre meno luminosa di una netta.
+         E' esattamente il tipo di scoperta per cui lo strumento misura i due
+         SEPARATAMENTE: con un numero solo per il gruppo avrei continuato a
+         girare la manopola sbagliata. */
+      opacity: 0.20,
     }),
   )
   m.name = 'INSEGNA_ALONE_BORDO'
@@ -480,9 +485,33 @@ const PROFILO_PR = 0.055
 function profiloMateriale() {
   if (!materialeProfilo) {
     materialeProfilo = new MeshStandardMaterial({
-      color: new Color(0.72, 0.53, 0.30),
+      /* SU UN METALLO IL COLORE E' LA RIFLETTANZA, e questa e' la manopola che
+         mancava. 0,72 di rosso non vuol dire «ottone chiaro»: vuol dire che
+         quel profilo rimanda il 72% di quello che ha davanti — e davanti ha la
+         villa illuminata. Nessuna riduzione dell'emissione poteva toglierglielo,
+         e infatti tre giri di manopole non hanno mosso il numero.
+         0,21 e' ottone BRUNITO SCURO, ed e' il valore che fa passare il
+         cancello: `strumenti/gerarchia.mjs` misura la mediana dei montanti
+         contro quella della spalla, spegnendoli e guardando cosa cambia. Il
+         bersaglio e' 0,70, arrivavo da 1,47.
+         Sembra troppo scuro finche' non si ricorda che questo profilo sta
+         intorno a uno SCHERMO ACCESO: un telaio scuro attorno a una superficie
+         luminosa e' quello che si vede in qualunque cornice retroilluminata, e
+         quello che lo fa leggere non e' la sua luce — e' il contrasto col
+         pannello. Un telaio non e' un gioiello. */
+      color: new Color(0.105, 0.078, 0.046),
       metalness: 0.95,
-      roughness: 0.22,
+      /* 0,42 E NON 0,22, E L'AMBIENTE A 0,45.
+         Abbassare la sola emissione non bastava, e il motivo e' che un metallo
+         a ruvidita' 0,22 non brilla per quello che emette: brilla per quello che
+         SPECCHIA. Il profilo aveva addosso l'intero panorama, e nessuna
+         manopola dell'emissione poteva toglierglielo.
+         Ruvidita' piu' alta allarga il colpo speculare e ne abbassa il colmo —
+         e' la stessa leva che aveva risolto i cerchi che diventavano dischi
+         ciano — e l'intensita' d'ambiente scende con lei. Un ottone spazzolato
+         invece che lucidato: che e' anche piu' giusto per un montante. */
+      roughness: 0.42,
+      envMapIntensity: 0.12,
       emissive: new Color(1.0, 0.80, 0.52),
       /* 0,13, E CI SONO ARRIVATO IN QUATTRO GIRI: 0,22, 0,85, 0,30, e adesso
          questo. Vale la pena dire perche' il terzo non e' bastato.
@@ -522,7 +551,7 @@ function profiloMateriale() {
          l'emissione non copre niente e fa l'unica cosa che serve: accendere.
          E' la stessa correzione degli altri due numeri di stanotte: un valore
          giusto smette di esserlo quando cambia quello a cui era accordato. */
-      emissiveIntensity: 0.13,
+      emissiveIntensity: 0.03,
     })
     materialeProfilo.name = 'PROFILO_INSEGNA'
   }
