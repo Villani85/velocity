@@ -227,6 +227,24 @@ for (const [nome, q] of TEMPI) {
    Resta la frazione di pixel quasi neri come guardia contro il caso opposto —
    una vettura interamente spenta ha ampiezza zero e passerebbe il primo
    criterio. */
+/* 130, E IL MARGINE E' PIU' GRANDE DEL RUMORE — che e' l'unica cosa che rende
+   usabile un cancello su una misura che balla.
+   Questo strumento non e' perfettamente ripetibile: fotografa la scena due
+   volte, con e senza vettura, e fra i due scatti l'inerzia dello scorrimento
+   sposta ancora qualcosa. Sulla MEDIANA il ballo era enorme — 52,4, poi 110,7,
+   poi 74,1 sulla stessa scena — ed e' una delle ragioni per cui quel cancello
+   non poteva reggere: non si puo' mettere una soglia su un numero che varia
+   del cento per cento.
+   L'AMPIEZZA balla molto meno, perche' descrive la FORMA della distribuzione e
+   non la sua posizione. Due corse identiche appena fatte:
+       hero    178,0 -> 193,2   (+8,5%)
+       orbita  153,4 -> 176,1   (+14,8%)
+       lato    189,9 -> 193,1   (+1,7%)
+   Rumore massimo 15%, margine sul cancello fra il 18% e il 48%. E' quello il
+   conto che conta: un cancello si puo' usare quando il suo margine e' piu'
+   largo del suo rumore. Se un giorno l'ampiezza scendesse verso 150 il conto
+   non torna piu', e prima di abbassare la soglia va reso ripetibile lo
+   strumento. */
 const AMPIEZZA_MINIMA = 130
 let esito = 0
 console.log('')
