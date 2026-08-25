@@ -126,6 +126,31 @@ export class Comandi {
       viste.appendChild(b)
     }
 
+    /* IL NOME DELLA FINITURA SCELTA, e non e' ridondanza.
+       Il pallino disegna la macchia di luce con larghezza e forza prese dalla
+       ruvidita' vera — 0,30 / 0,48 / 0,14 — ed e' la costruzione giusta. Ma la
+       revisione esterna ha guardato il poster e ha detto la cosa che conta:
+       «a 26 px il segnale non passa, leggono ancora come tre cerchi grigi
+       quasi identici». Ha ragione, e il motivo e' aritmetico: la differenza fra
+       due macchie larghe il 34% e il 44% di un disco di ventisei pixel sono due
+       pixel e mezzo di raggio.
+       Un disegno che a quella misura non arriva non si aggiusta ingrandendo il
+       disegno: si nomina. «NERO LIQUIDO / NERO SATINATO / CARBONIO» sono tre
+       parole che dicono in mezzo secondo quello che il pallino prova a dire con
+       due pixel — e il pallino resta, perche' insieme fanno quello che nessuno
+       dei due fa da solo.
+       Una riga sola e solo per quella SCELTA: tre nomi in fila sotto tre
+       pallini sarebbero tre parole da leggere per una scelta che si fa
+       guardando. */
+    const nome = document.createElement('p')
+    nome.className = 'comandi__nome'
+    /* `aria-hidden` perche' per chi usa un lettore di schermo il nome c'e' gia'
+       ed e' migliore: ogni pallino porta la sua `aria-label`, e il pulsante
+       scelto e' annunciato come premuto. Ripeterlo qui sarebbe rumore. */
+    nome.setAttribute('aria-hidden', 'true')
+    finiture.appendChild(nome)
+    this.nome = nome
+
     this.radice.append(finiture, viste)
     dentro.appendChild(this.radice)
     this.segna()
@@ -187,11 +212,15 @@ export class Comandi {
   }
 
   /** quale e' scelto: si legge dallo stato, non si tiene a mente nel DOM */
+  /** dove si scrive il nome della finitura scelta */
+  private nome!: HTMLElement
+
   private segna() {
     const c = this.radice.querySelectorAll('.comandi__campione')
     for (let i = 0; i < c.length; i++) c[i].classList.toggle('e-scelto', i === this.finitura)
     const v = this.radice.querySelectorAll('.comandi__vista')
     for (let i = 0; i < v.length; i++) v[i].classList.toggle('e-scelto', i === this.vista)
+    if (this.nome) this.nome.textContent = FINITURE[this.finitura].nome
   }
 
   /** da quanto la pagina e' aperta: vedi `aggiorna` */

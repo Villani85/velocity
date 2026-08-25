@@ -1,5 +1,5 @@
-import { Vector3 } from 'three'
-import type { PerspectiveCamera } from 'three'
+import { Raycaster, Vector3 } from 'three'
+import type { Object3D, PerspectiveCamera } from 'three'
 import type { Beat, Regia } from '../core/Regia'
 import { t } from './Lingua'
 
@@ -136,6 +136,10 @@ export class Spina {
   private y = 0
   private avviata = false
   private punto = new Vector3()
+  /* il raggio che chiede «la bocca si vede?». Uno solo, riusato: costruirne uno
+     per fotogramma e' spazzatura a sessanta al secondo. */
+  private raggio = new Raycaster()
+  private versoPunto = new Vector3()
 
   constructor(dentro: HTMLElement = document.body) {
     this.radice = document.createElement('aside')
@@ -174,8 +178,10 @@ export class Spina {
    *   Senza, la spina non si mostra — meglio niente che una linea che indica
    *   un oggetto che non c'e' ancora.
    * @param msFotogramma il tempo per fotogramma MISURATO
+   * @param corpo la vettura, per sapere se la bocca del faro e' COPERTA da lei.
+   *   Senza, vedi «LA LINEA NON PUNTA A CIO' CHE NON SI VEDE» qui sotto.
    */
-  aggiorna(regia: Regia, camera: PerspectiveCamera, ancora: Vector3 | null, msFotogramma: number) {
+  aggiorna(regia: Regia, camera: PerspectiveCamera, ancora: Vector3 | null, msFotogramma: number, corpo?: Object3D | null) {
     const stato = STATI[regia.beat]
     if (!stato || !ancora) {
       this.radice.classList.remove('e-viva')
@@ -201,9 +207,46 @@ export class Spina {
         : stato.numero.replace('2.9 MB', PESO_AUTO)
     }
 
-    // ---- dove cade sullo schermo il punto del mondo
+    /* ============================================================
+       LA LINEA NON PUNTA A CIO' CHE NON SI VEDE.
+
+       IL DIFETTO, segnalato tre volte dalla revisione esterna prima che lo
+       guardassi: «la linea guida verso 619 kB attraversa auto e podio in
+       diagonale e finisce nel nulla».
+
+       Il punto non era sbagliato: e' la bocca del faro, un punto vero, ed e' di
+       quello che la scheda parla. Il problema e' che nella hero la vettura e'
+       inquadrata da DIETRO, quindi il muso guarda dall'altra parte e la bocca
+       sta nascosta dalla carrozzeria. La linea ci arrivava lo stesso —
+       attraversando tutto — perche' la proiezione di un punto funziona anche
+       quando quel punto e' coperto: `project()` non sa niente di cosa c'e' in
+       mezzo.
+
+       E' lo stesso difetto della normale girata dalla parte sbagliata sulle
+       insegne: la matematica e' corretta e il risultato non si vede. Un
+       controllo che guarda solo se il punto e' NEL RIQUADRO non basta — serve
+       sapere se e' VISIBILE, e sono due domande diverse.
+
+       Si risponde con un raggio dalla camera al punto, limitato alla vettura:
+       se incontra la carrozzeria prima di arrivarci, la bocca e' dietro e la
+       spina si spegne.
+
+       IL MARGINE DI DUE CENTIMETRI serve perche' la bocca STA sulla
+       carrozzeria: senza, il raggio colpirebbe sempre il pezzo a cui punta e
+       la spina non comparirebbe mai. E' il classico auto-colpimento, e la cura
+       e' la stessa di sempre — non contare cio' che sta alla distanza del
+       bersaglio, conta cio' che sta davanti. */
     this.punto.copy(ancora).project(camera)
-    const inCampo = this.punto.z < 1 && Math.abs(this.punto.x) < 1.5 && Math.abs(this.punto.y) < 1.5
+    let inCampo = this.punto.z < 1 && Math.abs(this.punto.x) < 1.5 && Math.abs(this.punto.y) < 1.5
+    if (inCampo && corpo) {
+      this.versoPunto.copy(ancora).sub(camera.position)
+      const distanza = this.versoPunto.length()
+      this.versoPunto.divideScalar(distanza)
+      this.raggio.set(camera.position, this.versoPunto)
+      this.raggio.far = distanza - 0.02
+      const colpi = this.raggio.intersectObject(corpo, true)
+      if (colpi.length > 0) inCampo = false
+    }
     const bx = (this.punto.x * 0.5 + 0.5) * innerWidth
     const by = (-this.punto.y * 0.5 + 0.5) * innerHeight
     if (!this.avviata) { this.x = bx; this.y = by; this.avviata = true }
@@ -248,7 +291,17 @@ export class Spina {
       `${this.x},${this.y - r} ${this.x + r},${this.y} ${this.x},${this.y + r} ${this.x - r},${this.y}`,
     )
 
-    this.radice.classList.toggle('e-viva', inCampo)
+/* LA SCHEDA RESTA, LA LINEA NO — e la distinzione e' costata un provino.
+       Al primo giro il controllo di visibilita' spegneva tutto, e nel poster
+       spariva anche «619 kB / CAR ASSET»: un dato misurato, che e' una delle
+       affermazioni portanti del sito e che sta in piedi da solo.
+       Sono due cose diverse. La SCHEDA e' testo: dice quanto pesa il modello, e
+       lo dice che il faro si veda o no. La LINEA e' un'affermazione spaziale —
+       «quel dato riguarda QUEL punto» — e un'affermazione spaziale su un punto
+       che non si vede e' falsa.
+       Quindi cade solo lei. E' la stessa regola del sito statico: si onora il
+       vincolo DENTRO la cosa, non sostituendola. */
+    this.radice.classList.toggle('e-viva', true)
     this.disegno.classList.toggle('e-viva', inCampo)
   }
 }

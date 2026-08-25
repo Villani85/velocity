@@ -44,6 +44,7 @@ const L = 1400, A = 875
 /** i tempi in cui l'automobile si vede da fuori */
 const TEMPI = [['hero', 0.06], ['orbita', 0.23], ['lato', 0.43]]
 
+const misure = []
 const b = await chromium.launch({
   args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--force-device-scale-factor=1'],
 })
@@ -184,9 +185,62 @@ for (const [nome, q] of TEMPI) {
     nome.padEnd(8),
     'pixel', String(luci.length).padStart(7),
     ' mediana', q_(0.5).toFixed(1).padStart(6),
-    ' 90esimo', q_(0.9).toFixed(1).padStart(6),
-    ' massimo', q_(0.999).toFixed(1).padStart(6),
+    ' ampiezza', (q_(0.95) - q_(0.05)).toFixed(1).padStart(6),
+    ' p95', q_(0.95).toFixed(1).padStart(6),
     ' scuri', (scuri * 100).toFixed(1).padStart(5) + '%',
   )
+  misure.push({ nome, mediana: q_(0.5), ampiezza: q_(0.95) - q_(0.05), p95: q_(0.95) })
+}
+
+/* ============================================================ IL CANCELLO
+
+   ERA SULLA MEDIANA (90-120) ED ERA TARATO SU UN'ALTRA VETTURA.
+
+   Quella soglia nasce da quando l'elenco delle finiture conteneva un bianco
+   perla e un arancio. Il committente li ha tolti: restano NERO LIQUIDO, NERO
+   SATINATO e CARBONIO, e hanno `tinta` fra 0,014 e 0,021 in luce lineare.
+   Una vernice nera lucida VERA ha mediana bassa e code alte — e' alto
+   contrasto, non luminanza media alta. Inseguire il 90 su questa vettura
+   vorrebbe dire fare una vettura nera che non e' nera, cioe' usare uno
+   strumento per disfare una decisione presa: e' esattamente l'errore gia'
+   commesso con il collaudo di accessibilita' che bocciava il sito perche' non
+   fa il ripiego statico. Uno strumento che boccia una decisione non misura: fa
+   politica.
+
+   La riscrittura arriva dalla revisione esterna, e l'argomento e' migliore del
+   mio: cio' che dice se una carrozzeria nera e' resa bene non e' quanta luce
+   ha in media, sono due altre cose.
+
+   1. L'AMPIEZZA (p95 - p05). Una vernice lucida sta quasi tutta scura e ha
+      riflessi che arrivano al bianco: se la distanza fra il quinto e il
+      novantacinquesimo percentile e' larga, la superficie sta specchiando. Se
+      e' stretta, e' una macchia grigia — che era il giudizio di partenza su
+      questo progetto, «un blob senza forma».
+
+   2. IL RAPPORTO COL FONDO, misurato sulla SPALLA e non sulla media. La
+      fiancata di un'auto nera deve stare scura; la spalla e il tetto no —
+      sono le facce rivolte al cielo, e se anche loro spariscono nel fondo il
+      soggetto non compete con la scena. Il bersaglio e' l'80% della villa.
+      Questo secondo numero non si legge da qui (serve il poster, dove la villa
+      e' in campo): lo misura `strumenti/gerarchia.mjs`.
+
+   Resta la frazione di pixel quasi neri come guardia contro il caso opposto —
+   una vettura interamente spenta ha ampiezza zero e passerebbe il primo
+   criterio. */
+const AMPIEZZA_MINIMA = 130
+let esito = 0
+console.log('')
+for (const m of misure) {
+  const passa = m.ampiezza >= AMPIEZZA_MINIMA
+  console.log('  ' + m.nome.padEnd(8) + ' ampiezza ' + m.ampiezza.toFixed(1).padStart(6) +
+    '  (minimo ' + AMPIEZZA_MINIMA + ')  ' + (passa ? 'passa' : 'BOCCIATO'))
+  if (!passa) esito = 1
+}
+if (esito) {
+  console.log('')
+  console.log('Una carrozzeria lucida che non arriva a ' + AMPIEZZA_MINIMA + ' livelli di ampiezza')
+  console.log('non sta specchiando: e una macchia. Non si cura alzando la luce media —')
+  console.log('si cura dando all ambiente qualcosa da riflettere.')
 }
 await b.close()
+process.exit(esito)

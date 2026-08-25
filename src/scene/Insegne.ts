@@ -423,7 +423,10 @@ function alonePerimetro(largo: number, alto: number) {
       toneMapped: false,
       depthWrite: false,
       blending: AdditiveBlending,
-      opacity: 0.85,
+      /* l alone scende con l emissione: e la stessa luce vista da fuori, e
+         lasciarlo alto avrebbe rimesso in campo per un altra strada proprio
+         il chiarore che si e appena tolto */
+      opacity: 0.45,
     }),
   )
   m.name = 'INSEGNA_ALONE_BORDO'
@@ -481,7 +484,24 @@ function profiloMateriale() {
       metalness: 0.95,
       roughness: 0.22,
       emissive: new Color(1.0, 0.80, 0.52),
-      /* 0,85 E NON 0,22, e il ragionamento precedente era giusto per barre
+      /* 0,30, E CI SONO ARRIVATO DA 0,22 E POI DA 0,85 — misurando, la terza
+         volta.
+         Il ragionamento che porto' a 0,85 era giusto nel merito: su un filo di
+         11 mm il rilievo non lo porta l'ombreggiatura della faccia, lo porta il
+         profilo contro il fondo, e li' l'emissione non copre niente. Ma
+         rispondeva a una domanda sola — «si vede?» — e ne esisteva una seconda
+         che non avevo posto: «si vede PIU' DELLA VETTURA?».
+         `strumenti/gerarchia.mjs` l'ha misurata sul poster: i montanti
+         piccavano a 252,2 contro i 254,3 del punto piu' chiaro della
+         carrozzeria — pari merito. E il picco non e' nemmeno il numero
+         peggiore: la MEDIANA dei montanti era 98-146 mentre quella della
+         fiancata e' 18-52. Un filo continuamente chiaro batte un riflesso
+         intermittente a parita' di picco, perche' l'occhio somma la lunghezza.
+         Tre linee parallele nette che vincono sul soggetto sono un difetto di
+         gerarchia, non di luce.
+         Vecchio commento, che resta perche' e' la meta' vera del
+         ragionamento: */
+      /* il ragionamento precedente era giusto per barre
          LARGHE e sbagliato per un filo.
          Su una fascia di 26 mm l'emissione piena appiattiva le sei facce sullo
          stesso valore e il rilievo spariva: vero. Ma su un filo di 11 mm il
@@ -490,7 +510,7 @@ function profiloMateriale() {
          l'emissione non copre niente e fa l'unica cosa che serve: accendere.
          E' la stessa correzione degli altri due numeri di stanotte: un valore
          giusto smette di esserlo quando cambia quello a cui era accordato. */
-      emissiveIntensity: 0.85,
+      emissiveIntensity: 0.30,
     })
     materialeProfilo.name = 'PROFILO_INSEGNA'
   }

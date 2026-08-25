@@ -230,7 +230,7 @@ function avviaInterfaccia(esp: Esperienza) {
       const a = esp.attraversamento?.pronto ? esp.attraversamento.bocca : null
       // il tempo per fotogramma e' quello che il gestore di qualita' misura gia'
       // per decidere se degradare: e' un dato vero, non una stima
-      spina.aggiorna(esp.regia, esp.camera, a, esp.qualita.tempoMedio)
+      spina.aggiorna(esp.regia, esp.camera, a, esp.qualita.tempoMedio, esp.autoVera)
       requestAnimationFrame(ciclo)
     }
     requestAnimationFrame(ciclo)

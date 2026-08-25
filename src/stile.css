@@ -1850,6 +1850,28 @@ body {
      cambia la luminanza media del campione ha smesso di descrivere e ha
      cominciato a mentire. */
 }
+/* IL NOME DELLA FINITURA — vedi «ui/Comandi.ts» per il perche'.
+   LARGHEZZA FISSA, e non e' un dettaglio: i tre nomi hanno lunghezze diverse
+   («CARBONIO» contro «NERO SATINATO») e con la larghezza a contenuto il gruppo
+   dei comandi si allargherebbe e si stringerebbe a ogni scelta, spostando di
+   lato tutto quello che gli sta accanto. Un'interfaccia che si muove quando la
+   tocchi si legge come instabile, e qui accanto c'e' il selettore dei luoghi.
+   Undici caratteri bastano al piu' lungo. */
+.comandi__nome {
+  margin: 0 0 0 12px;
+  min-width: 11ch;
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(216, 162, 88, 0.82);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  /* sul telefono la riga dei comandi e' gia' al limite: il nome andrebbe a
+     capo e porterebbe il gruppo su due righe */
+  .comandi__nome { display: none; }
+}
+
 .comandi__campione:hover { transform: scale(1.12); }
 /* lo scelto si segna con un anello STACCATO, non con un bordo piu' spesso: su
    un campione di venti pixel un bordo mangia il colore che si sta scegliendo */
