@@ -324,16 +324,52 @@ export let rotazioneScena = 0
 const ROTAZIONE_ORBITA = 1.951
 const ROTAZIONE_FINE = 2.34
 
+/* LA PAUSA — quanta parte finale di ogni tempo la camera passa FERMA.
+ *
+ * I confini dei tempi sono contigui: 0,13 · 0,34 · 0,53 · 0,645 · 0,725 · 0,815.
+ * Ogni pixel di scorrimento muoveva la camera, quindi non c'era mai un istante
+ * in cui l'occhio potesse posarsi su un'inquadratura. Un film non e' fatto solo
+ * di movimento: e' fatto di movimento e di stacchi, e uno stacco ha bisogno che
+ * l'inquadratura prima di lui esista per un momento.
+ *
+ * Sedici centesimi: la camera compie tutta la sua corsa nell'ottantaquattro per
+ * cento del tempo e l'ultimo sesto tiene. A velocita' di lettura normale sono
+ * qualche decimo di secondo per tempo — non una sosta, una PUNTEGGIATURA.
+ *
+ * COME NON SI FA, ed e' documentato in questo stesso file a caro prezzo: una
+ * rampa scritta nello spazio grezzo e applicata a quello addolcito. Qui il
+ * rischio e' identico e piu' insidioso, perche' `inquadra` esprime OGNI sua
+ * soglia in `t`. Se `t` finisse prima, tutti i confronti che lo leggono
+ * scatterebbero in anticipo — l'iride, gli scambi, i cambi di mondo — e il
+ * difetto si vedrebbe da tutt'altra parte rispetto alla causa.
+ *
+ * Quindi `t` NON SI TOCCA e `regia.locale` NON SI TOCCA. Si introduce un
+ * secondo tempo, `tp`, che lo legge nessuno tranne le pose. */
+const PAUSA = 0.16
+/** ferma una rampa prima della fine del SUO tratto, e lascia stare le soglie */
+function tieni(x: number) {
+  return Math.min(1, x / (1 - PAUSA))
+}
+
 export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: number) {
   rotazioneScena = 0
   const t = morbido(regia.locale)
+  /* IL TEMPO DELLE POSE, che finisce prima di quello delle soglie.
+     Lo stiramento sta DENTRO `morbido` e non fuori: addolcire e poi stirare
+     darebbe una rampa che arriva a uno con la pendenza ancora alta, cioe' una
+     camera che si ferma di colpo. Stirando prima, l'attenuazione finale dello
+     smoothstep cade sul nuovo traguardo ed e' li' che la camera si posa.
+     Chi lo usa: le sole interpolazioni di posa, mira e campo. Nessun confronto,
+     nessuna soglia, nessun sottotratto che nasca da una sottrazione — per
+     quelli c'e' `tieni`, che agisce nello spazio del tratto stesso. */
+  const tp = morbido(tieni(regia.locale))
   const mira = _b.copy(MIRA_AUTO)
 
   switch (regia.beat) {
     case 'hero':
       // fermo, quasi. Il movimento c'e' ma non si nota: serve a dire che la
       // scena e' viva prima ancora che succeda qualcosa.
-      camera.position.lerpVectors(POSE.heroDa, POSE.heroA, t)
+      camera.position.lerpVectors(POSE.heroDa, POSE.heroA, tp)
       /* 30 GRADI E NON 38, e le pose si sono allontanate di conseguenza.
          38 gradi su questo formato corrispondono a circa un 35 mm su pieno
          formato. La fotografia d'automobile — e il riferimento che il
@@ -386,13 +422,13 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
       const alt = POSE.orbitaDa.alt + (POSE.orbitaA.alt - POSE.orbitaDa.alt) * t
       polare(POSE.orbitaDa.ang, rag, alt, _a)
       camera.position.copy(_a)
-      rotazioneScena = (POSE.orbitaA.ang - POSE.orbitaDa.ang) * morbido(t)
+      rotazioneScena = (POSE.orbitaA.ang - POSE.orbitaDa.ang) * morbido(tp)
       // la focale si allunga mentre ci si avvicina: e' il modo in cui uno
       // spot fa sembrare un'auto piu' bassa e piu' larga di quanto sia
       camera.fov = 38 - 6 * t
       // e lo scostamento della hero si riassorbe girando: vedi `SCOSTA_HERO`
-      diLato(camera, mira, SCOSTA_HERO * (1 - morbido(t)))
-      mira.y += ALZA_HERO * (1 - morbido(t))
+      diLato(camera, mira, SCOSTA_HERO * (1 - morbido(tp)))
+      mira.y += ALZA_HERO * (1 - morbido(tp))
       break
     }
 
@@ -440,13 +476,15 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
         // E' anche piu' vero: un risucchio non e' un avvicinamento uniforme.
         // Quello che si vuole raccontare qui e' che la forma ti PORTA dentro,
         // e portare vuol dire prima mostrare dove, poi andarci.
-        const dentro = morbido(t)
+        const dentro = morbido(tp)
         camera.position.lerpVectors(_a, _e, dentro * dentro * dentro)
-        mira.lerp(_d, morbido(Math.max((t - 0.35) / 0.65, 0)))
+        // il sottotratto tiene nel PROPRIO spazio: nasce da una sottrazione
+        // su `t`, quindi stirarlo con `tp` vorrebbe dire mescolare due tempi
+        mira.lerp(_d, morbido(tieni(Math.max((t - 0.35) / 0.65, 0))))
         camera.fov = 32 - 4 * t
         break
       }
-      camera.position.lerpVectors(_a, POSE.latoA, t)
+      camera.position.lerpVectors(_a, POSE.latoA, tp)
       // lo sguardo si sposta dall'auto intera al posto di guida: e' lo
       // sguardo a dichiarare dove stiamo andando, prima che ci si arrivi
       mira.lerp(MIRA_GUIDA, morbido(Math.min(t * 1.4, 1)))
@@ -512,7 +550,9 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
       // OLTRE LO SCAMBIO: stesso conto, altro mondo. La `u` prosegue senza
       // salti da SOGLIA verso l'interno; e' solo la scala a essere cambiata,
       // e la scala non si vede.
-      const q = (t - SCAMBIO_A) / (1 - SCAMBIO_A)
+      // e anche qui il tratto tiene nel proprio spazio, non in quello di `t`:
+      // `SCAMBIO_A` e' una soglia e le soglie restano dove sono
+      const q = tieni((t - SCAMBIO_A) / (1 - SCAMBIO_A))
       // LA CORSA RALLENTA, non accelera.
       //
       // `morbido` (uno smoothstep) parte piano, corre e frena: dentro il
@@ -578,7 +618,22 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
       // Un campo che si apre da solo sarebbe un'animazione; uno che
       // risponde alla mano dice che stai guidando tu.
       const spinta = Math.min(velocita * 2.2, 1)
-      camera.fov = 40 + 16 * morbido(t) * (0.35 + 0.65 * spinta)
+      /* E LA REATTIVITA' ALLA VELOCITA' SI SPEGNE SUL FINIRE DEL TEMPO.
+         Il campo qui insegue quanto in fretta si scorre, ed e' giusto: questo
+         e' il tempo che parla di velocita', e un campo che reagisce e' il suo
+         modo di dirlo. Ma il patto di questo file e' che ogni tempo cominci
+         dalla posa in cui il precedente e' finito, e `contatto` comincia da 56.
+         Con `spinta` libera fino all'ultimo, questo tempo finiva fra 45,6 e 56
+         a seconda di quanto in fretta stava scorrendo chi guarda: chi si
+         fermava un attimo prima del confine si prendeva un salto di dieci gradi
+         di campo. Misurato: 3,3 volte la corsa massima del tempo.
+         Portando `spinta` a uno insieme alla posa, il campo arriva a 56 esatti
+         comunque si sia arrivati — e il tempo acquista anche la sua pausa, che
+         era l'unico dei sette a non averla. Una cosa sola sistema tutte e due,
+         perche' erano la stessa cosa: un tempo che non si posa non puo'
+         nemmeno finire in un punto prevedibile. */
+      const spintaFine = spinta + (1 - spinta) * morbido(tp)
+      camera.fov = 40 + 16 * morbido(tp) * (0.35 + 0.65 * spintaFine)
       // micro-vibrazione: e' la cosa che rende credibile la lastra, perche'
       // il piano fuori si muove di conseguenza mentre l'abitacolo trema
       /* E CON IL MOVIMENTO RIDOTTO VALE ZERO — e' il caso piu' semplice di
@@ -634,7 +689,7 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
     case 'contatto': {
       rotazioneScena = ROTAZIONE_FINE
       camera.position.copy(POSE.occhi)
-      const q = morbido(t)
+      const q = morbido(tp)
       // si parte da dove `velocita` ha lasciato, che e' il patto di questo
       // file: ogni beat comincia dalla posa in cui il precedente e' finito
       mira.set(
