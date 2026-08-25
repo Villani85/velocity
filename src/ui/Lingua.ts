@@ -363,6 +363,34 @@ export const D: Record<string, Voce> = {
   docCifra2d: { it: '106.736 triangoli, compressi con meshopt', en: '106,736 triangles, meshopt-compressed' },
   docCifra3t: { it: 'Metriche costruite e buttate', en: 'Metrics built and thrown away' },
   docCifra3d: { it: 'perché misuravano rumore, non forma', en: 'because they measured noise, not shape' },
+  /* IL DIFETTO CHE TORNA — vedi «#studio» in `index.html`. Il testo italiano
+     sta in due posti (qui e nel documento) ed e' la stessa famiglia di difetto
+     della lista dei lavori: due copie della stessa frase da tenere allineate a
+     mano finche' non sara' generata. */
+  docFamigliaTitolo: {
+    it: 'Un criterio non separa due popolazioni che condividono un valore',
+    en: 'A criterion cannot separate two populations that share a value',
+  },
+  docFamiglia1: {
+    it: 'Una maschera doveva distinguere la carrozzeria dal riempimento delle isole di texture. Il riempimento è rosso pieno; il vetro ha ruvidità zero e metallico zero — cioè la stessa identica firma. La maschera li ha scambiati e ha murato vetro e cromo, portando la frazione a bassa ruvidità dal 17,9 al 4,0 per cento. Il criterio era corretto per il novanta per cento dei texel e falso per quelli che contavano.',
+    en: 'A mask had to tell bodywork apart from the padding that fills texture islands. The padding is pure red; glass has zero roughness and zero metalness — the very same signature. The mask confused them and walled up glass and chrome, dropping the low-roughness fraction from 17.9 to 4.0 per cent. The criterion was right for ninety per cent of the texels and false for the ones that mattered.',
+  },
+  docFamiglia2: {
+    it: 'Cercando il sole dentro il panorama per il pulsante «tramonto», due misure indipendenti hanno dato due risposte precise e diverse: 74 gradi e 45 gradi. Poi ho guardato la striscia dell’orizzonte, dieci secondi di lavoro, e non aveva ragione nessuna delle due: il caldo che stavo misurando era l’interno illuminato della villa. In quella fotografia un sole non c’è. «Caldo» non distingue un tramonto da una lampadina.',
+    en: 'Hunting for the sun inside the panorama for the “sunset” button, two independent measurements gave two precise and different answers: 74 degrees and 45 degrees. Then I looked at the horizon strip — ten seconds of work — and neither was right: the warmth I was measuring was the villa’s lit interior. That photograph has no sun in it. “Warm” does not tell a sunset from a light bulb.',
+  },
+  docFamiglia3: {
+    it: 'Uno strumento che cerca il peso morto dentro la cartella pubblica dava 7.824 kB e stava per farmi cancellare l’immagine delle anteprime sociali: quella non la chiede mai la pagina, la leggono i crawler. «Mai chiesto» non vuol dire «inutile». Adesso i criteri sono due, indipendenti, e lo strumento dichiara quello che non sa invece di decidere.',
+    en: 'A tool looking for dead weight inside the public folder reported 7,824 kB and was about to make me delete the social preview image: the page never requests that one, crawlers read it. “Never requested” does not mean “useless”. Now there are two independent criteria, and the tool declares what it does not know instead of deciding.',
+  },
+  docNumeroGiusto: {
+    it: 'Una misura giusta può portare a una conclusione sbagliata, e non se ne accorge nessuno perché il numero è vero.',
+    en: 'A correct measurement can lead to a wrong conclusion, and nobody notices because the number is true.',
+  },
+  docNumeroGiusto2: {
+    it: 'I cerchi della ruota anteriore non si vedevano; quelli posteriori sì. Ho misurato la luminanza dei due riquadri — 25 contro 50 — e concluso che davanti mancava luce. Ho speso quattro giri a cercarla: rifatto il materiale, contate le razze, cambiato il raggio della cavità, spenta una sorgente per volta. Era la minigonna del sottoscocca, che passava davanti al passaruota e copriva mezza ruota. Nell’ingrandimento c’è un taglio orizzontale netto: un bordo dritto non è un’ombra, è un poligono. La misura aveva finito il suo lavoro dicendo CHE le due erano diverse; il PERCHÉ si vedeva, e vedere costava dieci secondi.',
+    en: 'The front wheel’s spokes were invisible; the rear ones were not. I measured the luminance of both areas — 25 against 50 — and concluded the front was short of light. I spent four rounds looking for it: remade the material, counted the spokes, changed the cavity radius, switched off one source at a time. It was the underbody skirt, running across the wheel arch and covering half the wheel. In the close-up there is a hard horizontal cut: a straight edge is not a shadow, it is a polygon. The measurement had done its job by saying THAT the two were different; the WHY was visible, and looking cost ten seconds.',
+  },
   docMetodo2: {
     it: 'Chiunque può costruire una metrica. La parte difficile è buttarla quando smette di reggere. Il conteggio delle ondulazioni per vertice dava sempre lo stesso numero su qualunque modello, anche dopo aver spostato i vertici di nove millimetri: era un pavimento di rumore, non una misura. Una maschera che doveva leggere i pixel della vettura leggeva il vuoto intorno, e dava numeri plausibili per ore. Un misuratore non era ripetibile: tre esecuzioni identiche davano scuri al 27, al 57 e al 37 per cento.',
     en: 'Anyone can build a metric. The hard part is throwing it away when it stops holding. Counting normal ripples per vertex returned the same number on every model, even after moving the vertices by nine millimetres: it was a noise floor, not a measurement. A mask meant to read the car’s pixels was reading the empty space around them, and gave plausible numbers for hours. One measuring tool was not repeatable: three identical runs reported 27%, 57% and 37% dark pixels.',

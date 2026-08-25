@@ -1134,12 +1134,38 @@ float grano( vec2 g ) {
     f.y );
 }`)
       .replace('#include <map_fragment>', `#include <map_fragment>
-  float vetro = smoothstep( VETRO_CINTURA_DA, VETRO_CINTURA_A, vAltCar )
-              * smoothstep( VETRO_SU_DA, VETRO_SU_A, normalize( vNormal ).y );
-  diffuseColor.rgb = mix( diffuseColor.rgb, VETRO_TINTA, vetro );`)
+  float suCar = smoothstep( VETRO_SU_DA, VETRO_SU_A, normalize( vNormal ).y );
+  float vetro = smoothstep( VETRO_CINTURA_DA, VETRO_CINTURA_A, vAltCar ) * suCar;
+  diffuseColor.rgb = mix( diffuseColor.rgb, VETRO_TINTA, vetro );
+  /* LA FUGA DEL CANOPY — l'unica giunzione che questa vettura ha davvero.
+     La revisione: nessuna fuga di lamiera, su una superficie che non ha altra
+     geometria apparente. E' vero, ed e' anche il motivo per cui non se ne
+     possono inventare a piacere: questa carena non ha portiere, non ha cofano,
+     non ha maniglie. Disegnarci sopra delle linee di divisione plausibili
+     vorrebbe dire aggiungere finzione a un oggetto che ha rinunciato a tutte le
+     convenzioni — lo stesso argomento con cui il fanale non e' rosso.
+     Una giunzione pero' esiste per forza: il canopy e' vetro, la scocca e'
+     lamiera, e due materiali diversi non possono essere lo stesso pezzo. Li'
+     una fuga c'e' anche in un oggetto senza nessun'altra apertura.
+     SI ANCORA AI DUE STESSI CANCELLI della maschera del vetro — quota e normale
+     rivolta in su — quindi segue l'apertura del canopy invece di girare intorno
+     alla vettura a quota costante, che sarebbe una fascia e non una fuga.
+     MEZZA LARGHEZZA 0,006 su una vettura alta 1,2 m fa sette millimetri: e' la
+     misura di una fuga vera. A 0,02 diventava un nastro, e un nastro dice
+     «decalcomania».
+     E la fuga e' RUVIDA, non solo scura. Dentro una fuga c'e' il bordo tagliato
+     della lamiera e la guarnizione: non c'e' trasparente, quindi non c'e'
+     riflesso. E' quello a farla leggere come una fessura invece che come una
+     riga dipinta — la stessa distinzione del profilo delle insegne, dove un
+     disegno non poteva avere spessore. */
+  float dFuga = abs( vAltCar - ( VETRO_CINTURA_DA + VETRO_CINTURA_A ) * 0.5 );
+  float fuga = ( 1.0 - smoothstep( 0.0, 0.006, dFuga ) ) * suCar;
+  diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 0.006 ), fuga * 0.88 );`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
   // il vetro e' liscio: la ruvidita' della lamiera qui non c'entra
   roughnessFactor = mix( roughnessFactor, 0.040, vetro );
+  // e dentro la fuga non c'e' trasparente: e' lamiera tagliata e guarnizione
+  roughnessFactor = mix( roughnessFactor, 0.62, fuga * 0.8 );
 {
   /* DUE FREQUENZE E NON UNA. Una sola grana fine si perde nel filtraggio
      appena l'automobile e' lontana e resta solo nel primo piano; una sola
