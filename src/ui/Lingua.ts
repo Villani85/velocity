@@ -279,6 +279,25 @@ export const D: Record<string, Voce> = {
   nextInvito: { it: 'SCRIVIMI', en: 'WRITE TO ME' },
 
   inArrivo: { it: 'IN ARRIVO', en: 'COMING' },
+
+  /* LE PAROLE DELLA CARTA DEL METODO. Sono poche apposta: quella carta deve
+     mostrare due immagini e tre numeri, e ogni parola in piu' toglie spazio
+     alla cosa che sta li' per essere guardata.
+     «IL METODO» sta dove sulle altre carte sta il genere — R&D o SITO — e la
+     sostituzione e' voluta: quella carta non e' un lavoro, e' il come. */
+  studioCarta: { it: 'IL METODO', en: 'THE METHOD' },
+  studioPrima: { it: 'PRIMA', en: 'BEFORE' },
+  studioDopo: { it: 'DOPO', en: 'AFTER' },
+  /* LA DIDASCALIA DICE CHE COSA SI STA GUARDANDO, se no due fiancate quasi
+     uguali sono due fiancate quasi uguali. E dice anche la cosa piu' utile
+     imparata li': il segno non era un rilievo, era dipinto nell'albedo. */
+  studioDidascalia: {
+    it: 'LA FIANCATA, PRIMA E DOPO IL PASSA-ALTO',
+    en: 'THE FLANK, BEFORE AND AFTER THE HIGH-PASS',
+  },
+  studioCifra1: { it: 'FAIRNESS, mm', en: 'FAIRNESS, mm' },
+  studioCifra2: { it: 'LA CARROZZERIA', en: 'THE BODY' },
+  studioCifra3: { it: 'METRICHE BUTTATE', en: 'METRICS BINNED' },
   lavoroPrima: { it: 'Lavoro precedente', en: 'Previous work' },
   lavoroDopo: { it: 'Lavoro successivo', en: 'Next work' },
   /* L'AVVISO DELLA PRESA — adesso dice cosa fare, prima diceva cosa era

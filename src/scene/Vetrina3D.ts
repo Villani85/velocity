@@ -210,6 +210,31 @@ function cartaCurva(largo: number, alto: number, raggio: number) {
 const CARTE = LAVORI.length + 1
 /** l'indice della carta del contatto: l'ultima */
 const CONTATTO = LAVORI.length
+/* E UNA CARTA NON E' UNA CARTA COME LE ALTRE: quella di VELOCITY.
+   Mostrava una fotografia del sito dentro il quale si sta gia' navigando — la
+   carta piu' debole del mazzo, perche' e' l'unica il cui soggetto ce l'hai
+   sotto gli occhi mentre la guardi. E intanto la voce piu' bassa del punteggio
+   era il CONTENUTO, con l'argomento piu' forte del progetto — il metodo, le
+   prove, le cifre misurate — chiuso dentro il documento statico, cioe' il
+   canale che chi scorre l'esperienza non percorre mai.
+   Quindi quella carta cambia mestiere: non e' un undicesimo lavoro, e' IL COME.
+   Due immagini vere prima e dopo, tagliate sulla mezzeria, e tre numeri che
+   vengono tutti da una misura fatta qui dentro.
+   L'indice si cerca per nome e non si scrive a mano: i lavori si riordinano, e
+   un dieci scritto in un altro file e' l'errore gia' pagato due volte qui
+   dentro con i centri delle ruote. */
+const METODO = LAVORI.findIndex((l) => l.nome === 'VELOCITY')
+/* IL RITAGLIO DELLE DUE PROVE, in pixel della sorgente — e non e' scelto a
+   occhio. Differenziando `fiancata_prima` e `fiancata_dopo` per blocchi di 48
+   pixel, la cura si concentra in due zone: l'arco sul passaruota e una macchia
+   a meta' fianco. Questo rettangolo inquadra la prima, che e' la piu' leggibile
+   perche' segue una forma riconoscibile. Il rapporto 1,60 e' quello del
+   pannello: cosi' non si perde niente ai bordi e le due immagini restano
+   allineate al pixel. */
+const RIT_X = 96
+const RIT_Y = 76
+const RIT_L = 384
+const RIT_A = 240
 
 /** la tela di un pannello, e ha la misura esatta delle copertine */
 const TL = 960
@@ -262,6 +287,8 @@ export class Vetrina3D {
   private tele: HTMLCanvasElement[] = []
   /** le tele minuscole dello sfondo, una per lavoro: vedi il blocco LO SFONDO */
   private fondi: (CanvasTexture | null)[] = []
+  /** le due prove della carta del metodo, quando arrivano */
+  private paio: (HTMLImageElement | null)[] = [null, null]
   /** i due piani che si danno il cambio in dissolvenza */
   private fondoA!: Mesh
   private fondoB!: Mesh
@@ -351,6 +378,33 @@ export class Vetrina3D {
            commento qui sopra: adesso e' vero anche per il momento in cui
            partono. */
         void dopoAuto.then(() => { im.src = src })
+      }
+
+      /* E PER LA CARTA DEL METODO ARRIVANO ANCHE LE DUE PROVE.
+         Stessa disciplina della copertina: partono DOPO l'automobile, la carta
+         e' gia' completa e leggibile senza — cornice, codice, le tre cifre — e
+         se non arrivassero resterebbe una carta con tre numeri, che e'
+         comunque il contenuto che mancava. Si ridisegna solo quando ci sono
+         tutte e due, perche' mezza coppia prima/dopo non e' un confronto: e'
+         un'immagine che sembra il difetto.
+         Sono le stesse due immagini che stanno in `#studio` nel documento, non
+         due copie: `public/studio/` e' gia' pagato e gia' in cache per chi ha
+         letto la pagina. */
+      if (i === METODO) {
+        const prove = ['/studio/fiancata_prima.webp', '/studio/fiancata_dopo.webp']
+        prove.forEach((sorgente, quale) => {
+          const pr = new Image()
+          pr.decoding = 'async'
+          pr.onload = () => {
+            this.paio[quale] = pr
+            if (this.paio[0] && this.paio[1]) {
+              this.disegna(tela, i, null)
+              t.needsUpdate = true
+              inCoda(t)
+            }
+          }
+          void dopoAuto.then(() => { pr.src = sorgente })
+        })
       }
     }
   }
@@ -465,8 +519,184 @@ export class Vetrina3D {
     }
   }
 
+  /**
+   * LA CARTA DEL METODO — due prove e tre numeri.
+   *
+   * DUE PANNELLI AFFIANCATI, E NON UNA COPPIA TAGLIATA SULLA MEZZERIA.
+   *
+   * Il primo giro era un tergicristallo: meta' sinistra della prima, meta'
+   * destra della seconda, una lama ambra sulla cucitura. Il ragionamento che
+   * lo sosteneva era buono e vale la pena tenerlo scritto, perche' e' vero in
+   * generale — due immagini affiancate obbligano l'occhio a saltare e a tenere
+   * a mente la prima, mentre una cucitura le fonde in una cosa sola e la
+   * differenza salta fuori senza cercarla. E' il motivo per cui i confronti
+   * prima/dopo si fanno cosi' da sempre.
+   *
+   * Quello che quel ragionamento non prevedeva e' la condizione perche'
+   * funzioni: che il DIFETTO ATTRAVERSI LA CUCITURA. Un tergicristallo mostra
+   * a sinistra una parte e a destra un'altra: se le due parti non contengono
+   * la stessa cosa, non stai confrontando due trattamenti, stai guardando due
+   * pezzi di macchina. Nel provino usciva esattamente cosi' — a sinistra un
+   * fianco scuro, a destra un colmo di luce — e si leggeva come un cambio di
+   * illuminazione, non come una cura.
+   *
+   * E la condizione qui non e' soddisfatta, ed e' una cosa che si misura invece
+   * di stimarla. Differenza fra le due immagini per blocchi di 48 pixel: la
+   * cura si concentra in DUE zone separate — l'arco sul passaruota (x 144-432,
+   * y 96-144) e una macchia a meta' fianco (x 432-768, y 192-288). Qualunque
+   * cucitura verticale ne lascia una per parte.
+   *
+   * Quindi due pannelli, tutti e due sulla stessa regione, quella dell'arco.
+   * L'occhio confronta due composizioni identiche, che e' la cosa che sa fare
+   * meglio: a sinistra l'arco chiaro e il parafango chiazzato, a destra la
+   * stessa identica inquadratura pulita.
+   *
+   * PERCHE' TRE NUMERI E NON UN PARAGRAFO. Su una carta larga trecento pixel
+   * sullo schermo un paragrafo non si legge: si vede che c'e' del testo. Tre
+   * cifre grandi si leggono a colpo d'occhio, e sono il tipo di contenuto che
+   * regge il peso — «0,840 → 0,424» dice piu' di dieci righe sul fatto che
+   * qui si misura prima di dichiarare.
+   * Vengono tutte e tre da `#studio`, cioe' dallo stesso posto: se un giorno
+   * cambia il numero nel documento e non qui, la carta mente. E' l'unico
+   * difetto che questa costruzione puo' avere, e vale la pena scriverlo.
+   */
+  private disegnaMetodo(tela: HTMLCanvasElement, i: number) {
+    const c = tela.getContext('2d')!
+    const l = LAVORI[i]
+    c.clearRect(0, 0, TL, TA)
+
+    const g = c.createLinearGradient(0, 0, 0, TA)
+    g.addColorStop(0, '#0d1420')
+    g.addColorStop(1, '#04060b')
+    c.fillStyle = g
+    c.fillRect(0, 0, TL, TA)
+
+    c.strokeStyle = 'rgba(216,162,88,0.42)'
+    c.lineWidth = 2
+    c.strokeRect(1, 1, TL - 2, TA - 2)
+
+    c.textBaseline = 'middle'
+    const x = TL * 0.055
+
+    c.textAlign = 'left'
+    c.font = '700 ' + Math.round(TA * 0.062) + 'px Switzer, system-ui, sans-serif'
+    c.fillStyle = 'rgba(216,162,88,0.95)'
+    c.fillText(l.codice, x, TA * 0.108)
+
+    // dove sulle altre carte sta il genere, qui sta cos'e' questa carta
+    c.textAlign = 'right'
+    c.font = '600 ' + Math.round(TA * 0.048) + 'px Switzer, system-ui, sans-serif'
+    c.fillStyle = 'rgba(216,162,88,0.62)'
+    c.fillText(t('studioCarta'), TL - x, TA * 0.108)
+
+    const rx = TL * 0.055
+    const rw = TL * 0.890
+    const ry = TA * 0.185
+    const rh = TA * 0.435
+    const vano = TL * 0.022
+    const pw = (rw - vano) / 2
+    const pri = this.paio[0]
+    const dop = this.paio[1]
+    const pannello = (im: HTMLImageElement | null, x0: number, eti: string) => {
+      if (im) {
+        c.save()
+        c.beginPath()
+        c.rect(x0, ry, pw, rh)
+        c.clip()
+        /* IL RITAGLIO SULLA SORGENTE, e i quattro numeri non sono a occhio:
+           vengono dalla mappa delle differenze fra le due immagini. La regione
+           dell'arco sta fra x 96 e x 480 e fra y 76 e y 316, ed e' un rettangolo
+           di 384 per 240 — cioe' 1,60, che e' il rapporto del pannello (1,596).
+           Quando ritaglio e destinazione hanno lo stesso rapporto non si perde
+           niente ai bordi, e soprattutto le due immagini restano allineate al
+           pixel: se una delle due fosse inquadrata anche solo un poco diversa,
+           l'occhio leggerebbe lo scarto e non la cura. */
+        /* E SI ALZA L'ESPOSIZIONE, LA STESSA SU TUTTI E DUE.
+           Le due prove sono ritratti di una vernice quasi nera in una scena
+           notturna: nel provino della carta i due pannelli erano corretti e
+           illeggibili, perche' la differenza che devono mostrare vive fra il
+           dieci e il venti per cento del fondoscala. Su una carta larga
+           trecento pixel sullo schermo, li' dentro non ci arriva l'occhio.
+           Non e' un trucco e non falsa il confronto: e' la stessa identica
+           trasformazione applicata a tutti e due, quindi ogni differenza che
+           si vede dopo c'era anche prima. Sarebbe disonesto solo se i due
+           pannelli avessero esposizioni diverse — ed e' esattamente il motivo
+           per cui questa riga sta DENTRO la funzione che disegna un pannello,
+           dove non c'e' modo di darne una diversa all'uno e all'altro. */
+        c.filter = 'brightness(1.55) contrast(1.10)'
+        const sr = Math.max(pw / RIT_L, rh / RIT_A)
+        c.drawImage(
+          im, RIT_X, RIT_Y, RIT_L, RIT_A,
+          x0 + (pw - RIT_L * sr) / 2, ry + (rh - RIT_A * sr) / 2, RIT_L * sr, RIT_A * sr,
+        )
+        c.filter = 'none'
+        c.restore()
+      } else {
+        // il posto apparecchiato, finche' le prove non arrivano
+        c.fillStyle = 'rgba(238,247,255,0.045)'
+        c.fillRect(x0, ry, pw, rh)
+      }
+      c.strokeStyle = 'rgba(216,162,88,0.30)'
+      c.lineWidth = 1
+      c.strokeRect(x0 + 0.5, ry + 0.5, pw - 1, rh - 1)
+      c.font = '700 ' + Math.round(TA * 0.036) + 'px Switzer, system-ui, sans-serif'
+      c.letterSpacing = Math.round(TA * 0.004) + 'px'
+      c.fillStyle = 'rgba(238,247,255,0.88)'
+      c.textAlign = 'left'
+      c.fillText(eti, x0 + TL * 0.014, ry + rh - TA * 0.038)
+      c.letterSpacing = '0px'
+    }
+    /* SI DISEGNANO TUTTI E DUE O NESSUNO. Mezza coppia prima/dopo non e' un
+       confronto: e' un'immagine che sembra il difetto. */
+    const insieme = !!(pri && dop)
+    pannello(insieme ? pri : null, rx, t('studioPrima'))
+    pannello(insieme ? dop : null, rx + pw + vano, t('studioDopo'))
+
+    c.textAlign = 'left'
+    c.font = '500 ' + Math.round(TA * 0.034) + 'px Switzer, system-ui, sans-serif'
+    c.letterSpacing = Math.round(TA * 0.003) + 'px'
+    c.fillStyle = 'rgba(216,162,88,0.72)'
+    c.fillText(t('studioDidascalia'), x, TA * 0.672)
+    c.letterSpacing = '0px'
+
+    /* LE TRE CIFRE. Il numero grande e la parola piccola sotto, che e' la
+       gerarchia giusta: la cifra e' la cosa che si ricorda, l'etichetta serve
+       solo a non farla sembrare arbitraria. */
+    const cifre: Array<[string, string]> = [
+      ['0,840 \u2192 0,424', t('studioCifra1')],
+      ['619 kB', t('studioCifra2')],
+      ['6', t('studioCifra3')],
+    ]
+    const colonne = [TL * 0.055, TL * 0.400, TL * 0.720]
+    cifre.forEach(([n, et], k) => {
+      let corpo = TA * 0.078
+      c.font = '700 ' + Math.round(corpo) + 'px Switzer, system-ui, sans-serif'
+      // «0,840 -> 0,424» e' lungo il quadruplo di «6»: la cifra rientra invece
+      // di finire sopra la vicina. Si misura, non si contano i caratteri.
+      const largo = (k < 2 ? colonne[k + 1] - colonne[k] : TL - x - colonne[k]) - TL * 0.02
+      while (c.measureText(n).width > largo && corpo > TA * 0.042) {
+        corpo *= 0.94
+        c.font = '700 ' + Math.round(corpo) + 'px Switzer, system-ui, sans-serif'
+      }
+      c.fillStyle = 'rgba(238,247,255,0.96)'
+      c.fillText(n, colonne[k], TA * 0.790)
+      c.font = '600 ' + Math.round(TA * 0.030) + 'px Switzer, system-ui, sans-serif'
+      c.letterSpacing = Math.round(TA * 0.003) + 'px'
+      c.fillStyle = 'rgba(216,162,88,0.60)'
+      c.fillText(et, colonne[k], TA * 0.855)
+      c.letterSpacing = '0px'
+    })
+
+    // e il nome resta dov'e' sulle altre carte: e' l'aggancio fra la figura e
+    // la sua scheda, e senza quello sono due cose separate
+    c.font = '700 ' + Math.round(TA * 0.078) + 'px Switzer, system-ui, sans-serif'
+    c.fillStyle = 'rgba(238,247,255,0.96)'
+    c.fillText(l.nome, x, TA * 0.945)
+  }
+
   private disegna(tela: HTMLCanvasElement, i: number, foto: HTMLImageElement | null) {
     if (i === CONTATTO) return this.disegnaContatto(tela)
+    if (i === METODO) return this.disegnaMetodo(tela, i)
     const c = tela.getContext('2d')!
     const l = LAVORI[i]
 
