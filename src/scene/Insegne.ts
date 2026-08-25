@@ -1,5 +1,5 @@
 import {
-  CanvasTexture, Color, Group, LinearFilter, Mesh, MeshBasicMaterial,
+  AdditiveBlending, CanvasTexture, Color, Group, LinearFilter, Mesh, MeshBasicMaterial,
   PlaneGeometry, SRGBColorSpace, Vector3,
 } from 'three'
 import { inCoda } from '../core/Salita'
@@ -341,6 +341,95 @@ function posa(i: number, aspetto: number) {
    posto dove le cose tolte si ritrovano davvero, ed e' venti righe.
    E la piega c'e' ancora dove serve, viva e usata: `scene/Vetrina3D.ts`, sulle
    carte del carosello, che sono schermi ricurvi apposta. */
+/* ============================================================ L'ALONE
+
+   LA LUCE CADE SULLA SCENA, e questa e' l'unica cosa che distingue una cornice
+   accesa da una cornice disegnata.
+
+   Nella fotografia portata dal committente il filo d'oro non finisce sul bordo
+   del pannello: sfuma verso l'esterno, sul buio intorno. E' quello che dice che
+   la cornice EMETTE invece di essere dipinta — e non si puo' ottenere dentro la
+   tela del pannello, perche' li' il bordo dell'immagine e' il confine del mondo.
+
+   Quindi e' un piano a parte, un filo piu' grande del pannello e messo dietro,
+   con una tessitura che e' trasparente al centro, accesa lungo il perimetro del
+   pannello e spenta ai propri bordi.
+
+   ADDITIVA, non trasparente. Una luce si SOMMA a cio' che ha sotto: e' il
+   motivo per cui un alone su fondo chiaro quasi non si vede e su fondo scuro
+   brilla, che e' esattamente come si comporta la luce vera. In trasparenza
+   normale, invece, l'alone COPRIREBBE il fondo con una velatura beige — che e'
+   il difetto del giro precedente, spostato di dieci centimetri.
+
+   La tessitura si costruisce una volta sola e la usano tutte e tre: e' la
+   stessa forma, e tre copie dello stesso disegno sono tre volte la memoria per
+   niente. */
+let tessituraAlone: CanvasTexture | null = null
+/** quanto il piano dell'alone e' piu' grande del pannello */
+const ALONE_FUORI = 1.30
+
+function alonePerimetro(largo: number, alto: number) {
+  if (!tessituraAlone) {
+    /* 256 e non 1024: e' una macchia sfumata, e una macchia sfumata non ha
+       nessun dettaglio da perdere. Il filtro lineare fa il resto. */
+    const L = 256
+    const A = Math.round(L / RAPPORTO)
+    const tela = document.createElement('canvas')
+    tela.width = L
+    tela.height = A
+    const c = tela.getContext('2d')!
+    const dati = c.createImageData(L, A)
+    // dove sta il bordo del pannello dentro questo piano piu' grande
+    const mx = (L * (1 - 1 / ALONE_FUORI)) / 2
+    const my = (A * (1 - 1 / ALONE_FUORI)) / 2
+    for (let y = 0; y < A; y++) {
+      for (let x = 0; x < L; x++) {
+        /* la distanza dal RETTANGOLO del pannello, positiva fuori.
+           Fuori da un rettangolo la distanza e' l'ipotenusa degli scarti sui
+           due assi: prenderne solo il massimo darebbe angoli quadrati, e un
+           alone con gli angoli quadrati si vede subito che e' finto. */
+        const dx = Math.max(mx - x, x - (L - mx), 0)
+        const dy = Math.max(my - y, y - (A - my), 0)
+        const d = Math.hypot(dx, dy)
+        // quanto puo' arrivare lontano: il lato corto del margine
+        const portata = Math.min(mx, my)
+        let v = 1 - d / portata
+        v = Math.max(0, v)
+        /* la quarta potenza: la luce che esce da un bordo cade in fretta, e una
+           caduta lineare fa una fascia larga e uniforme — cioe' un contorno
+           sfocato invece di un bagliore. */
+        v = v * v * v * v
+        // dentro il pannello non serve: li' davanti c'e' il pannello
+        if (dx === 0 && dy === 0) v = 0
+        const i = (y * L + x) * 4
+        dati.data[i] = 232
+        dati.data[i + 1] = 176
+        dati.data[i + 2] = 102
+        dati.data[i + 3] = Math.round(v * 255)
+      }
+    }
+    c.putImageData(dati, 0, 0)
+    tessituraAlone = new CanvasTexture(tela)
+    tessituraAlone.colorSpace = SRGBColorSpace
+    tessituraAlone.minFilter = LinearFilter
+    tessituraAlone.magFilter = LinearFilter
+    tessituraAlone.generateMipmaps = false
+  }
+  const m = new Mesh(
+    new PlaneGeometry(largo * ALONE_FUORI, alto * ALONE_FUORI),
+    new MeshBasicMaterial({
+      map: tessituraAlone,
+      transparent: true,
+      toneMapped: false,
+      depthWrite: false,
+      blending: AdditiveBlending,
+      opacity: 0.85,
+    }),
+  )
+  m.name = 'INSEGNA_ALONE_BORDO'
+  return m
+}
+
 function insegnaPiana(largo: number, alto: number) {
   /* due segmenti in orizzontale e non uno: la caduta angolare qui sotto legge
      la normale per vertice, e su un quadrilatero a quattro vertici il centro
@@ -488,10 +577,18 @@ export class Insegne {
          il montante del pannello, non un lampione.
          La regola generale: un elemento che deve leggersi come PARTE di un
          altro non puo' staccarsene piu' del suo stesso spessore. */
+      /* l'alone del perimetro sta DIETRO il pannello, appena arretrato: se
+         fosse davanti velerebbe la fotografia proprio sui bordi, cioe' dove
+         c'e' la cornice da leggere */
+      const bagliore = alonePerimetro(LARGO, LARGO / RAPPORTO)
+      bagliore.position.z = -0.012
+      bagliore.renderOrder = 5
+      m.add(bagliore)
+
       const ALTA = 1.06
       const lama = new Mesh(
-        new PlaneGeometry(0.042, (LARGO / RAPPORTO) * ALTA),
-        new MeshBasicMaterial({ color: 0xd8a258, toneMapped: false, transparent: true, opacity: 0.92, depthWrite: false }),
+        new PlaneGeometry(0.026, (LARGO / RAPPORTO) * ALTA),
+        new MeshBasicMaterial({ color: 0xffe7c1, toneMapped: false, transparent: true, opacity: 0.95, depthWrite: false }),
       )
       lama.position.set(-LARGO / 2 - 0.018, 0, 0.010)
       lama.renderOrder = 7
@@ -723,35 +820,26 @@ export class Insegne {
        Due fili come altrove: uno pieno sul bordo e uno appena dentro, molto
        piu' tenue — a un filo solo la cornice legge come un contorno
        disegnato, a due legge come uno spessore. */
-/* PIU' MARCATA DI DUE GIRI, e il motivo e' che questa cornice compete con una
-       fotografia.
-       Al primo giro era un filo al 62% su due pixel e mezzo, cioe' la stessa
-       forza che ha la cornice di pagina — che pero' sta su fondo scuro e non ha
-       niente addosso. Qui dentro c'e' lo scatto di un sito, spesso chiaro, e un
-       filo tenue ci si perde: nel provino la prima insegna sembrava senza
-       cornice. Il committente: «definiscili meglio, piu' marcati come la foto».
-       Tre pixel e mezzo al 90%, la seconda riga al 30%, e in mezzo una fascia
-       di luce che scende verso l'interno: e' quella a dare lo SPESSORE. Un
-       bordo netto legge come un contorno disegnato; un bordo netto con un alone
-       che sfuma dentro legge come un profilo di metallo illuminato, che e'
-       quello che si vede nei mockup. */
-    const SP = 3.5
-    const alone = c.createLinearGradient(0, 0, 0, TA * 0.14)
-    alone.addColorStop(0, 'rgba(216,162,88,0.22)')
-    alone.addColorStop(1, 'rgba(216,162,88,0)')
-    c.fillStyle = alone
-    c.fillRect(0, 0, TL, TA * 0.14)
-    const aloneG = c.createLinearGradient(0, 0, TL * 0.10, 0)
-    aloneG.addColorStop(0, 'rgba(216,162,88,0.26)')
-    aloneG.addColorStop(1, 'rgba(216,162,88,0)')
-    c.fillStyle = aloneG
-    c.fillRect(0, 0, TL * 0.10, TA)
-    c.strokeStyle = 'rgba(228,176,102,0.90)'
-    c.lineWidth = SP
-    c.strokeRect(SP / 2, SP / 2, TL - SP, TA - SP)
-    c.strokeStyle = 'rgba(216,162,88,0.30)'
+/* IL FILO E' SOTTILE, E L'ALONE STA FUORI — ed e' il terzo giro su questa
+       cornice, perche' i primi due avevano capito male cosa fa la foto.
+       Primo giro: filo al 62% su 2,5 px. Troppo timido, si perdeva sopra la
+       fotografia di un sito.
+       Secondo giro: 3,5 px al 90% piu' due fasce di luce dipinte DENTRO la
+       tela. Piu' marcato, ma sbagliato — nell'ingrandimento era una striscia
+       opaca color sabbia appoggiata sull'immagine: avevo ispessito un
+       CONTORNO, mentre nel riferimento l'oro e' una LUCE.
+       La differenza si vede in una cosa sola: nella foto il bagliore cade
+       sulla scena INTORNO al pannello. Un pixel dipinto dentro la tela non
+       puo' farlo — si ferma al bordo per definizione. Quindi qui resta solo il
+       filo, sottile e quasi bianco al centro perche' una sorgente vista di
+       taglio e' sempre piu' chiara del suo colore; il bagliore e' diventato
+       geometria, e sta in `alonePerimetro`. */
+    c.strokeStyle = 'rgba(255,231,193,0.95)'
+    c.lineWidth = 2
+    c.strokeRect(1, 1, TL - 2, TA - 2)
+    c.strokeStyle = 'rgba(216,162,88,0.34)'
     c.lineWidth = 1
-    c.strokeRect(8.5, 8.5, TL - 17, TA - 17)
+    c.strokeRect(4.5, 4.5, TL - 9, TA - 9)
 
     /* IL VELO IN BASSO E' STATO TOLTO INSIEME AL NOME che ci stava sopra.
        Un velo scuro sul terzo inferiore di una fotografia si nota: e' un segno
