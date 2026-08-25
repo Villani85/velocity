@@ -509,6 +509,8 @@ const STRADA = {
      citati sopra valgono a un MILIONE di metri; a ottocento un float a 32 bit
      ha un passo di cinque centesimi di millimetro. */
   giro: 780.0,
+  /** i giunti di dilatazione: vedi il blocco «I GIUNTI» nello shader */
+  giunto: { passo: 60.0, scarto: 34.0, meta: 0.105, scuro: 0.40 },
   /**
    * LA PIASTRELLA DELL'ASFALTO, in metri, e la misura NON e' libera.
    *
@@ -2377,6 +2379,56 @@ void main() {
       vec3 ghiaia = PIETRA * 0.20 * mix(vec3(1.0), grana, granoso * 1.35);
       albedo = mix(albedo, ghiaia, clamp((abs(u) - ${n(s.cordolo.centro + s.cordolo.meta)}) / du + 0.5, 0.0, 1.0));
       albedo = mix(albedo, PIETRA, coperta(abs(u) - ${n(s.cordolo.centro)}, ${n(s.cordolo.meta)}, du));
+
+      /* ============================================================ I GIUNTI
+
+         L'UNICA COSA IRREGOLARE DEL MANTO, e serve a rompere un pettine.
+
+         Su questa strada tutto sta su una griglia: pile a 13 metri, pali a 26,
+         tratteggio a 12, cipressi a 26, catarifrangenti a 12 sfasati di 6.
+         Cinque ritmi, tutti divisori del giro, tutti costanti. I pilastri hanno
+         gia' uno scarto del quattro per cento, e il commento che lo spiega dice
+         la cosa giusta: «il ritmo si sente senza guardare, perche' e' un tempo e
+         non una forma» — ma quattro per cento su tredici metri e' una
+         sfumatura, non un evento.
+
+         Il cervello misura la velocita' dagli EVENTI, non dal moto. Un manto in
+         cui non succede niente scorre e basta: e' il motivo per cui una
+         passerella mobile non sembra veloce anche quando lo e'.
+
+         PASSO 60 CON SCARTO +/-17. Le distanze fra un giunto e il successivo
+         vanno da 26 a 94 metri: nessuna coppia uguale dentro il giro, e nessun
+         rischio che due si sovrappongano. 60 divide 780 esattamente tredici
+         volte, quindi al ripiegamento l'indice del giunto ricade su se stesso e
+         non si vede il salto — la stessa regola di ogni altro motivo qui.
+
+         E QUI L'HASH SI PUO' USARE, mentre per i tagli di luce dei pilastri no.
+         La regola scritta in COLONNATO e' precisa: «fract(sin(x)*43758) va
+         benissimo per una larghezza — nessuno sa quanto doveva essere larga —
+         per una cosa che si CONTA no». Qui non si conta niente: un giunto
+         spostato di due metri su una scheda diversa resta un giunto, e nessuno
+         sa dove doveva stare.
+
+         VENTUN CENTIMETRI, E NON SETTE. Alla prima prova erano sette — la
+         misura di una fessura di dilatazione — e nel provino non si vedevano:
+         sette centimetri a venti metri sono due pixel, e piu' in la' spariscono
+         sotto il filtraggio. E' l'errore che questo progetto ha gia' pagato con
+         le dieci razze da 26 mm: un dettaglio non si valuta in millimetri, si
+         valuta in PIXEL alla distanza a cui la camera lo mostra.
+         Ventun centimetri sono la misura di un'altra cosa vera e piu' adatta:
+         la RIPRESA DI STESA, la giunzione fra due strisciate d'asfalto messe in
+         giorni diversi. Su una strada vera si vede, corre da un bordo all'altro,
+         ed e' irregolare perche' dipende da dove il cantiere ha smesso la sera.
+         Scuro e non chiaro: la ripresa e' piu' compatta e piu' opaca del manto
+         intorno. Chiaro sarebbe vernice, e la vernice ce l'ha gia' il
+         tratteggio. */
+      {
+        float gi = floor(s * ${n(1 / s.giunto.passo)});
+        float scarto = (alea(vec2(gi, 7.0)) - 0.5) * ${n(s.giunto.scarto)};
+        float dg = s - (gi + 0.5) * ${n(s.giunto.passo)} - scarto;
+        float giunto = coperta(dg, ${n(s.giunto.meta)}, max(ds, corsa));
+        albedo *= 1.0 - ${n(s.giunto.scuro)} * giunto;
+      }
 
       // LA SCIA DEL TRATTEGGIO. A 295 all'ora un tratto percorre 75 cm dentro
       // un tempo di posa da 1/110: ammorbidire i suoi due estremi di quella
