@@ -29,7 +29,22 @@
  */
 import sharp from 'sharp'
 
-const SIGMA = Number(process.argv[2] ?? 11)
+/* SIGMA 34, E IL VERSO NON E' QUELLO CHE SEMBRA.
+   Un passa-alto e' «originale meno sfocato». Un sigma PICCOLO da' una sfocatura
+   vicina all'originale, quindi la differenza e' piccola: toglie DI PIU'. Avevo
+   la regola al contrario, e cercando di salvare le fughe le stavo cancellando.
+   Il cancello e' su due numeri e vanno letti insieme: la MEDIANA dello scarto
+   angolare deve scendere (la banda bassa se ne va) e il P95 deve restare alto
+   (la coda e' dove vivono fughe, prese d'aria e griglie — l'unico contenuto
+   per cui la mappa esiste).
+     sigma  5   mediana 1,7   p95 16,6   <- fughe rase
+     sigma 11   mediana 4,6   p95 28,5
+     sigma 20   mediana 6,4   p95 39,3
+     sigma 34   mediana 7,8   p95 47,1   <- passa: <=8 e >=40
+     sigma 50   mediana 8,4   p95 51,2   <- la banda bassa comincia a restare
+   34 px su 2048 sono ~22 cm sulla carrozzeria: se ne va solo l'ondulazione
+   piu' larga di cosi'. */
+const SIGMA = Number(process.argv[2] ?? 34)
 const TIENI = Number(process.argv[3] ?? 1.0)   // quanto del dettaglio stretto si conserva
 const SRC = 'public/texture/auto2r_nor.webp'
 const DST = process.argv[4] ?? 'public/texture/_nor_passaalto.png'

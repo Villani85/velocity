@@ -18,6 +18,14 @@ const leggi = async (f) => {
   return { data, W: info.width, CH: info.channels }
 }
 const orm = await leggi('auto2r_orm')
+/* SI LEGGE LA MAPPA NON PASSA-ALTATA, E NON E' UN DETTAGLIO.
+   La maschera B ha come regola «se la mediana e' (128,128,255) stai misurando
+   il vuoto». Ma un passa-alto CENTRA LA DISTRIBUZIONE SU ZERO per costruzione:
+   la mediana di `auto2r_nor2.webp` dentro la maschera e' (129,129,254), a un
+   punto dalla normale neutra. Puntando li', il canarino suonerebbe un falso
+   allarme per sempre — e uno strumento che suona sempre e' uno strumento
+   spento.
+   `auto2r_nor.webp` resta su disco APPOSTA per questo. Non si cancella. */
 const nor = await leggi('auto2r_nor')
 const col = await leggi('auto2r_col')
 
