@@ -134,8 +134,18 @@ for (const z of daGuardare) console.log('  ' + (z.peso / 1024).toFixed(0).padSta
 let posterVecchio = false
 if (existsSync('public/poster')) {
   const q = (c) => { try { return execSync(c, { encoding: 'utf8' }).trim() } catch (e) { return '' } }
-  const tPoster = Number(q('git log -1 --format=%ct -- public/poster') || 0)
-  const dietro = Number(q('git rev-list --count --since=' + tPoster + ' HEAD -- src/scene src/ui src/stile.css') || 0)
+/* SI CONTANO I COMMIT, NON I SECONDI — e il primo giro contava se stesso.
+     Con `--since=<data del poster>` un commit che tocca la scena E il poster
+     nello stesso gesto rientra nell'intervallo, perche' l'estremo e' incluso:
+     ho rigenerato tutto e il cancello ha bocciato lo stesso.
+     Un cancello che grida al lupo si finisce per ignorarlo, cioe' diventa
+     esattamente il difetto che esiste per curare. La forma giusta e' un
+     intervallo fra COMMIT: `A..HEAD` sono i commit dopo A, e A non c'e'
+     dentro. */
+  const cPoster = q('git log -1 --format=%H -- public/poster')
+  const dietro = cPoster
+    ? Number(q('git rev-list --count ' + cPoster + '..HEAD -- src/scene src/ui src/stile.css') || 0)
+    : 0
   console.log(CAPO + 'IL POSTER')
   console.log('  commit di scena piu recenti del poster: ' + dietro)
   if (dietro > 0) posterVecchio = true
