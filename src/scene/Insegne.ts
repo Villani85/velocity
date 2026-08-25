@@ -460,7 +460,18 @@ function alonePerimetro(largo: number, alto: number) {
    quella e' la barra che si nota, e la ragione e' costruttiva prima che
    estetica: e' il montante a cui il pannello e' appeso, gli altri tre sono
    bordi. Un profilo tutto uguale legge come una cornice da quadro. */
-const PROFILO_SP = 0.026
+/* SOTTILE E ACCESO, non spesso e lucido — quinto giro, e la differenza fra i
+   due e' tutta qui.
+   A 26 mm di spessore le quattro barre leggevano come una CORNICE DA QUADRO:
+   un bordo di ottone largo abbastanza da diventare lui il soggetto, con dentro
+   una fotografia. Nel riferimento il profilo e' un filo — sottile quanto una
+   riga e acceso come una lampada al neon — e la profondita' c'e' lo stesso
+   perche' e' profondo, non perche' e' largo.
+   Sono due parametri indipendenti e li avevo legati: lo spessore scende a
+   11 mm, la profondita' resta a 55. Un filo profondo cinque volte la propria
+   larghezza mostra il fianco quando il pannello gira (che era il difetto del
+   giro prima) senza mai diventare una fascia. */
+const PROFILO_SP = 0.011
 const PROFILO_PR = 0.055
 
 function profiloMateriale() {
@@ -469,11 +480,17 @@ function profiloMateriale() {
       color: new Color(0.72, 0.53, 0.30),
       metalness: 0.95,
       roughness: 0.22,
-      emissive: new Color(0.85, 0.62, 0.34),
-      /* 0,22 e non 1,0: e' un accenno, non una lampada. A intensita' piena
-         l'emissione appiattisce tutte le facce sullo stesso valore e si torna
-         al problema di partenza — il rilievo sparisce sotto la propria luce. */
-      emissiveIntensity: 0.22,
+      emissive: new Color(1.0, 0.80, 0.52),
+      /* 0,85 E NON 0,22, e il ragionamento precedente era giusto per barre
+         LARGHE e sbagliato per un filo.
+         Su una fascia di 26 mm l'emissione piena appiattiva le sei facce sullo
+         stesso valore e il rilievo spariva: vero. Ma su un filo di 11 mm il
+         rilievo non lo porta l'ombreggiatura della faccia — che a quella
+         larghezza e' due pixel — lo porta il PROFILO contro il fondo. Li'
+         l'emissione non copre niente e fa l'unica cosa che serve: accendere.
+         E' la stessa correzione degli altri due numeri di stanotte: un valore
+         giusto smette di esserlo quando cambia quello a cui era accordato. */
+      emissiveIntensity: 0.85,
     })
     materialeProfilo.name = 'PROFILO_INSEGNA'
   }
@@ -498,13 +515,21 @@ function profilo(largo: number, alto: number) {
     g.add(b)
     return b
   }
+  /* I MONTANTI ESCONO SOPRA E SOTTO, le traverse no.
+     Nel riferimento le due righe verticali superano il pannello: e' quello a
+     far leggere il pannello come APPESO a una struttura invece che chiuso
+     dentro una cornice. Una cornice si chiude sui quattro angoli; un telaio
+     no, e questi sono schermi montati su un telaio.
+     Il 9% e non il 30%: piu' lunghi diventerebbero due colonne, ed e' l'errore
+     gia' fatto e corretto due giri fa con la vecchia lama di luce. */
+  const oltre = alto * 0.09
   // sopra e sotto, lunghe quanto tutto il pannello piu' i due montanti
   barra(largo + sp * 2, sp, pr, 0, alto / 2 + sp / 2)
   barra(largo + sp * 2, sp, pr, 0, -alto / 2 - sp / 2)
   // destra
-  barra(sp, alto, pr, largo / 2 + sp / 2, 0)
-  // e il montante di sinistra
-  barra(sp, alto, prSx, -largo / 2 - sp / 2, 0)
+  barra(sp, alto + oltre * 2, pr, largo / 2 + sp / 2, 0)
+  // e il montante di sinistra: piu' profondo, e' quello che si vede
+  barra(sp, alto + oltre * 2, prSx, -largo / 2 - sp / 2, 0)
   return g
 }
 
