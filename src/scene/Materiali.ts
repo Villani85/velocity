@@ -293,7 +293,24 @@ export function vernice() {
   const orm = sua('/texture/auto2r_orm2.webp')
   m.roughnessMap = orm
   m.metalnessMap = orm
-  m.normalMap = sua('/texture/auto2r_nor.webp')
+/* LA MAPPA RIPULITA, LA STESSA DELLA SCOCCA — e sono 266 kB.
+     Questa funzione puntava ancora ad `auto2r_nor.webp`, la versione con
+     l'arco del passaruota cotto dentro. Due difetti in una riga:
+     PRIMO, il peso. Costruire un materiale SCARICA le sue tessiture:
+     `TextureLoader.load()` parte alla chiamata, non al primo disegno. E questo
+     materiale non veste niente — lo dice il commento in `vestiAuto` poche
+     righe piu' sotto: «dal cambio di vettura la carrozzeria indossa
+     `laScocca`, e `M.vernice` non veste piu' niente». Quindi 266 kB su un
+     percorso critico da due megabyte, cioe' il tredici per cento, scaricati
+     per un materiale che non disegna. Nessuno lo segnala: la scena e' giusta,
+     il peso no. Trovato con `strumenti/orfani.mjs`, che incrocia i file
+     CHIESTI dalla rete con i materiali che vestono DAVVERO qualcosa.
+     SECONDO, la correttezza. Se un giorno tornasse a vestire qualcosa —
+     e' il ramo di riserva per le mesh senza nome — porterebbe l'arco che dal
+     resto della vettura e' stato tolto.
+     Puntando alla stessa mappa della scocca il file e' gia' in cache: costo
+     zero, e la riserva resta viva. */
+  m.normalMap = sua('/texture/auto2r_nor2.webp')
   // il rilievo si tiene basso: e' micro-struttura, non lamiera ammaccata
   m.normalScale.set(0.45, 0.45)
   m.name = 'VERNICE'
