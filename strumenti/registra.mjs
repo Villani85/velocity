@@ -41,6 +41,14 @@ const p = await ctx.newPage()
 //
 // Non si puo' dire a Playwright di cominciare dopo, ma si puo' segnare
 // l'istante e tagliare in coda — `avvio` viene stampato e usato dal taglio.
+/* LA GUARDIA, che questo strumento non aveva mentre tutti gli altri si'.
+   Un filmato di un'applicazione rotta esce lo stesso: dura i suoi trentaquattro
+   secondi, pesa i suoi megabyte, e sembra un video. E' successo — quattro
+   fotogrammi presi a 1, 8, 17 e 27 secondi erano IDENTICI, con un rettangolo
+   grigio sul podio, e il registratore non aveva detto niente. */
+p.on('pageerror', (e) => console.log('!! ERRORE DI PAGINA:', e.message))
+p.on('console', (m) => { if (m.type() === 'error') console.log('!! console.error:', m.text()) })
+
 const nascita = Date.now()
 await p.goto('http://localhost:5174/', { waitUntil:'load' })
 // SI ASPETTA LO STATO, non un tempo: in headless l'avvio e' molto piu'
@@ -92,5 +100,17 @@ await p.evaluate(async ([c, secondi]) => {
   })
 }, [corsa, SECONDI])
 await p.waitForTimeout(1600)
+/* SI CONTROLLA CHE SIA DAVVERO SCORSO. `window.scrollTo` puo' non fare niente
+   — Lenis intercetta, la corsa puo' essere zero, un errore puo' aver ucciso il
+   ciclo — e il filmato uscirebbe comunque, fermo sulla prima schermata. */
+const finale = await p.evaluate(() => ({
+  y: Math.round(window.scrollY),
+  corsa: Math.round(document.documentElement.scrollHeight - innerHeight),
+  beat: window.esperienza?.regia?.beat ?? '?',
+}))
+console.log('a fine corsa:', JSON.stringify(finale))
+if (finale.corsa > 0 && finale.y < finale.corsa * 0.9) {
+  console.log('!! LA PAGINA NON E SCORSA: il filmato e fermo sulla prima schermata.')
+}
 await ctx.close(); await b.close()
 console.log('registrato; da tagliare i primi', avvio.toFixed(1), 's')
