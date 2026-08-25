@@ -64,9 +64,24 @@ import { RAGGIO_RUOTA } from './RuotaVera'
 
 /** da che quota sopra il fondo si legge il profilo: la fascia bassa del fianco */
 const FASCIA: [number, number] = [0.02, 0.20]
-/** quanto la minigonna rientra rispetto al fianco: un pezzo che sporge non e'
- *  un sottoscocca, e' un paraurti */
-const RIENTRO = 0.955
+/* LE QUOTE DELLA SEZIONE, e non sono di gusto: sono le misure di un brancardo.
+   Il labbro scende cinquantacinque millimetri sotto il fondo della scocca e
+   sporge di un centesimo del raggio — su un fianco largo novanta centimetri
+   sono nove millimetri, cioe' la sporgenza di un profilo vero. Ventisette
+   millimetri piu' sotto, il sottosquadro rientra del sette e mezzo per cento e
+   la parete interna arretra del dieci e mezzo.
+   Il vecchio RIENTRO valeva 0,955 per tutto il pezzo: un rientro solo, uguale
+   dalla cima all'orlo, che e' precisamente la definizione di parete. */
+/** quanto scende il labbro del brancardo sotto il fondo della scocca */
+const CALO_LABBRO = 0.055
+/** e dove finisce il sottosquadro, appena sotto il labbro */
+const CALO_TUCK = 0.082
+/** di quanto il labbro sporge oltre il fianco: e' lui a prendere la riga di luce */
+const SPORGE_LABBRO = 0.010
+/** quanto rientra il sottosquadro, la faccia rivolta a terra */
+const RIENTRO_TUCK = 0.075
+/** e quanto arretra la parete interna fino all'orlo */
+const RIENTRO_ORLO = 0.105
 /**
  * QUANTO RESTA FRA IL BORDO BASSO E IL PIANO — dodici millimetri, ed erano
  * quarantacinque.
@@ -91,8 +106,6 @@ const RIENTRO = 0.955
 const LUCE_A_TERRA = 0.012
 /** quanti settori: a 128 l'errore sul profilo sta sotto il centimetro */
 const SETTORI = 128
-/** a che frazione dell'altezza sta l'anello di mezzo: il colmo della luce */
-const VENTRE = 0.45
 
 /**
  * LA PIANTA VERA DELLA VETTURA, e adesso e' un pezzo a se'.
@@ -303,9 +316,6 @@ export function sottoscocca(
     const r = lisci[k]
     const f = finestra(cx * r) * passaruota(cx * r)
     const giu = cima - (cima - orlo) * f
-    // dove la finestra e' chiusa la minigonna ha altezza zero e il rientro non
-    // ha piu' senso: si riporta a uno, o il bordo alto si stringerebbe da solo
-    const rientro = 1 - (1 - RIENTRO) * f
     /* TRE ANELLI E NON DUE, ed e' la cura vera del «blocco geometrico».
        Con due anelli il tono puo' solo essere una RAMPA: un capo chiaro, un
        capo scuro, e in mezzo l'interpolazione. Una rampa su una parete lunga
@@ -319,69 +329,111 @@ export function sottoscocca(
        Il ventre sta al quarantacinque per cento e non a meta': la parete
        rientra scendendo, quindi la meta' geometrica cade piu' in dentro di
        quanto l'occhio si aspetti il colmo della luce. */
-    const rv = r * (1 - (1 - rientro) * VENTRE)
-    const yv = cima - (cima - giu) * VENTRE
-    punti.push(cx * r, cima, cz * r)
-    punti.push(cx * rv, yv, cz * rv)
-    punti.push(cx * r * rientro, giu, cz * r * rientro)
-    /* IL COLORE MOLTIPLICA, quindi il gradiente si fa AL CONTRARIO di come
-       verrebbe da pensarlo: la tinta del materiale e' quella dell'ORLO — la
-       parte piu' chiara — e il colore del vertice la SPEGNE salendo.
-       Uno per vertice: 1 in basso, 0,13 in cima. Fra i due three interpola. */
-    /* 0,38 IN CIMA E NON 0,13, e il difetto era il SALTO, non il buio.
-       La revisione ha misurato il profilo verticale: bordo della scocca a 49,6,
-       poi dodici pixel piu' sotto 1,3. Un salto di trentotto volte, e sotto di
-       li' il gradiente sale pulito — quindi il gradiente funziona e comincia
-       nel posto sbagliato.
-       Il bordo chiaro NON e' questo pezzo: e' l'orlo della carrozzeria, una
-       superficie quasi orizzontale che prende la pedana. Verificato spegnendo
-       un oggetto per volta. Quello sta bene dov'e' — su un'automobile vera il
-       brancardo prende luce.
-       Quello che manca e' cio' che sta FRA i due. Su un'auto vera, sotto il
-       brancardo, l'ombra si approfondisce per qualche centimetro invece di
-       spegnersi in un pixel: e' il raccordo che dice che i due pezzi si
-       toccano. A 0,13 la cima era gia' buio pieno e il raccordo non esisteva.
-       Resta comunque molto piu' scura dell'orlo (0,38 contro 1), quindi la
-       direzione della luce non cambia e il vecchio avvertimento — «mettere
-       luce in cima direbbe che sotto c'e' spazio» — continua a essere onorato:
-       li' non si mette luce, si toglie il gradino. */
-    colori.push(0.30, 0.30, 0.30)
+    /* QUATTRO ANELLI, PERCHE' QUESTA ADESSO E' UNA SEZIONE E NON UN'ALTEZZA.
+
+       E' la correzione piu' grande che questo file abbia avuto, e la diagnosi
+       non e' mia: sei letture indipendenti dello stesso fotogramma, in sei
+       condizioni di visione diverse, hanno detto tutte la stessa cosa — il
+       difetto non dipende dalla qualita', dalla risoluzione ne' dal tono.
+
+       Il committente lo ripeteva da giorni con la stessa parola, «un blocco
+       geometrico sotto la scocca», e io ho corretto per tre volte il TONO. Il
+       tono era sbagliato davvero e correggerlo e' servito — il pavimento sotto
+       il bordo e' sceso da 46,8 a 23 — ma non era quello il blocco.
+
+       IL BLOCCO E' LA FORMA. Questo pezzo era un PRISMA: una pianta estrusa
+       fra due quote costanti, uguali su tutti e centoventotto i settori, con
+       una normale inventata identica per ogni vertice. Due quote costanti nel
+       mondo sono due RETTE sullo schermo: misurate su un ingrandimento largo
+       1800 pixel si scostano da una retta perfetta di due o tre pixel. Sono
+       righe tirate col righello, e l'occhio le aggancia prima di qualunque
+       colore. Nessuna taratura di tinta, emissione o ombra puo' togliere la
+       squadratura a un prisma: e' la sua forma.
+
+       E l'errore di metodo va detto, perche' e' il piu' caro: il mio
+       indicatore — «quanto e' piu' chiaro il pavimento del pezzo» — e' CIECO
+       ALLA FORMA. Passava mentre il difetto restava. E' la stessa famiglia di
+       errore gia' pagata otto volte qui dentro: un criterio che non separa due
+       popolazioni che condividono un valore.
+
+       COM'E' FATTO UN BRANCARDO VERO. Non e' una parete, e' una sezione. La
+       fiancata scende, sporge di un centimetro in un LABBRO — la riga che
+       prende luce — poi rientra di colpo in un SOTTOSQUADRO rivolto in giu',
+       che e' la superficie piu' scura di tutta l'automobile, e da li' una
+       parete interna arretrata scende all'ombra. Di taglio si vedono un labbro
+       chiaro, una riga nera e un buio che si allontana: tre cose a tre quote,
+       cioe' l'opposto di un cartoncino.
+
+       E LE NORMALI CAMBIANO BANDA PER BANDA. Prima ce n'era UNA sola, la stessa
+       per tutti i vertici del settore. Con una normale sola nessuna luce puo'
+       distinguere il labbro dal sottosquadro, quindi l'unico tono possibile era
+       quello cotto nei colori di vertice: una stampa, non una superficie.
+       Adesso il sottosquadro guarda a terra e il labbro guarda in fuori, e la
+       differenza la fa la scena invece della mia mano. */
+    const yLabbro = cima - CALO_LABBRO * f
+    const yTuck   = cima - CALO_TUCK * f
+    const rLabbro = r * (1 + SPORGE_LABBRO * f)
+    const rTuck   = r * (1 - RIENTRO_TUCK * f)
+    const rOrlo   = r * (1 - RIENTRO_ORLO * f)
+    punti.push(cx * r,       cima,    cz * r)
+    punti.push(cx * rLabbro, yLabbro, cz * rLabbro)
+    punti.push(cx * rTuck,   yTuck,   cz * rTuck)
+    punti.push(cx * rOrlo,   giu,     cz * rOrlo)
+
+    /* IL COLORE DI VERTICE MOLTIPLICA IL DIFFUSO, quindi si scrive al contrario
+       di come verrebbe da pensarlo: la tinta del materiale e' quella del vertice
+       a UNO — il labbro — e gli altri la spengono.
+
+       Il vecchio commento difendeva 0,38 in cima contro 0,13, e su quello aveva
+       ragione: il difetto era il SALTO, non il buio. Fra il brancardo della
+       carrozzeria a 49,6 e il pezzo a 1,3 c'era un rapporto di trentotto, e
+       mancava il raccordo. Resta vero e resta fatto: 0,26 in cima non e' buio
+       pieno.
+
+       Ed e' confermato anche l'altro pezzo di quel commento: la riga chiara in
+       alto NON e' questa fascia, e' il brancardo della carrozzeria che riflette
+       la pedana. L'ho riverificato con il catasto dei pixel, che dice il
+       PROPRIETARIO invece del tono, e quei pixel appartengono ad AUTO. La tesi
+       che fossero pedana vista attraverso una fessura era sbagliata — e la
+       prova del colore caldo non la separava, perche' una lamiera che riflette
+       la pedana e' calda esattamente come la pedana.
+
+       Quello che cambia adesso e' che sotto quella riga non c'e' piu' un piano
+       unico: c'e' un labbro acceso, un sottosquadro quasi nero e una parete
+       arretrata. Tre valori a tre quote. */
+    colori.push(0.26, 0.26, 0.26)
     colori.push(1, 1, 1)
-    /* E L'ORLO A 0,22, DOVE PRIMA STAVA A 1 — cioe' al MASSIMO.
-       Questo era un errore di fisica, e il commento qui sopra lo difendeva con
-       convinzione: «la luce viene dal pavimento, quindi l'orlo e' la parte
-       chiara». Il ragionamento vale per una parete che il pavimento lo VEDE.
-       L'orlo sta a dodici millimetri da terra: da li' si vede una fessura di
-       un centimetro e nient'altro, ed e' il punto piu' occluso di tutta la
-       scena. Mettere li' il massimo del colore di vertice E il picco della
-       mappa di emissione voleva dire accendere esattamente il pixel che
-       dev'essere il piu' scuro — ed e' quello il cuneo chiaro che il
-       committente ha cerchiato.
-       Cio' che il vecchio commento aveva ragione a temere resta vero: se si
-       spegne TUTTA la fascia si ottiene un ritaglio nero, e a zero era 0,5 su
-       255. Ma qui non si spegne la fascia: si spegne l'ultimo quinto, e quel
-       buio non e' un buco — e' la stessa ombra che c'e' per terra un
-       centimetro piu' sotto, quindi i due neri si saldano invece di fare un
-       gradino. E' proprio quella saldatura che toglie il bordo netto. */
-    colori.push(0.22, 0.22, 0.22)
-    /* E LE UV, che questa geometria non aveva: v = 1 in cima, 0 all'orlo.
-       Servono alla mappa di emissione qui sotto — e' l'unico modo di sagomare
-       l'emissione con three di serie, perche' `vertexColors` moltiplica il
-       DIFFUSO e non l'emissione. */
+    colori.push(0.14, 0.14, 0.14)
+    colori.push(0.10, 0.10, 0.10)
+
+    /* E LE UV, che questa geometria non aveva: servono alla mappa di emissione,
+       perche' vertexColors moltiplica il DIFFUSO e non l'emissione.
+       La campana della mappa culmina a 0,42, quindi 0,42 va AL LABBRO: il
+       rimando del pavimento deve cadere dove c'e' una superficie che il
+       pavimento lo vede, non sull'orlo, che sta a un centimetro da terra ed e'
+       il punto piu' occluso della scena. */
     uv.push(0.5, 1)
-    uv.push(0.5, 0.55)
+    uv.push(0.5, 0.42)
+    uv.push(0.5, 0.18)
     uv.push(0.5, 0)
-    // la normale punta in fuori e un po' in basso, come la parete che descrive
-    n.set(cx, -0.32 * f, cz).normalize()
-    norm.push(n.x, n.y, n.z, n.x, n.y, n.z, n.x, n.y, n.z)
+
+    n.set(cx, -0.30 * f, cz).normalize()
+    norm.push(n.x, n.y, n.z, n.x, n.y, n.z)
+    // il sottosquadro guarda in giu': e' lui a fare la riga nera sotto il labbro
+    n.set(cx * 0.34, -0.94, cz * 0.34).normalize()
+    norm.push(n.x, n.y, n.z)
+    n.set(cx, -0.18 * f, cz).normalize()
+    norm.push(n.x, n.y, n.z)
   }
   for (let k = 0; k < SETTORI; k++) {
-    const a = k * 3
-    const b = ((k + 1) % SETTORI) * 3
-    // la fascia alta, dal sottoscocca al ventre
+    const a = k * 4
+    const b = ((k + 1) % SETTORI) * 4
+    // il brancardo, dalla scocca al labbro
     indici.push(a, b, a + 1, b, b + 1, a + 1)
-    // e quella bassa, dal ventre all'orlo
+    // il sottosquadro, quasi orizzontale e rivolto a terra
     indici.push(a + 1, b + 1, a + 2, b + 1, b + 2, a + 2)
+    // e la parete interna, arretrata, fino all'orlo
+    indici.push(a + 2, b + 2, a + 3, b + 2, b + 3, a + 3)
   }
 
   /* E IL FONDO SI CHIUDE con un ventaglio fino al centro. Senza, guardando da
@@ -394,10 +446,10 @@ export function sottoscocca(
   // il vertice del fondo sta all'orlo e ne prende il colore, che adesso e' il
   // piu' scuro: il ventre dell'automobile e' la superficie meno illuminata che
   // esista in questa scena, e finalmente lo dice
-  colori.push(0.22, 0.22, 0.22)
+  colori.push(0.10, 0.10, 0.10)
   uv.push(0.5, 0)
   for (let k = 0; k < SETTORI; k++) {
-    indici.push(centro, ((k + 1) % SETTORI) * 3 + 2, k * 3 + 2)
+    indici.push(centro, ((k + 1) % SETTORI) * 4 + 3, k * 4 + 3)
   }
 
   const g = new BufferGeometry()
@@ -613,6 +665,11 @@ export function sottoscocca(
   const mesh = new Mesh(g, m)
   mesh.name = 'SOTTOSCOCCA'
   mesh.castShadow = true
-  mesh.receiveShadow = false
+  /* E ADESSO RICEVE L'OMBRA. Era spenta, e con una normale sola non avrebbe
+     comunque avuto niente da mostrare: una superficie che non riceve e' una
+     stampa, e la manopola del materiale non ha su cosa lavorare. Con tre bande
+     a tre orientamenti la direzionale e la scocca sopra modulano davvero il
+     pezzo, e la modulazione arriva dalla scena invece che dalla mia mano. */
+  mesh.receiveShadow = true
   return mesh
 }
