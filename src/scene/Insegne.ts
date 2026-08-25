@@ -5,6 +5,7 @@ import {
 import { inCoda } from '../core/Salita'
 import { quantoDiLato } from '../transizioni/Camera'
 import { LAVORI } from '../ui/Lavori'
+import { t } from '../ui/Lingua'
 import type { Regia } from '../core/Regia'
 
 /**
@@ -50,7 +51,16 @@ import type { Regia } from '../core/Regia'
 
 /** quanto e' largo uno schermo, in metri */
 const LARGO = 2.0
-const RAPPORTO = 16 / 10
+/* PIU' ALTO CHE LARGO... quasi. 1,18 e non 1,60.
+   Il committente ha portato due mockup della hero chiedendo «riesci a rendere
+   i 3 lavori cosi'?»: li' i pannelli sono verticali e alti, con una cornice
+   d'ambra e una barra di luce sul bordo. Il formato conta quanto la cornice —
+   un rettangolo lungo e basso legge come un'insegna stradale, uno alto legge
+   come una PAGINA, che e' cio' che questi contengono.
+   Non si va fino al 3:4 del riferimento: a 2,0 m di larghezza sarebbero alti
+   2,67 e coprirebbero la villa dietro, che e' la scena. A 1,18 l'altezza passa
+   da 1,25 a 1,69 m — il 35% in piu' — e resta sotto il cornicione. */
+const RAPPORTO = 1.18
 
 /* LA FILA E' UN ARCO CENTRATO SULL'OCCHIO, e la prima volta era una retta.
  *
@@ -74,7 +84,15 @@ const OCCHIO = new Vector3(5.4, 0.88, 4.25)
 /** a che distanza dall'occhio sta la fila */
 const LONTANANZA = 9.6
 /** e a che quota */
-const QUOTA = 1.78
+/* LA QUOTA E' SALITA CON L'ALTEZZA. 1,98 e non 1,78.
+   I pannelli sono passati da 1,25 a 1,69 m di altezza (vedi `RAPPORTO`), e
+   crescendo si allungano da tutte e due le parti: il bordo basso e' sceso di
+   22 cm ed e' finito dietro l'automobile, portandosi via la didascalia — cioe'
+   proprio la riga aggiunta in quel giro.
+   E' il difetto ricorrente di questo file: si cambia un numero e l'altro che
+   descrive la stessa composizione resta indietro. Qui la quota si alza di
+   quanto e' scesa la base. */
+const QUOTA = 1.98
 /** l'angolo fra uno schermo e il successivo, in radianti */
 /* L'APERTURA DELL'ARCO — 0,226 e non 0,196, e il conto e' di due righe.
    Su un arco due vicini distano 2*R*sin(A/2). Con R = 9,6 e A = 0,196 quella
@@ -423,6 +441,56 @@ export class Insegne {
          venivano scartati prima di essere rasterizzati — in scena, accesi,
          opacita' 0,99, e invisibili. Nessun errore e nessun avviso. */
       m.rotation.y = q.imbardata
+      /* ============================================================ LA BARRA
+
+         LA LAMA DI LUCE SUL BORDO — ed e' geometria, non disegno.
+
+         Nei due mockup portati dal committente ogni pannello ha una riga
+         d'ambra accesa lungo il fianco sinistro, e quella riga ESCE sopra e
+         sotto il pannello: e' un montante illuminato a cui la pagina e'
+         appesa, non un bordo del pannello. Disegnata dentro la tela finirebbe
+         al bordo e si fermerebbe li' — perderebbe esattamente la cosa che la
+         fa leggere come un oggetto della scena invece che come una decorazione
+         dell'immagine.
+
+         Sta un centimetro davanti alla faccia (`z` locale) perche' il pannello
+         adesso e' CURVO: al centro la superficie rientra di 28 cm rispetto ai
+         bordi, e una lama complanare sparirebbe dentro la geometria per meta'
+         della sua altezza. Un centimetro basta e non si vede di taglio.
+
+         `toneMapped: false` come il pannello: e' una sorgente, e una sorgente
+         che si spegne con la sera e' la cosa meno credibile che ci sia. */
+      /* 1,06 E NON 1,28, e la lama sta ADDOSSO alla cornice.
+         Al primo giro sporgeva di 5,5 cm ed era alta il 28% piu' del pannello:
+         nel provino le tre lame leggevano come tre COLONNE indipendenti in
+         mezzo alla scena, e i pannelli sembravano appesi fra loro. Nel
+         riferimento la riga e' attaccata al bordo e lo supera di poco — e'
+         il montante del pannello, non un lampione.
+         La regola generale: un elemento che deve leggersi come PARTE di un
+         altro non puo' staccarsene piu' del suo stesso spessore. */
+      const ALTA = 1.06
+      const lama = new Mesh(
+        new PlaneGeometry(0.030, (LARGO / RAPPORTO) * ALTA),
+        new MeshBasicMaterial({ color: 0xd8a258, toneMapped: false, transparent: true, opacity: 0.92, depthWrite: false }),
+      )
+      lama.position.set(-LARGO / 2 - 0.018, 0, 0.010)
+      lama.renderOrder = 7
+      lama.name = 'INSEGNA_LAMA'
+      m.add(lama)
+      /* E L'ALONE INTORNO ALLA LAMA. Una riga di trenta millimetri a due metri
+         di distanza e' due pixel: da sola legge come un difetto di
+         antialiasing, non come una luce. L'alone e' un secondo piano largo
+         dieci volte e quasi trasparente — e' quello che dice «questa cosa
+         emette», che una riga netta non puo' dire. */
+      const alone = new Mesh(
+        new PlaneGeometry(0.16, (LARGO / RAPPORTO) * ALTA * 1.04),
+        new MeshBasicMaterial({ color: 0xc98f45, toneMapped: false, transparent: true, opacity: 0.13, depthWrite: false }),
+      )
+      alone.position.set(-LARGO / 2 - 0.018, 0, 0.006)
+      alone.renderOrder = 6
+      alone.name = 'INSEGNA_ALONE'
+      m.add(alone)
+
       this.pannelli.push(m)
       this.gruppo.add(m)
 
@@ -576,15 +644,71 @@ export class Insegne {
     c.fillStyle = 'rgba(216,236,255,0.72)'
     c.fillText(nome.toLowerCase().replace(/[^a-z0-9]/g, '') + '.velocity', px + BARRA * 0.5, BARRA * 0.5)
 
+    /* LA FASCIA IN FONDO, e la fotografia sta fra le due.
+       Nel riferimento ogni mockup ha una riga sotto — «SCOPRI IL PROGETTO» —
+       ed e' quella a dire che si sta guardando un LAVORO invece che una
+       decorazione. Senza, tre immagini dentro tre cornici sono tre immagini. */
+    const CODA = Math.round(TA * 0.105)
     if (foto) {
-      const r = Math.max(TL / foto.width, (TA - BARRA) / foto.height)
+      const alto = TA - BARRA - CODA
+      const r = Math.max(TL / foto.width, alto / foto.height)
       c.save()
       c.beginPath()
-      c.rect(0, BARRA, TL, TA - BARRA)
+      c.rect(0, BARRA, TL, alto)
       c.clip()
+      /* SI PRENDE LA CIMA DELLA PAGINA, NON IL CENTRO.
+         Le copertine sono scatti larghi 16:10 e questo riquadro adesso e'
+         quasi quadrato: qualcosa va tagliato. Centrando, si taglierebbe in
+         parti uguali sopra e sotto — cioe' si toglierebbe meta' del TITOLO,
+         che nella fotografia di un sito e' la sola cosa leggibile a questa
+         misura. Ancorando in alto si perde il fondo pagina, che a due metri di
+         distanza non si legge comunque. */
       c.drawImage(foto, (TL - foto.width * r) / 2, BARRA, foto.width * r, foto.height * r)
       c.restore()
     }
+
+    // la fascia della didascalia
+    const yCoda = TA - CODA
+    c.fillStyle = '#080c14'
+    c.fillRect(0, yCoda, TL, CODA)
+    c.fillStyle = 'rgba(216,162,88,0.20)'
+    c.fillRect(0, yCoda, TL, 1)
+    c.textAlign = 'left'
+    c.textBaseline = 'middle'
+    c.font = '600 ' + Math.round(CODA * 0.30) + 'px Switzer, system-ui, sans-serif'
+    c.letterSpacing = Math.round(CODA * 0.055) + 'px'
+    c.fillStyle = 'rgba(216,162,88,0.86)'
+    c.fillText(t('insegnaScopri'), BARRA * 0.9, yCoda + CODA / 2)
+    // la freccia, disegnata e non scritta: un carattere di freccia cambia
+    // disegno da un sistema all'altro, e qui si vede grande
+    c.letterSpacing = '0px'
+    const fx = TL - BARRA * 1.6, fy = yCoda + CODA / 2, fs = CODA * 0.20
+    c.strokeStyle = 'rgba(216,162,88,0.86)'
+    c.lineWidth = Math.max(1.6, CODA * 0.035)
+    c.lineCap = 'round'
+    c.beginPath()
+    c.moveTo(fx - fs, fy + fs); c.lineTo(fx + fs, fy - fs)
+    c.moveTo(fx + fs * 0.1, fy - fs); c.lineTo(fx + fs, fy - fs); c.lineTo(fx + fs, fy - fs * 0.1)
+    c.stroke()
+
+    /* ============================================================ LA CORNICE
+
+       IL FILO D'AMBRA INTORNO — e' la firma dei mockup del riferimento, ed e'
+       anche la grammatica che il sito usa gia' dappertutto (la cornice di
+       pagina, i comandi, le pastiglie in testa).
+       Si disegna DENTRO la tela e non con un secondo piano: un secondo piano
+       andrebbe curvato insieme al pannello e tenuto allineato, e sono due cose
+       che si disallineano. Qui e' un pixel della stessa immagine, quindi segue
+       la curvatura per costruzione.
+       Due fili come altrove: uno pieno sul bordo e uno appena dentro, molto
+       piu' tenue — a un filo solo la cornice legge come un contorno
+       disegnato, a due legge come uno spessore. */
+    c.strokeStyle = 'rgba(216,162,88,0.62)'
+    c.lineWidth = 2.5
+    c.strokeRect(1.25, 1.25, TL - 2.5, TA - 2.5)
+    c.strokeStyle = 'rgba(216,162,88,0.16)'
+    c.lineWidth = 1
+    c.strokeRect(6.5, 6.5, TL - 13, TA - 13)
 
     /* IL VELO IN BASSO E' STATO TOLTO INSIEME AL NOME che ci stava sopra.
        Un velo scuro sul terzo inferiore di una fotografia si nota: e' un segno

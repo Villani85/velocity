@@ -154,6 +154,10 @@ export const D: Record<string, Voce> = {
     en: 'VELOCITY explores how real-time 3D, motion and interface can live in the same space.',
   },
   heroInvito: { it: 'ESPLORA I LAVORI', en: 'SEE THE WORK' },
+  /* la riga in fondo alle tre insegne della hero: vedi «scene/Insegne.ts».
+     Non e' un pulsante e non pretende di esserlo — e' la didascalia che dice
+     che quello che si sta guardando e' un progetto, non una fotografia. */
+  insegnaScopri: { it: 'SCOPRI IL PROGETTO', en: 'EXPLORE THE PROJECT' },
 
   /* UNA NUMERAZIONE SOLA, E PRIMA CE N'ERANO TRE.
      La rotaia contava in settimi — 06/07 CORSA, 07/07 CONTATTO — gli occhielli
