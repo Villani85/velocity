@@ -153,11 +153,13 @@ export const LAVORI: Lavoro[] = [
     soggetto: 'Una supercar che si attraversa',
     /* I tre di VELOCITY sono scritti a mano perche' sono migliori di quelli
        automatici, e sono tutti e tre verificabili:
-         667 kB   il peso di `public/modelli/auto2.glb`, misurato sul file
+         619 kB   il peso di `public/modelli/auto2.glb`, misurato sul file
+                  (633.736 byte). Il 667 che c'era prima era del modello
+                  PRE-REMESH, quello sostituito: vedi `Spina.ts`.
          WEBGL    si apre la console e si vede
          DESKTOP  c'e' una versione telefono vera, non il desktop stretto:
          + MOBILE `strumenti/telefono_audit.mjs` la controlla a tre formati */
-    dati: [['667 kB', 'CAR ASSET'], ['WEBGL', 'THREE.JS'], ['DESKTOP + MOBILE', 'RESPONSIVE']],
+    dati: [['619 kB', 'CAR ASSET'], ['WEBGL', 'THREE.JS'], ['DESKTOP + MOBILE', 'RESPONSIVE']],
   },
 ]
 

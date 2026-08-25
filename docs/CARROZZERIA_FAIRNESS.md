@@ -1,5 +1,26 @@
 # Carrozzeria di VELOCITY — perché i riflessi erano "a macchia" e cosa è stato fatto
 
+> **CORREZIONE, 25 agosto.** Il numero «0,341 mm (−59%)» che compare qui sotto
+> **non si riproduce** con lo strumento del progetto sul file che si spedisce:
+>
+> ```
+> node strumenti/fairness.mjs public/modelli/auto2.glb 0.025
+>   residuo_mediano_mm 0.424   residuo_p95_mm 1.51
+> node strumenti/fairness.mjs asset/auto/auto2_PRIMA_DEL_REMESH.glb 0.025
+>   residuo_mediano_mm 0.84    residuo_p95_mm 4.165
+> ```
+>
+> Il «prima» si riproduce **esatto** — 0,840 e 4,165, gli stessi numeri scritti
+> qui — quindi il metro e' quello giusto e il difetto sta nel «dopo». Il salto
+> vero e' **0,840 → 0,424 mm, cioe' −49%** (e p95 4,165 → 1,51, −64%), non −59%
+> e −70%. Probabilmente lo 0,341 era misurato su un candidato intermedio che non
+> e' quello poi esportato.
+>
+> Il sito e' stato corretto. Le righe qui sotto restano come sono, perche' questo
+> documento e' anche la storia di come si e' arrivati a quei numeri — ma il
+> numero da citare e' 0,424.
+
+
 > Documento per chi arriva dopo (persona o altra AI). Scritto il 2026-08-24.
 > Riguarda `public/modelli/auto2.glb`, la vernice e il modo in cui si **misura**
 > se una carrozzeria è fatta bene. Contiene anche quattro metri sbagliati, perché

@@ -354,7 +354,7 @@ export const D: Record<string, Voce> = {
     en: 'Nothing is claimed here that has not been measured.',
   },
   docCifra1t: { it: 'Fairness della carrozzeria', en: 'Body surface fairness' },
-  docCifra1d: { it: 'residuo da fit quadrico locale, −59%', en: 'local quadric-fit residual, −59%' },
+  docCifra1d: { it: 'residuo da fit quadrico locale, −49%', en: 'local quadric-fit residual, −49%' },
   docCifra2t: { it: 'La carrozzeria completa', en: 'The complete body' },
   docCifra2d: { it: '106.736 triangoli, compressi con meshopt', en: '106,736 triangles, meshopt-compressed' },
   docCifra3t: { it: 'Metriche costruite e buttate', en: 'Metrics built and thrown away' },

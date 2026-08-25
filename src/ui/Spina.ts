@@ -86,7 +86,7 @@ const STATI: Partial<Record<Beat, Stato>> = {
 }
 
 /**
- * IL PESO DELL'AUTOMOBILE, misurato sul file — 667 kB, ed erano 2,9 MB.
+ * IL PESO DELL'AUTOMOBILE, misurato sul file — 619 kB, ed erano 2,9 MB.
  *
  * 667 E NON PIU' 741, e la correzione vale la riga che la spiega: la
  * carrozzeria e' stata levigata (vedi «strumenti/liscia.mjs») e il file
@@ -110,7 +110,15 @@ const STATI: Partial<Record<Beat, Stato>> = {
  * E' anche una credenziale migliore, perche' e' piu' difficile da credere e
  * piu' facile da verificare: si apre la scheda di rete del browser e c'e'.
  */
-const PESO_AUTO = '667 kB'
+/* IL NUMERO ERA DI UN ALTRO FILE, e stava in hero.
+   667 kB e' il peso di `asset/auto/auto2_PRIMA_DEL_REMESH.glb`: il modello
+   SOSTITUITO. Quello che si spedisce e' 633.736 byte, cioe' 619 KiB —
+   `stat -c%s public/modelli/auto2.glb`. Ne circolavano TRE valori diversi per
+   lo stesso file (667, 619, 627 nel documento), e nessuno era il file.
+   Su un sito la cui tesi e' «non si dichiara niente che non sia stato
+   misurato», ed esposto proprio accanto a quella frase, e' il difetto peggiore
+   che potesse esserci. */
+const PESO_AUTO = '619 kB'
 
 export class Spina {
   private radice: HTMLElement

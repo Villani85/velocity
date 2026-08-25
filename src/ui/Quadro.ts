@@ -1023,7 +1023,7 @@ export class Quadro {
      * di piu': una pattuglia sta chiedendo i documenti, e un documento falso e'
      * peggio di nessun documento.
      *
-     *   667 kB      il peso di `public/modelli/auto2.glb`, misurato sul file
+     *   619 kB      il peso di `public/modelli/auto2.glb`, misurato sul file
      *   WEBGL       si apre la console e si vede
      *   DESKTOP /   c'e' una versione telefono vera, non il desktop stretto:
      *   MOBILE      `strumenti/telefono_giro.mjs` la fotografa a 390x844
