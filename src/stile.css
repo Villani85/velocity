@@ -1787,7 +1787,16 @@ body {
   padding: 0;
   border-radius: 50%;
   border: 1px solid rgba(242, 240, 234, 0.34);
-  background: var(--tinta);
+  /* LA MACCHIA DI LUCE STA SOPRA LA TINTA, e i due valori li scrive
+     «ui/Comandi.ts» leggendo la ruvidita' vera della finitura. Qui non c'e'
+     nessun numero: se un giorno una finitura cambia ruvidita', il pallino
+     cambia da solo. */
+  background:
+    radial-gradient(circle at 33% 27%,
+      rgba(255, 255, 255, var(--lucido, 0.42)) 0%,
+      rgba(255, 255, 255, 0) var(--macchia, 36%)),
+    var(--tinta);
+  overflow: hidden;
   cursor: pointer;
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
@@ -1796,6 +1805,29 @@ body {
   position: absolute;
   inset: -9px;
   border-radius: 50%;
+}
+/* LA TRAMA DEL CARBONIO — due diagonali incrociate, non una texture.
+   A ventisei pixel una fotografia di tessuto e' poltiglia; due serie di righe a
+   novanta gradi fra loro leggono come un intreccio anche a questa misura,
+   perche' l'occhio riconosce l'INCROCIO prima del filo. Tenute molto tenui: la
+   trama deve dire «tessuto», non diventare il soggetto del pallino. */
+.comandi__campione.e-trama::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(255, 255, 255, 0.065) 0 1px, rgba(255, 255, 255, 0) 1px 3px),
+    repeating-linear-gradient(-45deg,
+      rgba(255, 255, 255, 0.045) 0 1px, rgba(255, 255, 255, 0) 1px 3px);
+  /* 0,065 E 0,045, SCESI DA 0,10 E 0,07. Alla prima prova la trama copriva
+     tutto il disco e lo schiariva: il carbonio veniva PIU' CHIARO del nero
+     satinato, cioe' il pallino diceva il contrario di quello che e' il
+     materiale. Una trama e' un dettaglio di superficie, non una tinta: se
+     cambia la luminanza media del campione ha smesso di descrivere e ha
+     cominciato a mentire. */
 }
 .comandi__campione:hover { transform: scale(1.12); }
 /* lo scelto si segna con un anello STACCATO, non con un bordo piu' spesso: su

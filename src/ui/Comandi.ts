@@ -85,6 +85,26 @@ export class Comandi {
       b.className = 'comandi__campione'
       b.type = 'button'
       b.style.setProperty('--tinta', FINITURE[i].campione)
+      /* IL CAMPIONE MOSTRA LA FINITURA, NON LA TINTA — e il motivo e' che
+         adesso le tinte sono tre neri.
+         Tolti il bianco perla e l'arancio (richiesta del committente), il
+         selettore e' diventato tre pallini quasi identici: 0d0f14, 15171c,
+         23262b a ventisei pixel non si distinguono, e un selettore i cui
+         pulsanti non si distinguono e' un selettore che non si usa.
+         Quello che distingue davvero le tre finiture e' la RUVIDITA': 0,30 la
+         vernice liquida, 0,48 la satinata, 0,14 il carbonio. Ed e' una cosa
+         che si sa disegnare — e' l'unica cosa che si vede guardando una
+         superficie lucida: la macchia di luce. Piu' e' ruvida, piu' la macchia
+         e' larga e spenta; piu' e' liscia, piu' e' piccola e accesa.
+         I due numeri qui sotto sono la stessa relazione della fisica messa in
+         scala di pixel, non una formula: l'esponente 1,6 sull'opacita' serve a
+         separare il satinato dagli altri due, che a esponente uno restavano
+         vicini. */
+      const rv = FINITURE[i].ruvidita
+      b.style.setProperty('--macchia', (18 + rv * 55).toFixed(0) + '%')
+      b.style.setProperty('--lucido', (Math.pow(1 - rv, 1.6) * 0.95).toFixed(3))
+      // e la trama, per la sola finitura che ce l'ha: vedi «scene/Materiali.ts»
+      if (FINITURE[i].trama) b.classList.add('e-trama')
       // il nome sta nell'etichetta accessibile e non sotto il campione: quattro
       // nomi di vernice in fila sono quattro parole da leggere per una scelta
       // che si fa guardando un colore

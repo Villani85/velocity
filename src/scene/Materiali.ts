@@ -1382,6 +1382,21 @@ export type Finitura = {
    * metallo, e non e' un'interpolazione fra le due — sono due fisiche diverse.
    */
   metallo?: number
+  /**
+   * SE LA SUPERFICIE HA UNA TRAMA, e serve al SELETTORE piu' che al materiale.
+   *
+   * Il committente ha tolto il bianco perla e l'arancio: restano tre finiture,
+   * e sono tutte nere. I tre pallini del selettore — 0d0f14, 15171c, 23262b —
+   * a ventisei pixel sono lo stesso pallino ripetuto tre volte, cioe' tre
+   * pulsanti che non dicono cosa scelgono.
+   * Ma le tre finiture NON si assomigliano affatto: differiscono per ruvidita'
+   * (0,30 / 0,48 / 0,14) e una delle tre e' una trama sotto trasparente. E'
+   * quello che il campione deve mostrare — la FINITURA, non la tinta.
+   * Questo campo dice quale delle tre e' tessuta. E' un dato, non un controllo
+   * sul nome: un giorno la finitura si chiamera' diversamente e il nome
+   * smetterebbe di funzionare in silenzio.
+   */
+  trama?: boolean
 }
 
 export const FINITURE: Finitura[] = [
@@ -1521,6 +1536,7 @@ export const FINITURE: Finitura[] = [
     // e nitido a raccontarlo.
     nome: 'CARBONIO',
     campione: '#23262b',
+    trama: true,
     tinta: [0.019, 0.021, 0.021],
     ruvidita: 0.14,
     trasparente: 1.0,
