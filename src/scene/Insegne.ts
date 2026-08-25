@@ -490,16 +490,37 @@ function profiloMateriale() {
          quel profilo rimanda il 72% di quello che ha davanti — e davanti ha la
          villa illuminata. Nessuna riduzione dell'emissione poteva toglierglielo,
          e infatti tre giri di manopole non hanno mosso il numero.
-         0,21 e' ottone BRUNITO SCURO, ed e' il valore che fa passare il
-         cancello: `strumenti/gerarchia.mjs` misura la mediana dei montanti
-         contro quella della spalla, spegnendoli e guardando cosa cambia. Il
-         bersaglio e' 0,70, arrivavo da 1,47.
+         0,30 E' IL MIGLIORE MISURATO, e non fa passare il cancello: lo dico
+         perche' e' piu' onesto di sceglierne un altro.
+         Il percorso, con `strumenti/gerarchia.mjs` che spegne un telaio per
+         volta e guarda quanto STACCA da cio' che copre:
+             riflettanza 0,105  ->  peggiore -77,6
+             riflettanza 0,235  ->  peggiore -66,0
+             riflettanza 0,30   ->  peggiore -55,2   <- il migliore
+         (Il metro e' ripetibile: tre corse identiche a 0,235 danno -66,2,
+          -65,3 e -66,5. Una quarta misura isolata aveva dato -50,2 ed era
+          l'anomalia — l'ho scoperto solo perche' ho verificato il rumore prima
+          di credere alla differenza, che e' la regola che mi ero dato e che
+          per quattro giri avevo saltato.)
+         Il segno conta: a 0,105 i telai erano piu' SCURI del fondo del 92%, e
+         continuare ad abbassarli li rendeva piu' evidenti, non meno. Una linea
+         scura su fondo chiaro stacca come una chiara su fondo scuro.
+         PERCHE' NON SI ARRIVA A 0,70. Il telaio peggiore e' quello del pannello
+         di EVERY INTERFACE, che e' quasi BIANCO: per accordarcisi dovrebbe
+         essere bianco anche lui, e a quel punto gli altri due — che stanno su
+         pannelli scuri — si sfonderebbero. Un materiale solo non puo' accordarsi
+         a tre fondi diversi, e un telaio intorno a una superficie bianca e'
+         scuro per necessita': e' quello che fa un telaio.
+         Il cancello resta li' a dirlo invece di essere abbassato fino a
+         passare. Se un giorno si vorra' chiudere davvero, la strada non e' il
+         materiale: e' il fondo — un velo dietro il bordo del pannello chiaro,
+         o un telaio che prende la tinta del pannello che incornicia.
          Sembra troppo scuro finche' non si ricorda che questo profilo sta
          intorno a uno SCHERMO ACCESO: un telaio scuro attorno a una superficie
          luminosa e' quello che si vede in qualunque cornice retroilluminata, e
          quello che lo fa leggere non e' la sua luce — e' il contrasto col
          pannello. Un telaio non e' un gioiello. */
-      color: new Color(0.105, 0.078, 0.046),
+      color: new Color(0.30, 0.225, 0.135),
       metalness: 0.95,
       /* 0,42 E NON 0,22, E L'AMBIENTE A 0,45.
          Abbassare la sola emissione non bastava, e il motivo e' che un metallo
@@ -511,7 +532,7 @@ function profiloMateriale() {
          ciano — e l'intensita' d'ambiente scende con lei. Un ottone spazzolato
          invece che lucidato: che e' anche piu' giusto per un montante. */
       roughness: 0.42,
-      envMapIntensity: 0.12,
+      envMapIntensity: 0.24,
       emissive: new Color(1.0, 0.80, 0.52),
       /* 0,13, E CI SONO ARRIVATO IN QUATTRO GIRI: 0,22, 0,85, 0,30, e adesso
          questo. Vale la pena dire perche' il terzo non e' bastato.
