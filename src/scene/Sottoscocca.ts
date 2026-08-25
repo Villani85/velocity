@@ -1,5 +1,8 @@
 import {
   BufferAttribute,
+  CanvasTexture,
+  LinearFilter,
+  SRGBColorSpace,
   BufferGeometry,
   Mesh,
   MeshStandardMaterial,
@@ -252,6 +255,7 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
      interpola da solo. Zero righe di GLSL, zero programmi da ricompilare, zero
      modi di sbagliare in silenzio. */
   const colori: number[] = []
+  const uv: number[] = []
   const indici: number[] = []
   const n = new Vector3()
   for (let k = 0; k < SETTORI; k++) {
@@ -270,8 +274,31 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
        verrebbe da pensarlo: la tinta del materiale e' quella dell'ORLO — la
        parte piu' chiara — e il colore del vertice la SPEGNE salendo.
        Uno per vertice: 1 in basso, 0,13 in cima. Fra i due three interpola. */
-    colori.push(0.13, 0.13, 0.13)
+    /* 0,38 IN CIMA E NON 0,13, e il difetto era il SALTO, non il buio.
+       La revisione ha misurato il profilo verticale: bordo della scocca a 49,6,
+       poi dodici pixel piu' sotto 1,3. Un salto di trentotto volte, e sotto di
+       li' il gradiente sale pulito — quindi il gradiente funziona e comincia
+       nel posto sbagliato.
+       Il bordo chiaro NON e' questo pezzo: e' l'orlo della carrozzeria, una
+       superficie quasi orizzontale che prende la pedana. Verificato spegnendo
+       un oggetto per volta. Quello sta bene dov'e' — su un'automobile vera il
+       brancardo prende luce.
+       Quello che manca e' cio' che sta FRA i due. Su un'auto vera, sotto il
+       brancardo, l'ombra si approfondisce per qualche centimetro invece di
+       spegnersi in un pixel: e' il raccordo che dice che i due pezzi si
+       toccano. A 0,13 la cima era gia' buio pieno e il raccordo non esisteva.
+       Resta comunque molto piu' scura dell'orlo (0,38 contro 1), quindi la
+       direzione della luce non cambia e il vecchio avvertimento — «mettere
+       luce in cima direbbe che sotto c'e' spazio» — continua a essere onorato:
+       li' non si mette luce, si toglie il gradino. */
+    colori.push(0.38, 0.38, 0.38)
     colori.push(1, 1, 1)
+    /* E LE UV, che questa geometria non aveva: v = 1 in cima, 0 all'orlo.
+       Servono alla mappa di emissione qui sotto — e' l'unico modo di sagomare
+       l'emissione con three di serie, perche' `vertexColors` moltiplica il
+       DIFFUSO e non l'emissione. */
+    uv.push(0.5, 1)
+    uv.push(0.5, 0)
     // la normale punta in fuori e un po' in basso, come la parete che descrive
     n.set(cx, -0.32 * f, cz).normalize()
     norm.push(n.x, n.y, n.z, n.x, n.y, n.z)
@@ -290,6 +317,7 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
   norm.push(0, -1, 0)
   // il vertice del fondo sta all'orlo, quindi prende il colore dell'orlo
   colori.push(1, 1, 1)
+  uv.push(0.5, 0)
   for (let k = 0; k < SETTORI; k++) {
     indici.push(centro, ((k + 1) % SETTORI) * 2 + 1, k * 2 + 1)
   }
@@ -298,6 +326,7 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
   g.setAttribute('position', new BufferAttribute(new Float32Array(punti), 3))
   g.setAttribute('normal', new BufferAttribute(new Float32Array(norm), 3))
   g.setAttribute('color', new BufferAttribute(new Float32Array(colori), 3))
+  g.setAttribute('uv', new BufferAttribute(new Float32Array(uv), 2))
   g.setIndex(indici)
   g.computeBoundingSphere()
 
@@ -351,6 +380,59 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
      FREDDO: la pietra della pedana e' grigio-azzurra, non ambra. Il rimando
      prende il suo colore, non quello delle gole calde. */
   m.color.setRGB(0.105, 0.120, 0.145)
+
+  /* ============================================================ LA LUCE PROPRIA
+
+     MOLTIPLICARE ZERO PER QUALUNQUE COSA DA' ZERO, ed e' la terza volta che
+     questo progetto paga la stessa frase.
+
+     Il gradiente cotto nei vertici c'era e non si vedeva: misurato, il bordo
+     della scocca sta a 112 e dodici pixel piu' sotto la minigonna sta a 0,8 —
+     un gradino di centoquaranta volte. Ho alzato il colore in cima da 0,13 a
+     0,38 e il gradino non si e' mosso di un livello, perche' `vertexColors`
+     moltiplica il DIFFUSO e il diffuso li' e' nullo: la minigonna non riceve
+     luce da nessuna direzione, e l'avevo gia' verificato aprendole l'ambiente
+     da 0,18 a 0,95 senza nessun effetto.
+
+     Quindi la luce gliela si da'. Non e' un trucco: la pedana e' pietra chiara
+     e lucida e MANDA SU davvero — quello che manca e' che la PMREM non ha
+     parallasse, quindi non sa che sotto la vettura c'e' un piano vicino che
+     rimanda. E' esattamente il caso in cui una sorgente dichiarata dice il vero
+     meglio di una calcolata.
+
+     SAGOMATA CON UNA MAPPA, non uniforme: `vertexColors` non tocca
+     l'emissione, quindi il gradiente si rifa' come tessitura di 1x64 letta
+     dalle UV appena aggiunte. Un'emissione piatta accenderebbe anche la cima,
+     che deve restare la parte piu' scura — e direbbe che sotto c'e' spazio,
+     che e' l'errore contro cui il primo commento di questo file metteva in
+     guardia, e su quello aveva ragione.
+
+     FREDDA: e' pietra grigio-azzurra riflessa, non le gole ambra della corte.
+     E `toneMapped` resta acceso, al contrario delle insegne: quella e' una
+     sorgente dichiarata che non deve spegnersi con la sera, questa e' una
+     superficie illuminata e deve seguire l'esposizione come tutto il resto. */
+  const gradino = document.createElement('canvas')
+  gradino.width = 1
+  gradino.height = 64
+  const gc = gradino.getContext('2d')!
+  for (let i = 0; i < 64; i++) {
+    /* v = 0 e' l'ORLO e sta in fondo alla tessitura: la riga 63 e' v vicino a 1,
+       cioe' la cima. La quarta potenza fa morire il rimando in fretta salendo,
+       come fa la luce riflessa da un pavimento — lineare darebbe una fascia. */
+    const v = i / 63
+    const f = Math.pow(1 - v, 4.0)
+    const c = Math.round(f * 255)
+    gc.fillStyle = 'rgb(' + c + ',' + c + ',' + c + ')'
+    gc.fillRect(0, 63 - i, 1, 1)
+  }
+  const mappaRimando = new CanvasTexture(gradino)
+  mappaRimando.colorSpace = SRGBColorSpace
+  mappaRimando.minFilter = LinearFilter
+  mappaRimando.magFilter = LinearFilter
+  mappaRimando.generateMipmaps = false
+  m.emissive.setRGB(0.62, 0.70, 0.86)
+  m.emissiveMap = mappaRimando
+  m.emissiveIntensity = 0.95
   m.name = 'SOTTOSCOCCA'
 
   /* ============================================================ IL RIMANDO

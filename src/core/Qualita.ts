@@ -774,6 +774,8 @@ export class Qualita {
    * quattro livelli senza che il sistema glieli cambi sotto.
    */
   adatta = true
+  /** un cambio di livello e' avvenuto e nessuno l'ha ancora applicato */
+  private daApplicare = false
 
   private media = BUDGET
 
@@ -882,6 +884,15 @@ export class Qualita {
     const k = 1 - Math.exp(-dt / TAU)
     this.media += (ms - this.media) * k
 
+    /* L'ANNUNCIO VIENE PRIMA DELLA GUARDIA. `adatta` decide se questo oggetto
+       puo' DECIDERE un cambio, non se un cambio gia' avvenuto vada applicato:
+       sono due domande diverse, e tenerle insieme e' il difetto che ha reso
+       muto `forza()`. Si consuma, cosi' l'applicazione avviene una volta sola. */
+    if (this.daApplicare) {
+      this.daApplicare = false
+      return true
+    }
+
     if (!this.adatta) return false
 
     /* --- si scende? --- */
@@ -948,6 +959,24 @@ export class Qualita {
   }
 
   private cambia(indice: number, salendo: boolean) {
+    /* IL CAMBIO SI ANNUNCIA DA QUI, e non dal ramo che l'ha deciso.
+       Prima l'annuncio era il `return true` del ramo adattivo dentro
+       `aggiorna()`. Funzionava per le discese e le salite automatiche e NON
+       per `forza()`, che cambia il livello da fuori: `forza` spegne `adatta`,
+       e `aggiorna` esce con `false` prima di arrivare al punto in cui l'avrebbe
+       detto. Risultato: `Esperienza.applicaQualita()` non veniva mai chiamato
+       dopo un `fissaQualita`.
+       Misurato: dopo `fissaQualita('minimo')` le impostazioni dicevano
+       pixelRatio 1 e il renderer restava a 1,25. Valeva per il rapporto di
+       pixel, il bagliore, l'occlusione e l'ombra.
+       E NON SI E' MAI VISTO NEI PROVINI per la ragione peggiore che ci sia: il
+       riflesso planare e' l'unica impostazione che `fotogramma()` rilegge a
+       ogni giro, quindi seguiva subito — ed e' esattamente quello che i provini
+       guardano. Uno strumento che misura la sola cosa che funziona non puo'
+       accorgersi che il resto no.
+       Mettendo l'annuncio dove il cambio AVVIENE, chiunque cambi livello lo
+       dichiara: non c'e' piu' una strada che cambia in silenzio. */
+    this.daApplicare = true
     this.livello = SCALA[Math.min(Math.max(indice, 0), SCALA.length - 1)]
     this.salitoQui = salendo
     this.tempoSofferenza = 0
