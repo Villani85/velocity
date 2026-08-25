@@ -1,4 +1,5 @@
 import {
+  DoubleSide,
   BackSide,
   EquirectangularReflectionMapping,
   Mesh,
@@ -193,7 +194,7 @@ export function ambienteConStrisce(
      le ha spente insieme allo sfondo. La gola del podio invece non si e'
      mossa, perche' e' `toneMapped: false`. E' la differenza fra una sorgente
      DICHIARATA e un riflesso: la prima resta, il secondo va ricompensato. */
-  forza = 55,
+  forza = 12,
 ) {
   const s = new Scene()
 
@@ -224,7 +225,22 @@ export function ambienteConStrisce(
      corre lungo la fiancata a dire dove la superficie gira.
      Piu' lunga per la stessa ragione: la riga deve attraversare tutta la
      vettura, non accenderne un pezzo. */
-  const calda = new MeshBasicMaterial({ color: 0xffb877, toneMapped: false })
+/* `DoubleSide` SU TUTTI I PANNELLI, E NON E' UN DETTAGLIO: SENZA, OTTO SU
+   NOVE NON ESISTONO.
+   La PMREM guarda dall'ORIGINE in tutte le direzioni. Un piano senza `side`
+   e' `FrontSide`, quindi contribuisce solo se la sua normale punta verso di
+   li' — e le strisce sono inclinate per illuminare la fiancata, cioe' danno
+   le spalle al centro. Misurato intercettando `PMREMGenerator.fromScene` e
+   sparando raggi dall'origine: pannelli visti com'era, 1 su 9; con
+   `DoubleSide`, 9 su 9.
+   Il difetto e' vecchio, ed e' il piu' insidioso di tutti: la funzione
+   costruiva NOVE pannelli, li orientava con cura, e la mappa ne riceveva uno.
+   Tutto il lavoro sulle strisce piu' strette e sulle bandiere nere non aveva
+   avuto nessun effetto — e non poteva darne segno, perche' la scena e'
+   giusta, solo che quei pannelli non li vede nessuno.
+   Conseguenza immediata: `forza` era stata alzata a 55 per compensare un
+   ambiente che riceveva un nono di cio' che gli si stava dando. */
+  const calda = new MeshBasicMaterial({ color: 0xffb877, toneMapped: false , side: DoubleSide })
   calda.color.multiplyScalar(forza)
   for (const lato of [-1, 1]) {
     const striscia = new Mesh(new PlaneGeometry(24, 0.18), calda)
@@ -243,7 +259,7 @@ export function ambienteConStrisce(
      leggermente caldo — resta piu' fredda delle due laterali, che e' cio' che
      serviva (due temperature dicono che la luce viene da piu' parti), ma non
      litiga piu' con l'ambiente. */
-  const fredda = new MeshBasicMaterial({ color: 0xffe3c4, toneMapped: false })
+  const fredda = new MeshBasicMaterial({ color: 0xffe3c4, toneMapped: false , side: DoubleSide })
   fredda.color.multiplyScalar(forza * 0.8)
   const alta = new Mesh(new PlaneGeometry(16, 0.14), fredda)
   alta.position.set(0, 4.2, -1.2)
@@ -259,7 +275,7 @@ export function ambienteConStrisce(
      illumina la fiancata, disegna il bordo di tetto, spalla e coda. Ed e'
      FREDDA contro un ambiente caldo, perche' un contorno dello stesso colore
      della scena non stacca. */
-  const contorno = new MeshBasicMaterial({ color: 0xbcd8ff, toneMapped: false })
+  const contorno = new MeshBasicMaterial({ color: 0xbcd8ff, toneMapped: false , side: DoubleSide })
   /* 0,45 E NON 1,5. Era una frazione della forza, e la forza e' salita da 7,6
      a 55: la lama e' passata da 11 a 82, cioe' e' diventata la sorgente
      dominante di tutta la scena. Un contorno che stacca la silhouette deve
@@ -284,7 +300,7 @@ export function ambienteConStrisce(
      Sono nere per davvero: `MeshBasicMaterial` a zero, `toneMapped: false`.
      Un nero passato per la curva ACES si schiarirebbe, e una bandiera grigia
      non stacca da un ambiente gia' scuro. */
-  const bandiera = new MeshBasicMaterial({ color: 0x000000, toneMapped: false })
+  const bandiera = new MeshBasicMaterial({ color: 0x000000, toneMapped: false , side: DoubleSide })
   for (const lato of [-1, 1]) {
     for (const [dy, largo] of [[-0.62, 0.42], [0.62, 0.42]] as Array<[number, number]>) {
       const b = new Mesh(new PlaneGeometry(24, largo), bandiera)
