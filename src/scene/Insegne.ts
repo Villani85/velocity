@@ -484,8 +484,21 @@ function profiloMateriale() {
       metalness: 0.95,
       roughness: 0.22,
       emissive: new Color(1.0, 0.80, 0.52),
-      /* 0,30, E CI SONO ARRIVATO DA 0,22 E POI DA 0,85 — misurando, la terza
-         volta.
+      /* 0,13, E CI SONO ARRIVATO IN QUATTRO GIRI: 0,22, 0,85, 0,30, e adesso
+         questo. Vale la pena dire perche' il terzo non e' bastato.
+         A 0,30 avevo misurato e concluso «fatto»: la mediana dei montanti era
+         scesa da 98-146 a 69-127. Sembrava molto. Ma il confronto giusto non e'
+         con SE STESSI PRIMA — e' con la vettura, e la revisione l'ha rimisurato:
+         montanti 105-146 di mediana contro 103 della spalla. Ancora sopra.
+         Ero caduto nel modo piu' banale di sbagliare una correzione: misurare
+         il MIGLIORAMENTO invece del BERSAGLIO. Un numero che scende del
+         quaranta per cento sembra una vittoria finche' non si guarda dove
+         doveva arrivare.
+         Adesso il bersaglio e' scritto e lo controlla `strumenti/gerarchia.mjs`:
+         la mediana dei montanti sotto il 70% di quella della spalla. Non e' un
+         gusto — sotto quella soglia il primo sguardo va sul soggetto, sopra va
+         su tre linee parallele.
+         Il ragionamento del giro precedente resta, ed era gia' giusto:
          Il ragionamento che porto' a 0,85 era giusto nel merito: su un filo di
          11 mm il rilievo non lo porta l'ombreggiatura della faccia, lo porta il
          profilo contro il fondo, e li' l'emissione non copre niente. Ma
@@ -499,9 +512,8 @@ function profiloMateriale() {
          intermittente a parita' di picco, perche' l'occhio somma la lunghezza.
          Tre linee parallele nette che vincono sul soggetto sono un difetto di
          gerarchia, non di luce.
-         Vecchio commento, che resta perche' e' la meta' vera del
-         ragionamento: */
-      /* il ragionamento precedente era giusto per barre
+         Vecchio commento, che resta perche' e' la meta' vera del ragionamento:
+         il ragionamento precedente era giusto per barre
          LARGHE e sbagliato per un filo.
          Su una fascia di 26 mm l'emissione piena appiattiva le sei facce sullo
          stesso valore e il rilievo spariva: vero. Ma su un filo di 11 mm il
@@ -510,7 +522,7 @@ function profiloMateriale() {
          l'emissione non copre niente e fa l'unica cosa che serve: accendere.
          E' la stessa correzione degli altri due numeri di stanotte: un valore
          giusto smette di esserlo quando cambia quello a cui era accordato. */
-      emissiveIntensity: 0.30,
+      emissiveIntensity: 0.13,
     })
     materialeProfilo.name = 'PROFILO_INSEGNA'
   }

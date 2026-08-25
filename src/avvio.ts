@@ -28,7 +28,7 @@ import { Comandi } from './ui/Comandi'
 import { montaAncore } from './ui/Ancore'
 import { Controllo } from './ui/Controllo'
 import { Vector3 } from 'three'
-import { giraPanorama } from './scene/Panorama'
+import { applicaLuogo, giraPanorama } from './scene/Panorama'
 import { POSE } from './transizioni/Camera'
 import { SCALA } from './core/Qualita'
 import * as THREE from 'three'
@@ -167,7 +167,7 @@ function avviaInterfaccia(esp: Esperienza) {
     const spina = new Spina()
     // I COMANDI: l'unica cosa del sito che un filmato non potrebbe fare. Vedi
     // `ui/Comandi.ts` per il perche' sono due e non dieci.
-    const comandi = new Comandi((g) => giraPanorama(esp.scena, g))
+    const comandi = new Comandi((g, i) => applicaLuogo(esp.renderer, esp.scena, i, g))
     /* E I COLLEGAMENTI DELLA TESTATA PORTANO DOVE DICONO.
        Erano quattro ancore verso il documento semantico, che e' nascosto: per
        una sintesi vocale funzionavano, per chi guarda non facevano niente. Vedi

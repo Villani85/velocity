@@ -1,6 +1,8 @@
+import { ambienteTramonto, soleBasso } from './Tramonto'
 import {
   DoubleSide,
   BackSide,
+  Group,
   EquirectangularReflectionMapping,
   Mesh,
   MeshBasicMaterial,
@@ -462,6 +464,11 @@ export async function montaPanorama(
      della fotografia. */
   const tAmb = await caricaAmbiente()
   scena.environment = ambienteConStrisce(renderer, tAmb)
+  /* SI RICORDA LA NOTTE, perche' il tramonto e' un'ALTRA mappa e ci si torna.
+     Senza questo riferimento, scegliendo TRAMONTO e poi VILLA il sito
+     resterebbe al tramonto per sempre — e sarebbe un difetto silenzioso, di
+     quelli che sembrano una scelta di regia. */
+  scena.userData.ambienteNotte = scena.environment
   /* E LA SORGENTE SI BUTTA SUBITO. Il PMREM l'ha gia' letta e non le servira'
      mai piu': tenerla in memoria video sarebbe pagare due volte il file che si
      e' aggiunto per risparmiare. */
@@ -547,6 +554,65 @@ export async function montaPanorama(
  * — deve solo poter dire «gira di tanto» ed essere sicuro che non resti
  * indietro qualcosa.
  */
+/**
+ * QUALE LUOGO, e non e' solo una rotazione.
+ *
+ * Tre dei quattro pulsanti girano la stessa fotografia e basta: il posto
+ * cambia, l'ora no. Il quarto — TRAMONTO — cambia l'ORA, e un'ora non sta
+ * dentro una fotografia scattata all'ora blu (vedi «scene/Tramonto.ts» per
+ * come l'ho scoperto, e per due misure giuste che mi avevano portato altrove).
+ *
+ * Quindi qui succedono due cose diverse a seconda del luogo, e la ragione per
+ * cui stanno nella stessa funzione e' che sono la stessa decisione: cosa vede
+ * e cosa riceve la vettura. Tenerle separate significherebbe poter cambiare
+ * l'una senza l'altra, cioe' una carrozzeria che specchia un posto diverso da
+ * quello che le sta dietro — che e' esattamente il difetto che la rotazione
+ * congiunta di fondo e ambiente esiste per evitare.
+ *
+ * SI COSTRUISCE ALLA PRIMA RICHIESTA E POI SI TIENE. Cuocere una PMREM costa,
+ * e pagarlo all'avvio per un pulsante che magari nessuno tocca sarebbe pagarlo
+ * per tutti. Pagarlo ogni volta che si preme sarebbe peggio. Una volta sola,
+ * alla prima pressione.
+ */
+export function applicaLuogo(
+  renderer: WebGLRenderer,
+  scena: Scene,
+  indice: number,
+  gradi: number,
+) {
+  giraPanorama(scena, gradi)
+  const d = scena.userData
+  const alTramonto = indice === 2
+  if (alTramonto && !d.ambienteTramonto) {
+    /* la sorgente si ricarica invece di tenerla in memoria video: e' 132 kB e
+       il browser ce l'ha gia' in cache, mentre una tessitura tenuta viva costa
+       memoria per sempre a chi il pulsante non lo preme mai */
+    void caricaAmbiente().then((t) => {
+      d.ambienteTramonto = ambienteTramonto(renderer, t)
+      t.dispose()
+      if (d.luogoCorrente === 2) scena.environment = d.ambienteTramonto
+    })
+  }
+  d.luogoCorrente = indice
+  if (alTramonto) {
+    if (d.ambienteTramonto) scena.environment = d.ambienteTramonto
+    if (!d.sole) { d.sole = soleBasso(); scena.add(d.sole) }
+    ;(d.sole as Group).visible = true
+  } else {
+    if (d.ambienteNotte) scena.environment = d.ambienteNotte
+    if (d.sole) (d.sole as Group).visible = false
+  }
+  /* IL SOLE GIRA CON IL PANORAMA. E' un oggetto della scena, non della
+     fotografia: lasciandolo fermo, cambiando luogo si troverebbe davanti alla
+     villa invece che sul mare. Lo si riporta ogni volta dalla posa di partenza,
+     come si fa gia' con l'ombra qui sotto. */
+  if (d.sole) {
+    const s = d.sole as Group
+    if (!s.userData.posaZero) s.userData.posaZero = s.rotation.y
+    s.rotation.y = s.userData.posaZero + ((gradi - 90) * Math.PI) / 180
+  }
+}
+
 export function giraPanorama(scena: Scene, gradi: number) {
   const a = (gradi * Math.PI) / 180
   scena.backgroundRotation.y = a

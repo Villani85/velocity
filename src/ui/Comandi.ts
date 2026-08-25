@@ -69,9 +69,9 @@ export class Comandi {
   private radice: HTMLElement
   private finitura = 0
   private vista = 0
-  private gira: (gradi: number) => void
+  private gira: (gradi: number, indice: number) => void
 
-  constructor(gira: (gradi: number) => void, dentro: HTMLElement = document.body) {
+  constructor(gira: (gradi: number, indice: number) => void, dentro: HTMLElement = document.body) {
     this.gira = gira
     this.radice = document.createElement('section')
     this.radice.className = 'comandi'
@@ -207,7 +207,7 @@ export class Comandi {
 
   private scegliVista(i: number) {
     this.vista = i
-    this.gira(VISTE[i].gradi)
+    this.gira(VISTE[i].gradi, i)
     this.segna()
   }
 
