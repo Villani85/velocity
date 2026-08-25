@@ -234,11 +234,20 @@ async function corsa(nome, larg, alt, buco = false) {
       // Quindi si tinge la lastra della strada di magenta. Il magenta in
       // questa scena non esiste: dove compare, li' il piano e' trasparente e
       // si vede cio' che c'e' dietro. Dove non compare, il piano copre.
-      await p.evaluate(() => {
-        const m = esperienza.lastra.mesh.material
-        m.map = null
-        m.color.setRGB(1, 0, 1)
-        m.needsUpdate = true
+      /* E IL MAGENTA SI METTE SOSTITUENDO IL MATERIALE, non tingendolo.
+         Questa prova era ROTTA e falliva in silenzio da quando la strada e'
+         passata a uno shader scritto a mano: uno `ShaderMaterial` non ha
+         `.color`, quindi `m.color.setRGB` lanciava, il tentativo falliva, si
+         stampava «NON RIUSCITO» e si usciva con zero. La prova che doveva dire
+         «funziona o non funziona» era essa stessa una rassicurazione — cioe'
+         esattamente cio' contro cui il commento qui sopra metteva in guardia.
+         Sostituire il materiale invece di tingerlo funziona con qualunque tipo,
+         adesso e la prossima volta che la strada cambia pelle. */
+      await p.evaluate(async () => {
+        const THREE = await import('/node_modules/three/build/three.module.js')
+        const mesh = esperienza.lastra.mesh
+        mesh.userData.__vecchio = mesh.material
+        mesh.material = new THREE.MeshBasicMaterial({ color: 0xff00ff, toneMapped: false })
       })
       await frame(6)
       await p.screenshot({ path: `${U}/${nome}_buco.jpeg`, type: 'jpeg', quality: 88 })
@@ -251,6 +260,13 @@ async function corsa(nome, larg, alt, buco = false) {
   }
 }
 
+/* E SI TIENE IL CONTO DEI FALLIMENTI, che prima si stampavano e basta.
+   Questo strumento esiste per DIMOSTRARE due cose — che il piano riempie il
+   quadro a qualunque formato e che il parabrezza tiene — e una dimostrazione
+   che non riesce e' un fallimento, non una nota. Stampava «NON RIUSCITO» e
+   usciva con zero: dentro una catena con && proseguiva tutto come se la prova
+   fosse andata bene. Un verdetto stampato non ferma niente. */
+let falliti = 0
 for (const [nome, larg, alt, buco] of [['abitacolo_prova', 1000, 500, true], ['abitacolo_prova_telefono', 360, 760, false]]) {
   // DUE TENTATIVI. Il processo di rendering software muore ogni tanto, e
   // quando muore non c'e' niente da capire: si rifa'. Ritentare in silenzio
@@ -265,6 +281,13 @@ for (const [nome, larg, alt, buco] of [['abitacolo_prova', 1000, 500, true], ['a
       console.log(`  [tentativo ${t} fallito] ${e.message.split('\n')[0]}`)
     }
   }
-  if (!riuscito) console.log(nome, 'NON RIUSCITO')
+  if (!riuscito) { console.log(nome, 'NON RIUSCITO'); falliti++ }
 }
 await b.close()
+/* Due tentativi ciascuno sono gia' la difesa contro il processo di rendering
+   software che muore ogni tanto: se falliscono tutti e due, non e' sfortuna. */
+if (falliti) {
+  console.log('')
+  console.log('  ' + falliti + ' prove su 2 non sono riuscite nemmeno al secondo tentativo.')
+}
+process.exit(falliti ? 1 : 0)

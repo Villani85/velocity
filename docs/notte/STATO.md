@@ -44,12 +44,28 @@ Provato in tutti e tre gli stati:
 | passo 0,02 | METRO INADEGUATO | **2** |
 | passo 0,005, sorgenti veri | ogni tempo ha la sua pausa | **0** |
 
-### Restano cartelli, fuori dalla catena di verifica
+### Gli altri quattro: tre non erano cartelli, e uno era rotto
 
-`abitacolo_prova.mjs`, `canarino.mjs`, `pellicola.mjs`, `qualita.mjs` stampano un
-verdetto e escono zero. Non sono nella catena di §8, quindi non ho speso rese per
-provocarli. **Da fare se avanza tempo** — e finche' non e' fatto, i loro verdetti
-si leggono a occhio e non si concatenano.
+L'inventario ne segnalava quattro. Verificati uno per uno:
+
+- **`canarino.mjs`** — falso positivo: la corrispondenza sta dentro un commento,
+  «la mappa NON PASSA-ALTATA». E' una MISURA e non pretende altro.
+- **`pellicola.mjs`, `qualita.mjs`** — le parole *soglia*, *minimo*, *tetto* sono
+  prosa; l'unica `soglia` vera in `pellicola` serve a trovare le bande scure, e
+  `'minimo'` in `qualita` e' il NOME di un livello. Misure, classificate bene.
+- **`abitacolo_prova.mjs`** — cartello vero, e appena gli ho dato il codice
+  d'uscita ha trovato subito una cosa: **la prova del buco era rotta da tempo**.
+  Fa `m.color.setRGB` sulla lastra della strada, ma la strada e' passata a uno
+  `ShaderMaterial`, che `.color` non ce l'ha. Falliva a ogni esecuzione,
+  stampava «NON RIUSCITO» e usciva zero. La prova che doveva dire «funziona o
+  non funziona» era essa stessa una rassicurazione — cioe' esattamente cio'
+  contro cui il suo stesso commento metteva in guardia.
+  Riparata sostituendo il materiale invece di tingerlo (funziona con qualunque
+  tipo), e verificata contando i pixel: **39,2% di magenta**, cioe' la maschera
+  lascia passare davvero. Non lanciare un'eccezione non vuol dire funzionare.
+
+Nota di metodo: cercare le parole di un verdetto con grep e' un criterio che non
+separa il codice dai commenti. Tre falsi positivi su quattro.
 
 ---
 
