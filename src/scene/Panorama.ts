@@ -300,6 +300,48 @@ export function ambienteConStrisce(
      Sono nere per davvero: `MeshBasicMaterial` a zero, `toneMapped: false`.
      Un nero passato per la curva ACES si schiarirebbe, e una bandiera grigia
      non stacca da un ambiente gia' scuro. */
+  /* LA VOLTA — una sorgente LARGA e DEBOLE sopra, che non c'era.
+     Nella mappa d'ambiente c'erano solo strisce strette e bandiere nere. Va
+     bene per disegnare le righe speculari sulla fiancata, ma lascia le
+     superfici rivolte in ALTO senza niente da restituire: di notte specchiano
+     il cielo nero del panorama, e diventano buie.
+     Si vede in due punti, e il committente li ha segnalati tutti e due senza
+     collegarli: sulla vernice CHIARA il tetto resta scuro mentre i fianchi
+     sono bianchi — «il bianco e' a meta'» — e dentro il passaruota i cerchi
+     spariscono, perche' un metallo li' puo' solo restituire un ambiente che
+     non c'e' — «ancora senza raggi».
+     E' la stessa cosa che in uno studio fotografico e' il soffitto bianco:
+     non fa nessun colpo di luce, e senza non si vede niente.
+     LARGA E DEBOLE, non stretta e forte: a 0,16 della forza non compete con
+     le strisce e non appiattisce il nero — alza il fondo, che e' cio' che
+     serve. Una sorgente stretta e forte darebbe un secondo riflesso e
+     toglierebbe alle righe il loro contrasto. */
+  const volta = new MeshBasicMaterial({ color: 0xdfe8f5, toneMapped: false, side: DoubleSide })
+  volta.color.multiplyScalar(forza * 0.16)
+  const cielo = new Mesh(new PlaneGeometry(16, 12), volta)
+  cielo.position.set(0, 5.4, 0)
+  cielo.rotation.x = Math.PI / 2
+  s.add(cielo)
+
+  /* IL RIMANDO DA TERRA — una striscia bassa, sotto il livello del mozzo.
+     Nell'ambiente non c'era NIENTE sotto l'asse delle ruote, e si vedeva in un
+     punto solo ma preciso: il cerchio posteriore misurava (3, 3, 3) con un
+     contrasto p5-p95 di CINQUE. Non scuro: nero piatto, zero informazione.
+     Un cerchio in alluminio, anche di notte in un cortile, riceve luce DA
+     SOTTO — il pavimento bagnato rimanda su. Senza quella sorgente un metallo
+     dentro un passaruota puo' solo restituire il buio, e nessuna manopola del
+     materiale lo cambia: e' l'ambiente a non avere niente da dare.
+     Calda e bassa, perche' e' il riflesso della pietra del podio e della corte
+     illuminata, non una seconda luce. */
+  const daTerra = new MeshBasicMaterial({ color: 0xffcf9e, toneMapped: false, side: DoubleSide })
+  daTerra.color.multiplyScalar(forza * 0.30)
+  for (const lato of [-1, 1]) {
+    const rimando = new Mesh(new PlaneGeometry(9, 1.1), daTerra)
+    rimando.position.set(lato * 2.5, 0.12, 0)
+    rimando.rotation.set(-Math.PI / 2 - lato * 0.30, 0, Math.PI / 2)
+    s.add(rimando)
+  }
+
   const bandiera = new MeshBasicMaterial({ color: 0x000000, toneMapped: false , side: DoubleSide })
   for (const lato of [-1, 1]) {
     for (const [dy, largo] of [[-0.62, 0.42], [0.62, 0.42]] as Array<[number, number]>) {
@@ -324,6 +366,8 @@ export function ambienteConStrisce(
   fredda.dispose()
   contorno.dispose()
   bandiera.dispose()
+  volta.dispose()
+  daTerra.dispose()
   return env
 }
 
@@ -482,7 +526,12 @@ export async function montaPanorama(
      l'unica cosa che rendeva fotografica la scena. La sfocatura deve staccare
      il soggetto, non cancellare cio' da cui lo stacca — il colonnato deve
      restare leggibile come colonnato. */
-  scena.backgroundBlurriness = 0.055
+/* 0,035 E NON 0,055. A 0,055 la villa perdeva l'architettura: non si
+     distinguevano piu' i piani, le finestre, le palme. Una sfocatura troppo
+     forte legge come VETRO SMERIGLIATO, non come fuori fuoco — la sfocatura di
+     un obiettivo allarga i bordi ma ne conserva la struttura. Il bersaglio e'
+     «morbida ma leggibile»: si deve capire che e' una villa. */
+  scena.backgroundBlurriness = 0.035
   scena.environmentIntensity = 1.0
   /* NON TORNA PIU' LA FOTOGRAFIA. Tornava il fondo, e adesso quando questa
      funzione finisce il fondo non e' ancora arrivato: chi lo volesse dovrebbe
