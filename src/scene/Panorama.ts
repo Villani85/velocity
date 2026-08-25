@@ -335,12 +335,35 @@ export function ambienteConStrisce(
      materiale lo cambia: e' l'ambiente a non avere niente da dare.
      Calda e bassa, perche' e' il riflesso della pietra del podio e della corte
      illuminata, non una seconda luce. */
-  const daTerra = new MeshBasicMaterial({ color: 0xffcf9e, toneMapped: false, side: DoubleSide })
-  daTerra.color.multiplyScalar(forza * 0.30)
+  /* PIU' LARGA, PIU' BASSA E PIU' CALDA — e adesso serve a tre cose, non a una.
+     Al primo giro erano due piani 9 x 1,1 a quota 0,12, inclinati di 0,30, e
+     servivano ai cerchi. Hanno funzionato: il cerchio posteriore e' passato da
+     (3,3,3) con contrasto 5 a 69 con contrasto 154.
+     Ma altre due misure dicono che quella sorgente e' ancora troppo corta.
+     LA FIANCATA RESTA BLU: B/G 1,69 in basso contro 0,98 sulla spalla. Il
+     rapporto teorico della tinta e' 1,21, quindi la spalla e' a posto e il
+     residuo freddo sta tutto SOTTO — cioe' esattamente dove questa striscia
+     non arriva. La luce calda della corte prende il tetto e le spalle; la
+     meta' bassa vede solo il cielo blu del panorama, e lo specchia.
+     E LA MINIGONNA E' NERO PIENO: misurata a 0,5 su 255, con un gradiente nei
+     vertici che si fermava a 1,5 perche' non c'era luce da prendere. Ho provato
+     ad aprirle l'ambiente da 0,18 a 0,95 e non e' cambiato niente: quando una
+     superficie non riceve, la manopola del materiale non ha su cosa lavorare.
+     E' la stessa frase gia' scritta qui sopra per i cerchi, e vale una seconda
+     volta.
+     Quindi: 14 metri invece di 9 (arriva sotto tutta la vettura invece che
+     sotto il centro), quota 0,09 invece di 0,12 (sotto il ventre, non a
+     filo), inclinazione 0,46 invece di 0,30 (guarda piu' in su, verso la
+     fiancata bassa e il sottoscocca), e forza 0,44 invece di 0,30.
+     PIU' AMBRA, NON PIU' BIANCA: 0xffc48a invece di 0xffcf9e. Quello che deve
+     chiudere e' un RAPPORTO fra canali, non una luminanza — schiarire con una
+     luce neutra alzerebbe la fiancata lasciandola blu. */
+  const daTerra = new MeshBasicMaterial({ color: 0xffc48a, toneMapped: false, side: DoubleSide })
+  daTerra.color.multiplyScalar(forza * 0.44)
   for (const lato of [-1, 1]) {
-    const rimando = new Mesh(new PlaneGeometry(9, 1.1), daTerra)
-    rimando.position.set(lato * 2.5, 0.12, 0)
-    rimando.rotation.set(-Math.PI / 2 - lato * 0.30, 0, Math.PI / 2)
+    const rimando = new Mesh(new PlaneGeometry(14, 1.4), daTerra)
+    rimando.position.set(lato * 2.4, 0.09, 0)
+    rimando.rotation.set(-Math.PI / 2 - lato * 0.46, 0, Math.PI / 2)
     s.add(rimando)
   }
 

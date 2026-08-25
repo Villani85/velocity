@@ -8,6 +8,7 @@ import {
 } from 'three'
 
 import { ALTEZZA_PIATTAFORMA } from './Piattaforma'
+
 import { trovaArchi } from './Ruote'
 import { RAGGIO_RUOTA } from './RuotaVera'
 
@@ -233,6 +234,24 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
 
   const punti: number[] = []
   const norm: number[] = []
+  /* IL GRADIENTE STA NEI COLORI DEI VERTICI, e ci sono arrivato dopo aver
+     provato — e buttato — uno shader.
+     La strada ovvia era `onBeforeCompile`: un varying con la quota dentro la
+     fascia, e nel frammento un termine che scalda verso il basso. L'ho scritta
+     e la scena e' diventata NERA. Non un oggetto: tutta. Nessun errore in
+     console, nessuna eccezione, nessun avviso di compilazione — il guasto
+     silenzioso classico di questo progetto, il terzo.
+     Il colpevole l'ha isolato una prova A/B in tre passi: solo frammento -> il
+     fotogramma misura 61,4 (sano); frammento piu' varying -> 7,1 (nero). Non
+     erano le uniform, non era il rapporto di pixel che un'altra modifica stava
+     cambiando in parallelo: era il varying, e non ho la spiegazione.
+     E quando non si ha la spiegazione, la cosa giusta non e' insistere: e'
+     prendere la strada che non ha bisogno di quella spiegazione. Un gradiente
+     verticale su una fascia costruita a mano non ha nessun bisogno di uno
+     shader — sono due vertici per settore, e il colore per vertice three lo
+     interpola da solo. Zero righe di GLSL, zero programmi da ricompilare, zero
+     modi di sbagliare in silenzio. */
+  const colori: number[] = []
   const indici: number[] = []
   const n = new Vector3()
   for (let k = 0; k < SETTORI; k++) {
@@ -247,6 +266,12 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
     const rientro = 1 - (1 - RIENTRO) * f
     punti.push(cx * r, cima, cz * r)
     punti.push(cx * r * rientro, giu, cz * r * rientro)
+    /* IL COLORE MOLTIPLICA, quindi il gradiente si fa AL CONTRARIO di come
+       verrebbe da pensarlo: la tinta del materiale e' quella dell'ORLO — la
+       parte piu' chiara — e il colore del vertice la SPEGNE salendo.
+       Uno per vertice: 1 in basso, 0,13 in cima. Fra i due three interpola. */
+    colori.push(0.13, 0.13, 0.13)
+    colori.push(1, 1, 1)
     // la normale punta in fuori e un po' in basso, come la parete che descrive
     n.set(cx, -0.32 * f, cz).normalize()
     norm.push(n.x, n.y, n.z, n.x, n.y, n.z)
@@ -263,6 +288,8 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
   const centro = punti.length / 3
   punti.push(0, orlo, 0)
   norm.push(0, -1, 0)
+  // il vertice del fondo sta all'orlo, quindi prende il colore dell'orlo
+  colori.push(1, 1, 1)
   for (let k = 0; k < SETTORI; k++) {
     indici.push(centro, ((k + 1) % SETTORI) * 2 + 1, k * 2 + 1)
   }
@@ -270,6 +297,7 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
   const g = new BufferGeometry()
   g.setAttribute('position', new BufferAttribute(new Float32Array(punti), 3))
   g.setAttribute('normal', new BufferAttribute(new Float32Array(norm), 3))
+  g.setAttribute('color', new BufferAttribute(new Float32Array(colori), 3))
   g.setIndex(indici)
   g.computeBoundingSphere()
 
@@ -278,9 +306,88 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
      sotto c'e' spazio — cioe' l'esatto contrario di quello che questo pezzo
      serve a dire. Ruvidita' quasi piena e nessun metallo: e' plastica opaca,
      come su una vettura vera. */
-  const m = new MeshStandardMaterial({ roughness: 0.92, metalness: 0.0, envMapIntensity: 0.18 })
-  m.color.setRGB(0.016, 0.018, 0.022)
+  const m = new MeshStandardMaterial({
+    roughness: 0.92, metalness: 0.0,
+    /* 0,95 E NON 0,18, ed e' la meta' che mancava.
+       Col gradiente cotto nei vertici la minigonna passava da 0,5 a 1,5 su
+       255: un gradiente c'era, e non si vedeva. Il motivo e' che a 0,18
+       d'ambiente questo pezzo non RICEVE quasi niente — la tinta puo' essere
+       quella che si vuole, se non c'e' luce non torna indietro nulla.
+       E il rimando da terra esiste gia': `Panorama.ambienteConStrisce` ha due
+       piani caldi a quota 0,12 che servono ai cerchi, che stanno esattamente
+       qui sotto. Non serviva inventare una sorgente: serviva smettere di
+       chiudere la porta a quella che c'era. */
+    envMapIntensity: 0.95,
+    vertexColors: true,
+  })
+  /* ============================================================ IL RIMANDO
+
+     UNA ZONA COMPLETAMENTE NERA LEGGE COME UN BUCO, non come un'ombra.
+
+     Il committente ha mandato un ingrandimento di sotto l'automobile: una lama
+     chiara e piatta, e sotto il vuoto. Diagnosi spegnendo un oggetto per volta
+     su quella fascia:
+
+         con tutto            media 24,8   max 156
+         senza SOTTOSCOCCA    media 86,3   max 253   <- il nero e' la minigonna
+         senza AUTO           media 14,6
+
+     E il profilo verticale diceva il resto: 32, poi 89 di lama, poi ZERO VIRGOLA
+     CINQUE per tutta l'altezza della fascia. Non scuro: spento.
+
+     Il commento che stava qui sbagliava nel merito. Diceva «sotto un'automobile
+     non arriva luce da nessuna direzione»: non e' vero, e su questa scena meno
+     che mai. La vettura sta su una pedana di pietra chiara e lucida, e una
+     pedana chiara RIMANDA. E' lo stesso motivo per cui `ambienteConStrisce` ha
+     gia' un rimando da terra per i cerchi, che stanno nello stesso posto.
+
+     LA LUCE VIENE DAL BASSO, e va messa dove sta davvero: sull'ORLO. La cima e'
+     la parte piu' incassata e resta la piu' scura — mettere luce li' direbbe che
+     sotto c'e' spazio, che e' l'errore che il vecchio commento temeva, e su
+     quello aveva ragione. Con il gradiente giusto la successione diventa: bordo
+     scocca acceso, ombra profonda, un filo di pietra riflessa al contatto.
+     Quella e' un'ombra. Il nero pieno era un ritaglio.
+
+     FREDDO: la pietra della pedana e' grigio-azzurra, non ambra. Il rimando
+     prende il suo colore, non quello delle gole calde. */
+  m.color.setRGB(0.105, 0.120, 0.145)
   m.name = 'SOTTOSCOCCA'
+
+  /* ============================================================ IL RIMANDO
+
+     UNA ZONA COMPLETAMENTE NERA LEGGE COME UN BUCO, non come un'ombra.
+
+     Il committente ha mandato un ingrandimento di sotto l'automobile: una lama
+     chiara e piatta, e sotto il vuoto. Diagnosi spegnendo un oggetto per volta
+     sulla fascia interessata:
+
+         con tutto            media 24,8   max 156
+         senza SOTTOSCOCCA    media 86,3   max 253   <- il nero e' la minigonna
+         senza AUTO           media 14,6
+
+     Il nero e' questo pezzo; la lama chiara e' il bordo inferiore della scocca,
+     una superficie quasi orizzontale che prende la piattaforma. Il difetto non
+     e' ne' l'uno ne' l'altra: e' la GIUNZIONE. Bordo acceso, poi zero, senza
+     niente in mezzo.
+
+     E il commento qui sopra sbagliava nel merito. Dice «sotto un'automobile non
+     arriva luce da nessuna direzione»: non e' vero, e su questa scena meno che
+     mai. La vettura sta su una pedana di pietra chiara e lucida, e una pedana
+     chiara RIMANDA. Sotto un'auto vera si vede il pavimento illuminare il bordo
+     basso della minigonna — e' il motivo per cui `ambienteConStrisce` ha gia'
+     un rimando da terra per i cerchi, che stanno nello stesso posto.
+
+     QUINDI LA LUCE VIENE DAL BASSO, e va messa dove sta davvero: sull'ORLO,
+     non sulla cima. La cima e' la parte piu' incassata e deve restare la piu'
+     scura — mettere luce li' direbbe che sotto c'e' spazio, che e' l'errore che
+     il commento originale temeva. Con il gradiente giusto la successione
+     diventa: bordo scocca acceso, ombra profonda, e un filo di pietra riflessa
+     al contatto. Quella e' un'ombra. Il nero pieno era un ritaglio.
+
+     FREDDO E BASSISSIMO. La pietra della pedana e' grigio-azzurra, non ambra:
+     il rimando prende il suo colore, non quello delle gole calde. E sta a
+     0,055, cioe' appena sopra la soglia di visibilita' — deve dire che li'
+     c'e' una superficie, non illuminarla. */
   const mesh = new Mesh(g, m)
   mesh.name = 'SOTTOSCOCCA'
   mesh.castShadow = true
