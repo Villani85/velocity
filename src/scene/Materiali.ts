@@ -1513,27 +1513,8 @@ export const FINITURE: Finitura[] = [
     trasparente: 0.70,
     ruviditaTrasparente: 0.15,
   },
-  {
-    // la perla non e' bianca: e' un grigio chiarissimo con il trasparente quasi
-    // a specchio. Una perla dipinta di bianco pieno perde il modellato e legge
-    // come plastica.
-    nome: 'BIANCO PERLA',
-    campione: '#e6e3dc',
-    tinta: [0.647, 0.653, 0.525],
-    ruvidita: 0.30,
-    trasparente: 0.92,
-    ruviditaTrasparente: 0.06,
-  },
-  {
-    // l'arancione e' l'unico dove la tinta conta piu' del riflesso: un colore
-    // saturo su una superficie curva costruisce il volume da solo
-    nome: 'ARANCIO',
-    campione: '#c8551a',
-    tinta: [0.439, 0.098, 0.014],
-    ruvidita: 0.38,
-    trasparente: 0.85,
-    ruviditaTrasparente: 0.10,
-  },
+
+
   {
     // il carbonio a vista non e' una vernice: e' una trama sotto un trasparente
     // spesso. Ruvidita' bassissima e tinta quasi nera, ed e' il riflesso lungo

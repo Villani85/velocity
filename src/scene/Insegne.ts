@@ -169,6 +169,198 @@ const TINTA_NOTTE = new Color(0xc6d2e2)
 const TL = 640
 const TA = Math.round(TL / RAPPORTO)
 
+
+/* ============================================================ L'ANELLO
+
+   PERCHE' L'ARCO NON SEMBRAVA CURVO — e la risposta e' geometrica, non di gusto.
+
+   Le insegne stavano su un arco CENTRATO SULL'OCCHIO, e il commento sopra
+   `angolo` lo dichiarava come un pregio: stessa distanza per tutte e tre,
+   stessa dimensione, ognuna che guarda la camera esattamente in faccia.
+   Tutto vero — ed e' esattamente la ragione per cui non poteva funzionare.
+
+   Una circonferenza centrata sull'osservatore, PROIETTATA DA QUELL'OSSERVATORE,
+   e' indistinguibile da una retta frontale. Tutti i punti sono equidistanti,
+   quindi nessuno rimpicciolisce; tutte le normali puntano all'occhio, quindi
+   nessuna faccia si gira. Non restava un solo indizio di profondita': la
+   costruzione era un cerchio e il fotogramma era una fila di rettangoli.
+   Il committente l'ha detto tre volte con parole diverse — l'ultima:
+   «la curvatura come un cerchio che parte dal primo ed e' tondo».
+
+   COSA SI CAMBIA. Il centro del cerchio si sposta OLTRE le insegne, sulla
+   direzione della PRIMA — «che parte dal primo»: quella resta frontale e fa da
+   punto di tangenza, e le altre due si girano e si allontanano progressivamente
+   seguendo l'anello.
+
+   COSA NON SI CAMBIA: le direzioni angolari. Le tre insegne restano esattamente
+   dove stavano sullo schermo, perche' quelle posizioni sono costate due
+   revisioni (lo scostamento della hero, l'apertura calcolata perche' non si
+   sovrapponessero) e non c'e' nessun motivo di rimetterle in discussione.
+   Cambiano solo la DISTANZA lungo ciascuna direzione e l'ORIENTAMENTO — cioe'
+   esattamente i due indizi che mancavano.
+
+   I NUMERI CHE NE ESCONO, calcolati e non sperati (`strumenti/anello.mjs`):
+
+     insegna    direzione   distanza   girata di
+     prima        0,000       9,60 m     0,0 gradi
+     seconda      0,226       9,91 m    16,1 gradi
+     terza        0,452      10,99 m    32,8 gradi
+
+   La terza e' il 14% piu' lontana della prima e gira di un terzo di angolo
+   retto: da li' viene il tondo.
+
+   E NON SI SOVRAPPONGONO — anzi, si allontanano. Girandosi, un pannello
+   proietta meno larghezza: la terza da 2,00 m ne proietta 1,68, e stando piu'
+   lontana ne occupa ancora meno in angolo. L'aria fra la prima e la seconda
+   passa da 0,20 a 0,24 m, fra la seconda e la terza a 0,55 m. Era il difetto
+   che due revisioni avevano segnalato, e questa modifica lo allarga invece di
+   riaprirlo.
+
+   PERCHE' QUARANTA METRI. Sembra enorme, e lo e': ma il raggio da solo non
+   dice niente: conta insieme all'apertura. Le tre insegne coprono 0,452
+   radianti visti dall'occhio, e su quell'arco un raggio piccolo le girerebbe
+   troppo — a 15 m l'ultima sarebbe a 46 gradi, cioe' una lama di taglio con
+   dentro un sito da leggere. Quaranta e' il raggio che porta l'ultima a 32,8
+   gradi: la soglia sotto cui si legge ancora la fotografia e sopra cui si vede
+   l'anello. Il numero che conta e' quello, non il raggio. */
+const RAGGIO_ANELLO = 40.0
+
+/**
+ * DOVE STA E COME E' GIRATA l'insegna `i` — posizione e imbardata insieme.
+ *
+ * Stanno insieme apposta: sono due facce dello stesso anello, e tenerle in due
+ * punti diversi del file e' il modo in cui si arriva ad avere una posizione
+ * aggiornata e un orientamento vecchio. Questo file ha gia' pagato due volte
+ * quell'errore (vedi `SCARTO_SCOSTATO`), e la seconda ha lasciato una insegna
+ * mezza fuori dallo schermo.
+ */
+function posa(i: number, aspetto: number) {
+  const a = angolo(i, aspetto)
+  /* la tangente e' la PRIMA: da li' parte il cerchio */
+  const a0 = angolo(0, aspetto)
+  // di quanto questa insegna e' scostata, in angolo, dalla prima
+  const psi = a - a0
+  // il centro dell'anello: oltre le insegne, sulla direzione della prima
+  const dc = LONTANANZA + RAGGIO_ANELLO
+  const cx = OCCHIO.x + Math.sin(a0) * dc
+  const cz = OCCHIO.z + Math.cos(a0) * dc
+  /* dove il raggio dell'occhio incontra l'anello, sulla faccia VICINA.
+     La radice e' quella con il meno: con il piu' si prende il punto dall'altra
+     parte del cerchio, cioe' quaranta metri piu' in la', e le insegne
+     sparirebbero nel fondo senza dare nessun errore. */
+  const sotto = RAGGIO_ANELLO * RAGGIO_ANELLO - dc * dc * Math.sin(psi) * Math.sin(psi)
+  const r = dc * Math.cos(psi) - Math.sqrt(Math.max(0, sotto))
+  const x = OCCHIO.x + Math.sin(a) * r
+  const z = OCCHIO.z + Math.cos(a) * r
+  /* L'IMBARDATA E' LA NORMALE USCENTE DELL'ANELLO, cioe' la direzione dal
+     centro verso l'insegna. Con `rotation.y = t` la normale del piano (il suo
+     +Z locale) finisce lungo (sin t, cos t), quindi `t` e' proprio l'angolo di
+     quel vettore.
+     Verifica che vale piu' di una prova: per la prima insegna il centro sta
+     esattamente dietro, quindi la normale e' l'opposto della direzione di
+     vista e questa formula restituisce `a0 + PI` — la stessa riga che c'era
+     prima. La costruzione nuova contiene la vecchia come caso particolare, ed
+     e' il segno che non si e' cambiato quello che funzionava. */
+  return { x, z, imbardata: Math.atan2(x - cx, z - cz) }
+}
+
+/* ============================================================ LA CURVA
+
+   LE INSEGNE SONO ARCHI, NON RETTANGOLI — ed e' la seconda volta che questa
+   richiesta arriva, la prima volta per il carosello dei lavori.
+
+   Stavano gia' su un arco (vedi `angolo` qui sopra): tre posizioni su una
+   circonferenza di 9,6 m, ognuna girata per guardare l'occhio in faccia. Ma
+   ogni pannello era PIANO, e tre piani tangenti a un cerchio non sono un
+   cerchio: sono un poligono. Il committente l'ha guardato e ha detto di farli
+   «piu' stile curvi come quelli dei lavori» — cioe' ha riconosciuto che nel
+   carosello la cosa era gia' stata risolta e qui no.
+
+   Aveva ragione anche su dove guardare: `scene/Vetrina3D.ts` ha la stessa
+   costruzione da mesi, con la stessa motivazione scritta accanto («la
+   differenza fra un poligono e un cerchio la fa la curvatura DENTRO ogni
+   faccia»). Questo e' quel pezzo portato qui.
+
+   IL RAGGIO NON E' QUELLO DELLA DISPOSIZIONE, e la ragione e' aritmetica.
+   Piegando un pannello di 2,0 m sul raggio su cui e' disposto (9,6 m) la
+   freccia dell'arco viene di 5 cm: geometricamente esatta, otticamente
+   inesistente — la stessa trappola gia' pagata sul carosello, dove il primo
+   provino curvo era indistinguibile da quello piatto.
+   A 1,90 la freccia sale a 28 cm su 2,0 m di larghezza, cioe' il 14%: i bordi
+   vengono avanti di quasi un terzo di metro e la prospettiva li mostra piu'
+   vicini del centro. Si perde la coincidenza con la circonferenza di
+   disposizione, e va detto invece che nascosto: il bersaglio non e' un solido
+   corretto, e' che si legga come un anello. */
+const CURVA_INSEGNA = 1.90
+
+function insegnaCurva(largo: number, alto: number, raggio: number) {
+  /* VENTIQUATTRO SEGMENTI E NON QUATTRO: la corda di un arco approssimato male
+     si vede come una piega dritta, e su uno schermo emissivo la piega e'
+     esattamente dove passa il riflesso — cioe' l'unica cosa che si guarda. */
+  const g = new PlaneGeometry(largo, alto, 24, 1)
+  const pos = g.attributes.position
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i)
+    // la freccia dell'arco: quanto quel punto rientra rispetto alla corda.
+    // Positiva su +Z, che dopo la rotazione di mezzo giro e' la direzione
+    // dell'occhio: il pannello si INCAVA verso chi guarda invece di aprirsi a
+    // ventaglio. Il segno sbagliato da' la stessa curvatura in faccia opposta
+    // e non lo segnala niente.
+    pos.setZ(i, raggio - Math.sqrt(Math.max(0, raggio * raggio - x * x)))
+  }
+  pos.needsUpdate = true
+  g.computeVertexNormals()
+  return g
+}
+
+/**
+ * LA CADUTA ANGOLARE — senza questa, curvare non si vede.
+ *
+ * E' il reperto che e' costato un provino sul carosello e che qui sarebbe
+ * costato lo stesso: le insegne sono `MeshBasicMaterial`, cioe' non ricevono
+ * luce, e una superficie senza ombreggiatura NON MOSTRA la propria forma. Un
+ * pannello piegato e uno piatto disegnano gli stessi pixel, perche' l'unico
+ * indizio rimasto e' la deformazione prospettica della tessitura — che a dieci
+ * metri e' niente.
+ *
+ * Quello che si aggiunge non e' un trucco: uno schermo vero perde luminosita'
+ * guardato di taglio, e qui la si calcola dal prodotto scalare fra normale e
+ * direzione di vista. Al centro, dove la normale punta all'occhio, resta
+ * piena; verso i bordi, dove la curvatura la fa girare, si smorza. La
+ * geometria E' curva — questo la mostra.
+ *
+ * Sui numeri di qui: al bordo la normale e' girata di 31,8 gradi e la
+ * direzione di vista di altri 5,9, quindi il fattore scende a circa 0,88 —
+ * un dodici per cento di caduta. Sotto il dieci non si legge, sopra il venti
+ * i bordi sembrano sporchi.
+ */
+function insegnaCadutaAngolare(m: MeshBasicMaterial) {
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', `#include <common>
+varying vec3 vNormIns;
+varying vec3 vVistaIns;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+  vNormIns = normalize( normalMatrix * normal );
+  vVistaIns = ( modelViewMatrix * vec4( transformed, 1.0 ) ).xyz;`)
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>
+varying vec3 vNormIns;
+varying vec3 vVistaIns;`)
+      .replace('#include <opaque_fragment>', `
+  {
+    float faccia = abs( dot( normalize( vNormIns ), normalize( -vVistaIns ) ) );
+    // 0,62 e' il residuo ai bordi. A zero il bordo sparisce e il pannello
+    // sembra tagliato invece che girato, e questi sono piu' grandi delle carte
+    // del carosello: il bordo si vede di piu' e va tenuto piu' alto.
+    gl_FragColor.rgb *= mix( 0.62, 1.0, pow( faccia, 1.35 ) );
+  }
+#include <opaque_fragment>`)
+  }
+  m.customProgramCacheKey = () => 'insegnaCurva'
+  return m
+}
+
 export class Insegne {
   readonly gruppo = new Group()
   private pannelli: Mesh[] = []
@@ -196,7 +388,7 @@ export class Insegne {
       t.magFilter = LinearFilter
 
       const m = new Mesh(
-        new PlaneGeometry(LARGO, LARGO / RAPPORTO),
+        insegnaCurva(LARGO, LARGO / RAPPORTO, CURVA_INSEGNA),
         /* PIU' SCURI DELLA LORO FOTOGRAFIA, e con un filo di notte addosso.
            Le copertine sono scatti di siti veri e alcune sono chiarissime:
            quella di EVERY INTERFACE e' quasi bianca. A piena forza, dentro una
@@ -207,24 +399,20 @@ export class Insegne {
            di azzurro: la stessa aria che hanno la villa e la piscina. Restano
            schermi accesi — `toneMapped: false`, nessuna luce addosso — ma
            accesi DENTRO questa sera, non ritagliati da un'altra. */
-        new MeshBasicMaterial({
+        insegnaCadutaAngolare(new MeshBasicMaterial({
           map: t, transparent: true, toneMapped: false, depthWrite: false,
           // il valore vero lo scrive `pareggia()` quando la fotografia arriva:
           // questo e' solo il colore di partenza, quando non c'e' ancora niente
           // da pareggiare
           color: 0xc6d2e2,
-        }),
+        })),
       )
       m.name = 'INSEGNA_' + (lavoro?.codice ?? quale)
       m.renderOrder = 6
       // dove sta sull'arco: il conto e' in `angolo`, e si rifa' se cambia il
       // formato dello schermo — vedi `aggiorna`
-      const a = angolo(i, 1.6)
-      m.position.set(
-        OCCHIO.x + Math.sin(a) * LONTANANZA,
-        QUOTA,
-        OCCHIO.z + Math.cos(a) * LONTANANZA,
-      )
+      const q = posa(i, 1.6)
+      m.position.set(q.x, QUOTA, q.z)
       /* E OGNUNO GUARDA L'OCCHIO IN FACCIA — sta all'angolo `a` sull'arco,
          quindi la sua normale deve puntare all'indietro lungo lo stesso
          raggio: mezzo giro.
@@ -234,7 +422,7 @@ export class Insegne {
          `MeshBasicMaterial` disegna una faccia sola, quindi i tre schermi
          venivano scartati prima di essere rasterizzati — in scena, accesi,
          opacita' 0,99, e invisibili. Nessun errore e nessun avviso. */
-      m.rotation.y = a + Math.PI
+      m.rotation.y = q.imbardata
       this.pannelli.push(m)
       this.gruppo.add(m)
 
@@ -471,9 +659,9 @@ export class Insegne {
       let i = 0
       for (const o of this.gruppo.children) {
         if (!o.name.startsWith('INSEGNA_')) continue
-        const a = angolo(i++, aspetto)
-        o.position.set(OCCHIO.x + Math.sin(a) * LONTANANZA, QUOTA, OCCHIO.z + Math.cos(a) * LONTANANZA)
-        o.rotation.y = a + Math.PI
+        const q = posa(i++, aspetto)
+        o.position.set(q.x, QUOTA, q.z)
+        o.rotation.y = q.imbardata
       }
     }
 

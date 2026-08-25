@@ -8,6 +8,8 @@ import {
 } from 'three'
 
 import { ALTEZZA_PIATTAFORMA } from './Piattaforma'
+import { trovaArchi } from './Ruote'
+import { RAGGIO_RUOTA } from './RuotaVera'
 
 /**
  * IL SOTTOSCOCCA — cio' che chiude la sagoma fino a terra.
@@ -162,6 +164,64 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
     const a = (k / SETTORI) * Math.PI * 2 - Math.PI
     lungo = Math.max(lungo, Math.abs(Math.cos(a) * lisci[k]))
   }
+  /* ============================================================ I PASSARUOTA
+
+     LA MINIGONNA PASSAVA DAVANTI ALLE RUOTE, e il commento qui sopra diceva
+     gia' com'e' fatta un'automobile — «una minigonna corre FRA LE RUOTE» — ma
+     nel codice non c'era NESSUNA nozione di ruota. La finestra qui sotto
+     lavora sulla sola coordinata lunga e vale 0,95 proprio dove stanno i mozzi:
+     la fascia scura correva ininterrotta per tutti e 128 i settori e copriva la
+     meta' bassa del cerchio.
+
+     E' il difetto che ho inseguito piu' a lungo di tutti in questo progetto. Ho
+     rifatto il materiale del cerchio quattro volte, contato e ricontato le
+     razze, cambiato il raggio della canna, misurato la luminanza dei due
+     cerchi — e il numero diceva la verita' senza che io la leggessi: anteriore
+     25, posteriore 50. Ho concluso «manca luce davanti» e ho cercato la luce.
+     L'ha risolto il committente mandando un ingrandimento: nella sua immagine
+     c'e' un TAGLIO ORIZZONTALE NETTO a meta' ruota, con sotto nero pieno. Un
+     bordo dritto non e' un'ombra, e' un poligono. «Le copre la luce sotto
+     l'auto secondo me» — ed era esattamente quello.
+     La lezione e' vecchia e me l'ero dimenticata: una differenza di luminanza
+     dice CHE due cose sono diverse, non PERCHE'. Guardare il provino
+     ingrandito, che costa dieci secondi, l'avrebbe detto la prima notte.
+
+     LA CURA e' quella vera: si aprono i passaruota. Il raggio si legge dalla
+     ruota che c'e' davvero (`RAGGIO_RUOTA`) e i centri dagli stessi archi che
+     usa `scene/Ruote.ts` per posarle — non da due numeri scritti a mano in due
+     file, che e' l'errore gia' pagato due volte qui dentro.
+
+     APERTURA = raggio + 5 cm. Un passaruota a filo del pneumatico lascerebbe
+     la fascia esattamente tangente alla gomma: basta un millimetro di
+     disallineamento e torna a mordere il cerchio. Cinque centimetri sono
+     l'aria che ha un passaruota vero. */
+  const archi = trovaArchi(auto, true)
+  /* i due assi, non i quattro archi: destra e sinistra hanno la stessa
+     coordinata lunga, e aprire due volte la stessa apertura non serve */
+  const assi: number[] = []
+  for (const a of archi) {
+    if (!assi.some((x) => Math.abs(x - a.x) < 0.20)) assi.push(a.x)
+  }
+  const APERTURA_ARCO = RAGGIO_RUOTA + 0.05
+  const SFUMA_ARCO = 0.10
+  const passaruota = (x: number) => {
+    let f = 1
+    for (const xc of assi) {
+      const d = Math.abs(x - xc)
+      if (d <= APERTURA_ARCO) return 0
+      if (d < APERTURA_ARCO + SFUMA_ARCO) {
+        const u = (d - APERTURA_ARCO) / SFUMA_ARCO
+        f = Math.min(f, u * u * (3 - 2 * u))
+      }
+    }
+    return f
+  }
+  /* E SE GLI ARCHI NON SI TROVANO, la minigonna resta intera invece di sparire.
+     `trovaArchi` puo' restituire un elenco vuoto su un modello diverso, e in
+     quel caso `assi` e' vuoto e `passaruota` vale sempre 1: si torna
+     esattamente al comportamento di prima. Un pezzo che si degrada al
+     precedente e' meglio di uno che si degrada al niente. */
+
   const finestra = (x: number) => {
     const t = Math.abs(x) / (lungo || 1)
     if (t <= 0.52) return 1
@@ -180,7 +240,7 @@ export function sottoscocca(auto: Object3D, quotaPiano = ALTEZZA_PIATTAFORMA): M
     const cx = Math.cos(a)
     const cz = Math.sin(a)
     const r = lisci[k]
-    const f = finestra(cx * r)
+    const f = finestra(cx * r) * passaruota(cx * r)
     const giu = cima - (cima - orlo) * f
     // dove la finestra e' chiusa la minigonna ha altezza zero e il rientro non
     // ha piu' senso: si riporta a uno, o il bordo alto si stringerebbe da solo

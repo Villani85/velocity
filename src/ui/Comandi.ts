@@ -109,6 +109,49 @@ export class Comandi {
     this.radice.append(finiture, viste)
     dentro.appendChild(this.radice)
     this.segna()
+    this.dichiaraAltezza()
+  }
+
+  /**
+   * QUANTO SONO ALTI, SCRITTO DOVE IL CSS PUO' LEGGERLO.
+   *
+   * IL DIFETTO, e me l'ha trovato il committente due volte di fila. I comandi
+   * sono `position: fixed` in basso: non occupano posto nel flusso, quindi
+   * niente sa che ci sono. Il blocco del testo sta anche lui ancorato in basso,
+   * e la sua distanza dal fondo era un numero scelto a mano. Finche' i comandi
+   * erano due righe di testo nude i due numeri andavano d'accordo per caso; il
+   * giorno in cui i comandi hanno preso una cornice — quindi riempimento,
+   * quindi altezza — il testo ci e' finito sotto.
+   *
+   * Ho provato due volte a rimetterli d'accordo spostando pixel: la prima
+   * dimezzando il riempimento, la seconda abbassando l'ancora. Tutte e due
+   * hanno funzionato ALLA MIA ALTEZZA DI FINESTRA e sono fallite altrove — su
+   * 1280x620 restavano otto pixel di sovrapposizione. Era prevedibile: le due
+   * quote sono `clamp` con dentro una parte in `vh`, cioe' due curve diverse,
+   * e due curve diverse si incontrano in un punto solo.
+   *
+   * LA FORMA GIUSTA e' non avere due numeri. L'altezza vera si misura e si
+   * scrive in una variabile CSS; il testo la somma alla propria distanza dal
+   * fondo. Da quel momento non c'e' piu' niente da tenere allineato: se la
+   * cornice cambia riempimento, se il carattere cresce, se i comandi vanno a
+   * capo sul telefono, il testo si sposta da solo.
+   *
+   * `ResizeObserver` e non un `addEventListener('resize')`: i comandi cambiano
+   * altezza anche SENZA che la finestra cambi — quando le due righe vanno a
+   * capo, quando cambia la lingua e «TRAMONTO» diventa «SUNSET». Un ascolto sul
+   * ridimensionamento non vedrebbe niente di tutto questo.
+   */
+  private dichiaraAltezza() {
+    const scrivi = () => {
+      const h = Math.round(this.radice.getBoundingClientRect().height)
+      /* ZERO NON SI SCRIVE. Prima che i comandi entrino in scena il rettangolo
+         puo' essere alto zero, e scriverlo farebbe scendere il testo per poi
+         rialzarlo un attimo dopo: uno scatto visibile proprio nel fotogramma
+         in cui si atterra. Meglio tenere l'ultimo valore buono. */
+      if (h > 0) document.documentElement.style.setProperty('--comandi-alt', h + 'px')
+    }
+    scrivi()
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(scrivi).observe(this.radice)
   }
 
   private scegliFinitura(i: number) {

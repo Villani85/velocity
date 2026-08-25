@@ -315,7 +315,14 @@ body {
   right: auto;
   /* sopra la fascia tecnica, che sta in fondo e non si sposta: senza questo
      scarto gli inviti ci finivano sopra */
-  bottom: calc(var(--fondo) + clamp(30px, 4.4vh, 56px));
+  /* E SOPRA I COMANDI, SEMPRE — non «di solito».
+     `--comandi-alt` la scrive `ui/Comandi.ts` misurando il rettangolo vero: e'
+     l'unico modo perche' questa distanza resti giusta quando i comandi
+     cambiano altezza, e cambiano per almeno tre ragioni che il CSS da qui non
+     puo' prevedere (riempimento della cornice, formato dello schermo, lingua).
+     Il ripiego a 0px serve solo al primo fotogramma, prima che la misura ci
+     sia; da li' in poi non e' mai quello il valore. */
+  bottom: calc(var(--fondo) + var(--comandi-alt, 0px) + clamp(14px, 2.2vh, 34px));
   top: auto;
   /* LA COLONNA CRESCE COL TITOLO, e prima non lo faceva.
      Era `min(36ch, 36vw)`. Su ogni desktop vinceva `36ch`, che sono 363 pixel
@@ -926,6 +933,44 @@ body {
 }
 .testa nav.vetro { gap: clamp(12px, 1.7vw, 26px); }
 
+/* E LA STESSA CORNICE ANCHE QUI — richiesta dal committente subito dopo averla
+ * vista sui comandi: «fai anche questi».
+ *
+ * E' la richiesta giusta, e la ragione e' piu' forte del gusto. Le due
+ * pastiglie in testa e il gruppo dei comandi in basso sono LA STESSA COSA: gli
+ * unici due posti del sito che si toccano mentre la scena gira. Tutto il resto
+ * — titoli, didascalie, numeri — si legge e basta.
+ * Finche' i comandi avevano il filo d'ambra e la testa no, il fotogramma
+ * diceva che erano due famiglie diverse. Adesso dice quello che e' vero: qui
+ * si tocca.
+ *
+ * PIU' TENUE ANCORA. Il filo interno scende dal 22% al 16% e il secondo dal
+ * 10% al 7%. Non e' timidezza: la testa sta sopra la villa illuminata, che e'
+ * la parte piu' chiara di tutto il fotogramma, e un filo caldo su fondo chiaro
+ * si stacca molto piu' di quanto faccia sui comandi, che stanno sull'asfalto.
+ * Stessa opacita' avrebbe dato due pesi diversi — cioe' proprio l'incoerenza
+ * che questa modifica esiste per togliere. */
+.testa p.vetro, .testa nav.vetro {
+  position: relative;
+  border: 1px solid rgba(216, 162, 88, 0.16);
+}
+.testa p.vetro::after, .testa nav.vetro::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(216, 162, 88, 0.07);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+/* SUL TELEFONO IL SECONDO FILO SPARISCE, come sui comandi e per la stessa
+   ragione: li' le pastiglie arrivano quasi al bordo e un anello a cinque pixel
+   di distanza non ha lo spazio per leggersi come cornice — diventa una riga
+   doppia storta contro il margine. */
+@media (max-width: 640px) {
+  .testa p.vetro::after, .testa nav.vetro::after { display: none; }
+}
+
 
 /* ------------------------------------------------------- la cornice di pagina */
 
@@ -1379,9 +1424,17 @@ body {
   background: rgba(6, 7, 9, 0.46);
   backdrop-filter: blur(20px) saturate(0.9);
   -webkit-backdrop-filter: blur(20px) saturate(0.9);
-  border-color: rgba(255, 255, 255, 0.09);
+  /* IL FILO E' D'AMBRA, NON BIANCO — e questa riga e' arrivata dopo la
+     cornice qui sopra, che senza di lei non si vedeva.
+     Il bianco al 9% c'era da prima e vinceva per ordine di cascata: due regole
+     che scrivono lo stesso `border-color`, e la seconda cancella la prima
+     senza dare nessun segnale. E' lo stesso difetto dei due numeri che
+     descrivono la stessa composizione da file diverse, gia' pagato due volte
+     in questo progetto sulle insegne. */
+  border-color: rgba(216, 162, 88, 0.16);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.10) inset,
+    inset 0 0 14px rgba(216, 162, 88, 0.04),
     0 0 30px 2px rgba(120, 170, 235, 0.07);
   min-height: 40px;
   display: flex;
@@ -1612,6 +1665,86 @@ body {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+/* I COMANDI DENTRO UNA CORNICE, con lo stesso linguaggio di quella di pagina.
+ *
+ * PERCHE'. Il commento qui sotto lo dice gia': «i comandi sono l'unica cosa
+ * del sito che un filmato non potrebbe fare, e chi non li vede non ci clicca».
+ * Erano stati portati da nove pixel al 42% a undici al 58%, che li ha tolti
+ * dal sussurro — ma restavano due righe di testo appoggiate sulla scena,
+ * indistinguibili dalle altre didascalie che la scena ha addosso.
+ * Marcarli non e' decorazione: e' dire «questo si tocca», che e' l'unica cosa
+ * che quel gruppo deve comunicare.
+ *
+ * PERCHE' COSI' E NON UN RIQUADRO QUALUNQUE. Il sito ha gia' un modo di dire
+ * «cornice»: vetro sfocato piu' un DOPPIO FILO ambra a un pixel — due righe
+ * sottili a pochi pixel l'una dall'altra leggono come uno spessore lavorato,
+ * una sola legge come un contorno disegnato. Inventarne un secondo qui
+ * significherebbe avere due grammatiche nello stesso fotogramma. Si riusa
+ * quella, in scala piu' piccola.
+ *
+ * PIU' TENUE DELLA CORNICE DI PAGINA. Quella chiude l'inquadratura e puo'
+ * permettersi di farsi vedere; questa sta DENTRO l'inquadratura, sopra la
+ * scena, e se pesasse uguale competerebbe con il soggetto. Il filo interno sta
+ * al 22% contro il 16% della grande — un po' piu' acceso perche' e' corto, e
+ * un filo corto a pari opacita' si nota meno. */
+.comandi.e-vivo {
+/* UN CONTENITORE ANCORATO IN BASSO CRESCE VERSO L'ALTO, e questa riga e' costata
+     due giri sbagliati di fila.
+     `.comandi` sta a `bottom` fisso: ogni pixel di riempimento non allarga il
+     gruppo, lo fa SALIRE. La prima volta e' salito dentro «ESPLORA I LAVORI» e
+     il committente l'ha visto subito. Ho compensato dimezzando il riempimento
+     E abbassando l'ancora — due rimedi per un problema, cioe' uno di troppo:
+     la cornice e' venuta stretta.
+     Poi il pulsante e' stato tolto (diceva quello che dice «LAVORI» in
+     navigazione, vedi «ui/Voci.ts») e ho creduto che il conflitto se ne fosse
+     andato con lui. Non era vero: al posto del pulsante c'e' il sommario, e la
+     cornice a riempimento pieno gli e' salita dentro lo stesso. Il compenso
+     serviva — non per la ragione che avevo scritto.
+     La forma giusta e' una sola: riempimento PIENO, e l'ancora abbassata
+     ESATTAMENTE di quanto il riempimento fa salire. Cosi' il bordo superiore
+     resta alla quota che aveva quando i comandi erano due righe di testo nude,
+     e sopra non si mangia niente — ne' il pulsante di allora ne' il sommario di
+     adesso.
+     Verificato misurando: il bordo alto dei comandi e il fondo del sommario, in
+     pixel, sulle tre misure di finestra. */
+  padding: clamp(9px, 1.1vh, 14px) clamp(14px, 1.6vw, 24px);
+  bottom: calc(var(--bordo) + clamp(9px, 1.3vh, 20px));
+  border-radius: 999px;
+  background: rgba(9, 11, 15, 0.30);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  border: 1px solid rgba(216, 162, 88, 0.22);
+  box-shadow:
+    /* l'alone verso l'interno: e' quello a far leggere il filo come uno
+       SPIGOLO illuminato da dietro invece che come una riga disegnata */
+    inset 0 0 14px rgba(216, 162, 88, 0.05),
+    0 10px 34px rgba(0, 0, 0, 0.34);
+  position: fixed;
+}
+
+/* IL SECONDO FILO, appena fuori dal primo — lo stesso doppio bordo della
+   cornice di pagina, e per la stessa ragione. Piu' tenue di due terzi: se
+   pesassero uguale diventerebbero una riga spessa. */
+.comandi.e-vivo::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(216, 162, 88, 0.10);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+/* SUL TELEFONO LA CORNICE SPARISCE. Li' i comandi occupano quasi tutta la
+   larghezza e un anello intorno diventa una barra: il margine che lo rende
+   una cornice non c'e'. Resta il fondo, che basta a staccarli dalla scena. */
+@media (max-width: 640px) {
+  .comandi.e-vivo {
+    border-radius: clamp(12px, 3vw, 18px);
+    padding: 10px 12px;
+  }
+  .comandi.e-vivo::after { display: none; }
 }
 
 .comandi__riga { display: flex; align-items: center; gap: 10px; }

@@ -23,6 +23,7 @@ mkdirSync('docs/provini/avvio', { recursive: true })
 const b = await chromium.launch({ args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist'] })
 const ctx = await b.newContext({ viewport: { width: 1200, height: 750 }, deviceScaleFactor: 1 })
 const p = await ctx.newPage()
+p.setDefaultTimeout(90000)
 await p.route('**/@vite/client', (r) => r.fulfill({ body: 'export {}', contentType: 'application/javascript' }))
 
 /* LA RETE LENTA NON E' UN CAPRICCIO: su una macchina da sviluppo, con il
@@ -57,7 +58,11 @@ const passi = Math.floor((SECONDI * 1000) / OGNI)
 const bandiere = []
 for (let i = 0; i <= passi; i++) {
   const t = i * OGNI
-  await p.screenshot({ path: `docs/provini/avvio/f${String(i).padStart(2, '0')}.jpeg`, type: 'jpeg', quality: 80 })
+  /* NIENTE ATTESA DEI CARATTERI, e il timeout piu' lungo. Durante il primo
+     caricamento la pagina e' occupata a decodificare tre megabyte, e uno
+     screenshot che aspetta i font muore dopo trenta secondi — cioe' proprio
+     nel momento che questo strumento esiste per guardare. */
+  await p.screenshot({ path: `docs/provini/avvio/f${String(i).padStart(2, '0')}.jpeg`, type: 'jpeg', quality: 80, timeout: 60000, caret: 'initial' }).catch(() => {})
   const s = await p.evaluate(() => {
     const e = window.esperienza
     return {

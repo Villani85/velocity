@@ -276,7 +276,6 @@ export class Voci {
   private occhiello: HTMLElement
   private titolo: HTMLElement
   private riga: HTMLElement
-  private inviti: HTMLElement
   private beatCorrente: Beat | null = null
 
   constructor(dentro: HTMLElement = document.body) {
@@ -285,24 +284,27 @@ export class Voci {
     this.radice.innerHTML =
       '<p class="voci__occhiello"></p>' +
       '<h1 class="voci__titolo"></h1>' +
-      '<p class="voci__riga"></p>' +
-      // I DUE INVITI STANNO NEL BLOCCO DEL TESTO e non in giro per la pagina:
-      // sono la fine della stessa frase — chi ha letto il titolo e il sommario
-      // sa gia' cosa fare dopo, e trovare il pulsante da un'altra parte
-      // significa doverlo cercare.
+      '<p class="voci__riga"></p>'
+      // NESSUN INVITO, ed e' il terzo giro dello stesso ragionamento.
       //
-      // `hidden` di partenza: compaiono solo nella hero. Un invito a esplorare
-      // ripetuto a ogni tempo diventa una barra fissa, cioe' arredamento.
-      '<p class="voci__inviti" hidden>' +
-        '<a class="invito invito--pieno" href="#lavori">' + t('heroInvito') + ' <span aria-hidden="true">&#8599;</span></a>' +
-        // UN INVITO SOLO, e il secondo se n'e' andato per due ragioni che
-        // vanno nella stessa direzione. La prima: due pulsanti affiancati sono
-        // due prime scelte, cioe' nessuna prima scelta. La seconda: «PARLIAMO
-        // DEL PROGETTO» diceva la stessa cosa che dice «CONTATTO» nella
-        // navigazione, tre centimetri piu' in su. Un'azione ripetuta due volte
-        // nello stesso fotogramma non raddoppia le probabilita' che venga
-        // fatta: dimezza il peso di entrambe le copie.
-      '</p>'
+      // Prima erano due pulsanti: «ESPLORA I LAVORI» e «PARLIAMO DEL
+      // PROGETTO». Il secondo se n'e' andato perche' diceva la stessa cosa che
+      // dice «CONTATTO» in navigazione, tre centimetri piu' in su.
+      //
+      // Il committente ha applicato lo stesso argomento al primo, e regge
+      // identico: «ESPLORA I LAVORI» rimanda a #lavori, che e' esattamente la
+      // voce «LAVORI» del menu in cima — visibile nello stesso fotogramma.
+      // Se l'argomento era buono per uno lo e' per l'altro, altrimenti non era
+      // un argomento: era una preferenza.
+      //
+      // Cosa resta al posto suo: niente, apposta. La hero adesso e' occhiello,
+      // titolo, sommario — e sotto l'automobile, che e' il vero invito a
+      // scorrere. Un pulsante che duplica il menu non aggiunge una strada:
+      // aggiunge un secondo cartello sulla stessa strada, e chi guarda deve
+      // fermarsi a capire se sono due posti o uno.
+      //
+      // (Il testo `heroInvito` resta in `Lingua.ts` e non e' un residuo: e' la
+      // stessa etichetta usata dalla navigazione in italiano e in inglese.)
     dentro.appendChild(this.radice)
 
     // LA FASCIA TECNICA E LO «SCORRI» SONO STATI TOLTI, ed e' il tipo di
@@ -322,7 +324,6 @@ export class Voci {
     this.occhiello = this.radice.querySelector('.voci__occhiello')!
     this.titolo = this.radice.querySelector('.voci__titolo')!
     this.riga = this.radice.querySelector('.voci__riga')!
-    this.inviti = this.radice.querySelector('.voci__inviti')!
   }
 
   private presenzaScritta = ''
@@ -455,7 +456,6 @@ export class Voci {
 
     if (!voce) {
       this.radice.style.setProperty('--presenza', '0')
-      this.inviti.hidden = true
       return
     }
 
@@ -501,7 +501,6 @@ export class Voci {
     }
     // i fatti stanno solo nella prima schermata: sono la firma d'apertura,
     // e ripetuti a ogni beat diventerebbero arredamento
-    this.inviti.hidden = regia.beat !== 'hero'
     // il lato e il riquadro si scrivono come attributi invece che come stili:
     // il foglio di stile e' il posto dove sta scritto COME si vedono, questo
     // e' il posto dove sta scritto QUALE dei due e'

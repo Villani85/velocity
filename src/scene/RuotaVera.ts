@@ -252,19 +252,26 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
   labbro.name = 'CERCHIO_VERO'
   g.add(labbro)
 
-  /* LE RAZZE — DIECI, A COPPIE. Cinque razze larghe leggono come una stella e
-     su una ruota piccola diventano un disco con dei tagli; dieci sottili
-     accoppiate danno la trama fitta delle ruote da corsa, e soprattutto
-     restano leggibili anche quando la ruota e' larga sessanta pixel — che e'
-     la dimensione vera nel fotogramma della hero.
-     Hanno SPESSORE (0,026 x 0,030) e non sono piatte: e' lo spessore a
-     prendere una luce diversa sul fianco rispetto alla faccia, ed e' quella
-     differenza a dire «pezzo lavorato». */
-  const RAZZE = 10
+  /* LE RAZZE: SEI SPESSE, NON DIECI SOTTILI — e la prima scelta era sbagliata.
+     Avevo scritto che «cinque razze larghe leggono come una stella e su una
+     ruota piccola diventano un disco con dei tagli», e ho messo dieci razze da
+     26 mm. Nel fotogramma della hero la ruota e' larga SESSANTA PIXEL: dieci
+     razze da 26 mm sono meno di due pixel l'una, e a due pixel non esiste
+     nessun materiale che le separi dal fondo. Si impastano in un disco
+     grigio — e il committente me l'ha detto quattro volte prima che
+     smettessi di cercare la causa nel materiale.
+     Il ragionamento giusto e' l'opposto: a sessanta pixel si legge quello che
+     e' SPESSO E DISTANZIATO. Sei razze da 46 mm sono tre pixel e mezzo l'una,
+     con quattro pixel di buio in mezzo — e il buio fra le razze e' cio' che
+     le fa vedere, non le razze stesse.
+     LEZIONE: un dettaglio non si valuta in millimetri, si valuta in PIXEL alla
+     distanza a cui la camera lo mostra. Il resto e' disegno di un oggetto che
+     nessuno guardera' mai da li'. */
+  const RAZZE = 6
   const lung = 0.230 - 0.052
   for (let i = 0; i < RAZZE; i++) {
-    const razza = new Mesh(new BoxGeometry(0.026, lung, 0.030), M.cerchio)
-    const ang = (i * Math.PI * 2) / RAZZE + (i % 2 ? 0.13 : -0.13)
+    const razza = new Mesh(new BoxGeometry(0.046, lung, 0.034), M.cerchio)
+    const ang = (i * Math.PI * 2) / RAZZE
     razza.position.set(
       Math.cos(ang + Math.PI / 2) * (0.052 + lung / 2),
       Math.sin(ang + Math.PI / 2) * (0.052 + lung / 2),

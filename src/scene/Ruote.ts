@@ -95,7 +95,7 @@ export type Arco = { x: number; z: number }
 /* PUBBLICA, perche' le stesse quattro posizioni servono anche all'ombra di
    contatto: se le ruote stanno in un posto e le macchie scure in un altro,
    il contatto non lo legge nessuno. Una fonte sola, misurata una volta. */
-export function trovaArchi(auto: Object3D): Arco[] {
+export function trovaArchi(auto: Object3D, zitto = false): Arco[] {
   /* DOVE STANNO LE RUOTE — RISCRITTO, perche' il criterio vecchio sbagliava e
      si vedeva.
      Cercava «i dodici punti piu' larghi di ogni quadrante» e ne faceva la
@@ -186,8 +186,14 @@ export function trovaArchi(auto: Object3D): Arco[] {
     i = j
   }
   const xa = (i: number) => x0 + (i + 0.5) / N * L
-  console.log('[archi] L', +L.toFixed(3), 'H', +H.toFixed(3), 'punti', punti.length,
-    'blocchi', JSON.stringify(blocchi.map((b) => [+xa(b.da).toFixed(2), +xa(b.a).toFixed(2)])), 'largo', +largo.toFixed(3))
+  /* `zitto` serve a un secondo chiamante: la minigonna (vedi
+     «scene/Sottoscocca.ts») ha bisogno degli stessi archi per aprirci i
+     passaruota, e due righe [archi] identiche in console farebbero credere a
+     due misure diverse quando invece e' la stessa fatta due volte. */
+  if (!zitto) {
+    console.log('[archi] L', +L.toFixed(3), 'H', +H.toFixed(3), 'punti', punti.length,
+      'blocchi', JSON.stringify(blocchi.map((b) => [+xa(b.da).toFixed(2), +xa(b.a).toFixed(2)])), 'largo', +largo.toFixed(3))
+  }
   const grandi = blocchi.filter((b) => xa(b.a) - xa(b.da) > 0.25)
   if (grandi.length < 2) return []
   const primo = grandi[0], ultimo = grandi[grandi.length - 1]
