@@ -1166,7 +1166,15 @@ float grano( vec2 g ) {
   roughnessFactor = mix( roughnessFactor, 0.040, vetro );
   // e dentro la fuga non c'e' trasparente: e' lamiera tagliata e guarnizione
   roughnessFactor = mix( roughnessFactor, 0.62, fuga * 0.8 );
-{
+  /* IL RUMORE NON STA PIU' DENTRO UN BLOCCO, perche' non serve piu' solo qui.
+     Stava fra graffe per non lasciare tre nomi in giro nel main dello shader, e
+     la precauzione era giusta: un nome come g, in un sorgente generato da
+     three, e' un nome
+     che chiede di collidere. La cura non e' rinunciare allo scope condiviso,
+     e' dare ai tre nomi qualcosa che non possa scontrarsi.
+     E NIENTE APICI INVERSI DENTRO QUESTI COMMENTI: chiudono il template
+     literal, il modulo smette di compilare e l'errore esce a una riga che non
+     c'entra. Sta scritto nelle mie note e ci sono ricascato due volte oggi. */
   /* DUE FREQUENZE E NON UNA. Una sola grana fine si perde nel filtraggio
      appena l'automobile e' lontana e resta solo nel primo piano; una sola
      grande legge come una macchia. Sommandole, da vicino si vede la
@@ -1189,13 +1197,64 @@ float grano( vec2 g ) {
      Perche' nello shader e non cotte nella mappa: cuocerle voleva dire
      passare la ORM a webp senza perdita, da 236 a 730 kB su un percorso
      critico gia' da 2,2 MB — per una struttura che qui costa zero byte. */
-  float gA = grano( vRoughnessMapUv *  22.0 ) - 0.5;   // ~30 cm  macchie
-  float gB = grano( vRoughnessMapUv *  61.0 ) - 0.5;   // ~11 cm  velatura
-  float gC = grano( vRoughnessMapUv * 420.0 ) - 0.5;   // ~1,6 cm trasparente
-  float g = gA * 0.30 + gB * 0.20 + gC * 0.12;
+  float grMacchia  = grano( vRoughnessMapUv *  22.0 ) - 0.5;   // ~30 cm
+  float grVelatura = grano( vRoughnessMapUv *  61.0 ) - 0.5;   // ~11 cm
+  float grFine     = grano( vRoughnessMapUv * 420.0 ) - 0.5;   // ~1,6 cm
+  /* LA MACCHIA RADDOPPIA — da 0,30 a 0,60, cioe' da +-0,039 a +-0,078 assoluti
+     su una ruvidita' efficace di 0,26.
+     Il commento qui sopra difende le ampiezze piccole, e su due terzi ha
+     ragione: il punto non e' vedere la variazione, e a +-0,10 assoluti esce
+     un'automobile sporca invece che lucida. Quello che non teneva e' che una
+     variazione puo' essere anche troppo piccola per fare qualcosa. Una
+     revisione esterna ha misurato la deviazione della ruvidita' efficace a
+     0,023 su una media fra 0,25 e 0,28 — il nove per cento — e ha concluso che
+     probabilmente sta sotto la soglia visibile.
+     E' esattamente la banda dove serve. Su una carena continua non ci sono
+     nervature che rompano il riflesso, quindi le macchie di verniciatura da
+     30 cm sono l'UNICA cosa che puo' romperlo: dimezzarle equivale a non
+     averle. Le altre due ottave restano dove sono — la velatura e la struttura
+     del trasparente hanno il compito di sporcare il dettaglio ravvicinato, non
+     di dare struttura alla superficie grande. */
+  float granoVernice = grMacchia * 0.60 + grVelatura * 0.20 + grFine * 0.12;
   // la buccia d'arancia e' della vernice, non del vetro: sul canopy si spegne
-  roughnessFactor = clamp( roughnessFactor * ( 1.0 + mix( g, 0.0, vetro ) ), 0.012, 1.0 );
-}`)
+  roughnessFactor = clamp( roughnessFactor * ( 1.0 + mix( granoVernice, 0.0, vetro ) ), 0.012, 1.0 );`)
+      /* E LA STESSA STRUTTURA VA SUL TRASPARENTE, che e' la superficie che si
+         VEDE. Questo blocco esiste perche' una prova ha smentito il blocco qui
+         sopra: raddoppiando l'ampiezza della macchia — da +-0,039 a +-0,078
+         assoluti sulla lamiera — l'energia misurata nella banda della macchia
+         e' cambiata di MENO DEL TRE PER CENTO. Con il controllo reso alla
+         stessa inquadratura, quindi non e' un artefatto del confronto.
+         La ragione e' che questa vernice ha `clearcoat 0,70` con ruvidita'
+         0,15: il riflesso che si guarda e' lo specchio del TRASPARENTE, non
+         quello della lamiera sotto. Variare la ruvidita' della lamiera in una
+         vernice a due strati e' come cambiare il colore del muro dietro una
+         finestra sporca — si vede pochissimo, e non perche' la manopola sia
+         piccola.
+         E' la stessa famiglia di errore gia' incontrata tre volte qui dentro:
+         quando una superficie non e' quella che risponde, la manopola del
+         materiale non ha su cosa lavorare. Il rimedio non e' girarla di piu',
+         e' girare quella giusta.
+         L'AMPIEZZA E' LA STESSA IN RELATIVO — moltiplicativa, non assoluta —
+         quindi su 0,15 di ruvidita' del trasparente fa un'escursione di circa
+         tre centesimi. Il limite basso resta 0,0525, che e' quello che three
+         impone comunque: sotto non si scende. */
+      .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
+  /* IL GUADAGNO E' 2,5, e il numero viene da una prova col canarino.
+     A guadagno 1 — cioe' la stessa ampiezza relativa della lamiera — la banda
+     misurata non si muoveva: 20,42 contro 20,43. Sembrava l'ennesimo innesto
+     morto, ed e' il sospetto giusto da avere, perche' una sostituzione di
+     stringa che non trova la sua stringa non fallisce: non fa niente.
+     Il canarino l'ha escluso: forzando la ruvidita' del trasparente a 0,75 la
+     banda del fianco basso e' crollata da 11,5 a 1,7. L'innesto e' vivo e la
+     misura e' sensibile — quindi il nulla di prima era un nulla VERO, non un
+     nulla cieco. Il rumore vale circa +-0,2 e su una ruvidita' di 0,15 faceva
+     +-0,03: troppo poco perche' un riflesso cambi larghezza in modo leggibile.
+     A 2,5 l'escursione va da 0,07 a 0,23 circa, cioe' il riflesso passa da
+     stretto a largo lungo la fiancata. E' la buccia d'arancia: su una vernice
+     vera la lucentezza non e' costante da un pannello all'altro. */
+  material.clearcoatRoughness = clamp(
+    material.clearcoatRoughness * ( 1.0 + mix( granoVernice, 0.0, vetro ) * 2.5 ),
+    0.0525, 1.0 );`)
       .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
   // un vetro e' un DIELETTRICO: non tinge cio' che riflette, e con la
   // metallicita' della lamiera restituirebbe un riflesso grigio-metallo
