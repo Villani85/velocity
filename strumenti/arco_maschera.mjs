@@ -111,7 +111,7 @@ const bytes = Buffer.alloc(S * S)
 for (let i = 0; i < mask.length; i++) bytes[i] = mask[i] ? 255 : 0
 await sharp(bytes, { raw: { width: S, height: S, channels: 1 } })
   .blur(Number(process.argv[5] ?? 12))               // sfuma: un taglio netto in una normal map si vede
-  .png().toFile(process.argv[6] ?? 'public/texture/_maschera_arco.png')
+  .png().toFile(process.argv[6] ?? 'texture-sorgente/_maschera_arco.png')
 await sharp(bytes, { raw: { width: S, height: S, channels: 1 } })
   .resize(420, 420).png().toFile('docs/provini/maschera_arco.png')
 console.log('maschera scritta')

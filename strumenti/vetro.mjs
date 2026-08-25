@@ -20,7 +20,7 @@ g.scene.updateMatrixWorld(true)
 let mesh = null, mx = -1
 g.scene.traverse(o => { if (o.isMesh && o.geometry.attributes.position.count > mx) { mx = o.geometry.attributes.position.count; mesh = o } })
 
-const { data, info } = await sharp('public/texture/auto2r_col.webp').raw().toBuffer({ resolveWithObject: true })
+const { data, info } = await sharp('texture-sorgente/auto2r_col.webp').raw().toBuffer({ resolveWithObject: true })
 const W = info.width, Hh = info.height, CH = info.channels
 const pos = mesh.geometry.attributes.position, uv = mesh.geometry.attributes.uv
 const P = [], v = new THREE.Vector3()

@@ -11,7 +11,7 @@ globalThis.self = globalThis
 globalThis.createImageBitmap = async () => ({ width:1, height:1, close(){} })
 
 const N = 1024
-const { data, info } = await sharp('public/texture/auto2r_orm.webp').resize(N, N, { kernel: 'nearest' }).raw().toBuffer({ resolveWithObject: true })
+const { data, info } = await sharp('texture-sorgente/auto2r_orm.webp').resize(N, N, { kernel: 'nearest' }).raw().toBuffer({ resolveWithObject: true })
 const VERA = new Uint8Array(N * N)
 for (let i = 0; i < N * N; i++) VERA[i] = (data[i * info.channels + 1] > 8 || data[i * info.channels + 2] > 8) ? 1 : 0
 

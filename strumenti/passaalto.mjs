@@ -46,8 +46,8 @@ import sharp from 'sharp'
    piu' larga di cosi'. */
 const SIGMA = Number(process.argv[2] ?? 34)
 const TIENI = Number(process.argv[3] ?? 1.0)   // quanto del dettaglio stretto si conserva
-const SRC = 'public/texture/auto2r_nor.webp'
-const DST = process.argv[4] ?? 'public/texture/_nor_passaalto.png'
+const SRC = 'texture-sorgente/auto2r_nor.webp'
+const DST = process.argv[4] ?? 'docs/provini/_nor_passaalto.png'
 
 const { data, info } = await sharp(SRC).raw().toBuffer({ resolveWithObject: true })
 const S = info.width, CH = info.channels

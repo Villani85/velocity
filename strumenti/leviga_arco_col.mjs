@@ -21,8 +21,8 @@ import sharp from 'sharp'
 
 const S = 2048
 const SOGLIA = Number(process.argv[2] ?? 215)   // sotto questo si considera «riga scura»
-const src = await sharp('public/texture/auto2r_col.webp').raw().toBuffer({ resolveWithObject: true })
-const msk = await sharp(process.argv[3] ?? 'public/texture/_maschera_arco.png').raw().toBuffer({ resolveWithObject: true })
+const src = await sharp('texture-sorgente/auto2r_col.webp').raw().toBuffer({ resolveWithObject: true })
+const msk = await sharp(process.argv[3] ?? 'texture-sorgente/_maschera_arco.png').raw().toBuffer({ resolveWithObject: true })
 const CH = src.info.channels, MC = msk.info.channels
 
 const out = Buffer.alloc(S * S * 3)

@@ -14,8 +14,8 @@
 import sharp from 'sharp'
 
 const S = 2048
-const nor = await sharp(process.argv[2] ?? 'public/texture/auto2r_nor.webp').raw().toBuffer({ resolveWithObject: true })
-const msk = await sharp('public/texture/_maschera_arco.png').raw().toBuffer({ resolveWithObject: true })
+const nor = await sharp(process.argv[2] ?? 'texture-sorgente/auto2r_nor.webp').raw().toBuffer({ resolveWithObject: true })
+const msk = await sharp('texture-sorgente/_maschera_arco.png').raw().toBuffer({ resolveWithObject: true })
 if (nor.info.width !== S || msk.info.width !== S) throw new Error('dimensioni diverse')
 const CH = nor.info.channels, MC = msk.info.channels
 

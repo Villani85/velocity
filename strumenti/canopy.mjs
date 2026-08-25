@@ -158,7 +158,7 @@ if (MODO === 'mappa') {
   }
   // confronto onesto: stessi punti 3D, atlanti diversi
   const V = await carica('asset/auto/auto2_PRIMA_DEL_REMESH.glb')
-  const Tn = await tex('public/texture/auto2r_col.webp'), Tv = await tex('public/texture/auto2_col.webp')
+  const Tn = await tex('texture-sorgente/auto2r_col.webp'), Tv = await tex('texture-sorgente/auto2_col.webp')
   const cell = 0.06, gr = new Map()
   V.CEN.forEach((p, i) => { const kk = `${Math.floor(p.x / cell)},${Math.floor(p.y / cell)},${Math.floor(p.z / cell)}`
     let a = gr.get(kk); if (!a) { a = []; gr.set(kk, a) } a.push(i) })

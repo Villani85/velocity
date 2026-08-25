@@ -50,7 +50,7 @@ const N = 2048
 const BASE = 0.87            // il livello del riempimento
 const BASE_ISOLA = 0.85      // la base scritta sulla carrozzeria
 
-const src = 'public/texture/auto2r_orm.webp'
+const src = 'texture-sorgente/auto2r_orm.webp'
 const dst = 'public/texture/auto2r_orm2.webp'
 const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true })
 const CH = info.channels
@@ -61,7 +61,7 @@ if (info.width !== N) throw new Error(`attesa ${N}, trovata ${info.width}`)
    zero per costruzione, quindi sulla mappa passa-altata «non e' la normale
    neutra» non seleziona piu' niente. La mappa originale resta su disco
    apposta per questo. */
-const nor = await sharp('public/texture/auto2r_nor.webp').raw().toBuffer({ resolveWithObject: true })
+const nor = await sharp('texture-sorgente/auto2r_nor.webp').raw().toBuffer({ resolveWithObject: true })
 const NC = nor.info.channels
 const isola = new Uint8Array(N * N)
 for (let i = 0; i < N * N; i++) {
@@ -76,8 +76,8 @@ for (let i = 0; i < N * N; i++) {
    invece di far finta che l'occlusione ci sia. */
 import { existsSync } from 'fs'
 let AO = null
-if (existsSync('public/texture/_ao.png')) {
-  const a = await sharp('public/texture/_ao.png').raw().toBuffer({ resolveWithObject: true })
+if (existsSync('texture-sorgente/_ao.png')) {
+  const a = await sharp('texture-sorgente/_ao.png').raw().toBuffer({ resolveWithObject: true })
   if (a.info.width === N) AO = { d: a.data, c: a.info.channels }
 }
 console.log(AO ? '  occlusione: cotta, entra nel canale rosso' : '  occlusione: ASSENTE, il rosso resta a 1,000')

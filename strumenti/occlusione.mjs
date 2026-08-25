@@ -230,5 +230,5 @@ for (let i = 0; i < S * S; i++) grezzo[i] = Math.round(Math.max(0, Math.min(1, R
    si perde il bordo del passaruota, che e' proprio il posto per cui la mappa
    esiste. */
 await sharp(grezzo, { raw: { width: S, height: S, channels: 1 } })
-  .blur(2).png().toFile('public/texture/_ao.png')
-console.log('scritta public/texture/_ao.png')
+  .blur(2).png().toFile('texture-sorgente/_ao.png')
+console.log('scritta texture-sorgente/_ao.png')
