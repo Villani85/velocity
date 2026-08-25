@@ -950,15 +950,23 @@ body {
  * si stacca molto piu' di quanto faccia sui comandi, che stanno sull'asfalto.
  * Stessa opacita' avrebbe dato due pesi diversi — cioe' proprio l'incoerenza
  * che questa modifica esiste per togliere. */
+/* IL PESO SI PAREGGIA IN PROPORZIONE, NON IN OPACITA'.
+   Le insegne hanno una cornice di 3,5 px su una tela larga 640: lo 0,55% del
+   lato. Qui la pastiglia e' alta 40 px e il bordo e' 1 px, cioe' il 2,5% —
+   sembrerebbe piu' marcata, e invece si vedeva meno. La ragione e' che la
+   cornice delle insegne sta su una fotografia SUA, mentre questa sta su
+   qualunque cosa ci passi dietro, e dietro c'e' la villa illuminata.
+   Quindi l'opacita' sale al 46% e sotto ci va il vetro piu' denso: un filo si
+   legge per il CONTRASTO con quello che ha sotto, non per la sua opacita'. */
 .testa p.vetro, .testa nav.vetro {
   position: relative;
-  border: 1px solid rgba(216, 162, 88, 0.16);
+  border: 1px solid rgba(228, 176, 102, 0.46);
 }
 .testa p.vetro::after, .testa nav.vetro::after {
   content: '';
   position: absolute;
   inset: -5px;
-  border: 1px solid rgba(216, 162, 88, 0.07);
+  border: 1px solid rgba(216, 162, 88, 0.22);
   border-radius: 999px;
   pointer-events: none;
 }
@@ -1421,9 +1429,20 @@ body {
      come una macchia color sabbia invece che come vetro scuro. Piu' nero, e la
      saturazione riportata a uno: qui non c'e' colore da salvare, c'e' colore da
      togliere. */
-  background: rgba(6, 7, 9, 0.46);
-  backdrop-filter: blur(20px) saturate(0.9);
-  -webkit-backdrop-filter: blur(20px) saturate(0.9);
+  /* 0,62 E NON 0,46, E LA SATURAZIONE A 0,72.
+     Il committente ha mandato un ritaglio della sola testa: le due pastiglie
+     leggono BEIGE, non vetro scuro — e sotto c'e' la villa, cioe' intonaco
+     bianco illuminato, la parte piu' chiara di tutto il fotogramma.
+     E' la seconda volta che questo numero sale per la stessa ragione: da 0,26
+     a 0,46 e adesso a 0,62. La prima correzione era andata nella direzione
+     giusta e non abbastanza lontano, perche' l'avevo verificata su un tempo in
+     cui dietro c'era l'asfalto.
+     E la saturazione scende con la densita': piu' vetro nero davanti a un fondo
+     caldo non basta se il poco che passa resta color sabbia. Qui non c'e'
+     colore da salvare, c'e' colore da togliere. */
+  background: rgba(6, 7, 9, 0.72);
+  backdrop-filter: blur(24px) saturate(0.62);
+  -webkit-backdrop-filter: blur(24px) saturate(0.62);
   /* IL FILO E' D'AMBRA, NON BIANCO — e questa riga e' arrivata dopo la
      cornice qui sopra, che senza di lei non si vedeva.
      Il bianco al 9% c'era da prima e vinceva per ordine di cascata: due regole
@@ -1431,10 +1450,12 @@ body {
      senza dare nessun segnale. E' lo stesso difetto dei due numeri che
      descrivono la stessa composizione da file diverse, gia' pagato due volte
      in questo progetto sulle insegne. */
-  border-color: rgba(216, 162, 88, 0.16);
+  /* e il filo si marca con il resto: al 16% su un fondo chiaro non si vedeva,
+     cioe' la cornice c'era nel foglio di stile e non nel fotogramma */
+  border-color: rgba(228, 176, 102, 0.46);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.10) inset,
-    inset 0 0 14px rgba(216, 162, 88, 0.04),
+    inset 0 0 18px rgba(216, 162, 88, 0.13),
     0 0 30px 2px rgba(120, 170, 235, 0.07);
   min-height: 40px;
   display: flex;
@@ -1715,7 +1736,7 @@ body {
   background: rgba(9, 11, 15, 0.30);
   backdrop-filter: blur(16px) saturate(1.15);
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
-  border: 1px solid rgba(216, 162, 88, 0.22);
+  border: 1px solid rgba(228, 176, 102, 0.40);
   box-shadow:
     /* l'alone verso l'interno: e' quello a far leggere il filo come uno
        SPIGOLO illuminato da dietro invece che come una riga disegnata */
@@ -1731,7 +1752,7 @@ body {
   content: '';
   position: absolute;
   inset: -5px;
-  border: 1px solid rgba(216, 162, 88, 0.10);
+  border: 1px solid rgba(216, 162, 88, 0.18);
   border-radius: 999px;
   pointer-events: none;
 }

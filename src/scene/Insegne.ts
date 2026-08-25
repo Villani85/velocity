@@ -309,27 +309,47 @@ function posa(i: number, aspetto: number) {
    vicini del centro. Si perde la coincidenza con la circonferenza di
    disposizione, e va detto invece che nascosto: il bersaglio non e' un solido
    corretto, e' che si legga come un anello. */
-const CURVA_INSEGNA = 1.90
 
-function insegnaCurva(largo: number, alto: number, raggio: number) {
-  /* VENTIQUATTRO SEGMENTI E NON QUATTRO: la corda di un arco approssimato male
-     si vede come una piega dritta, e su uno schermo emissivo la piega e'
-     esattamente dove passa il riflesso — cioe' l'unica cosa che si guarda. */
-  const g = new PlaneGeometry(largo, alto, 24, 1)
-  const pos = g.attributes.position
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i)
-    // la freccia dell'arco: quanto quel punto rientra rispetto alla corda.
-    // Positiva su +Z, che dopo la rotazione di mezzo giro e' la direzione
-    // dell'occhio: il pannello si INCAVA verso chi guarda invece di aprirsi a
-    // ventaglio. Il segno sbagliato da' la stessa curvatura in faccia opposta
-    // e non lo segnala niente.
-    pos.setZ(i, raggio - Math.sqrt(Math.max(0, raggio * raggio - x * x)))
-  }
-  pos.needsUpdate = true
-  g.computeVertexNormals()
-  return g
+/* ============================================================ E POI PIATTE
+
+   LA SUPERFICIE NON E' PIU' PIEGATA, e la storia di questa riga vale piu' della
+   riga.
+
+   Il committente aveva chiesto la curvatura due volte — «falli piu' stile curvi
+   come quelli dei lavori», poi «la curvatura come un cerchio che parte dal
+   primo ed e' tondo» — e tutte e due le volte aveva ragione: i tre pannelli
+   leggevano come una fila dritta. Ma la causa vera era UNA SOLA delle due cose
+   che ho cambiato, e non questa: era l'arco centrato sull'occhio (vedi
+   «L'ANELLO» qui sopra), che per costruzione proietta come una retta.
+   Sistemato quello, la piega dentro la faccia e' diventata quello che era
+   sempre stata — un secondo rimedio per un problema gia' risolto. E dopo aver
+   visto i mockup, dove i pannelli sono rettangoli PIATTI angolati, l'ha detto
+   in cinque parole: «non deve essere piu' curvo pero'».
+
+   E' la stessa lezione della minigonna e del compenso sui comandi, la terza
+   volta in una notte: quando due rimedi partono insieme e il difetto sparisce,
+   uno dei due non stava servendo — e resta li' a deformare qualcosa finche'
+   qualcuno non lo guarda.
+
+   COSA RESTA. L'anello: posizioni, distanze e imbardate progressive. Il cerchio
+   c'e' ancora ed e' quello che si vede — perche' era sempre stato quello.
+
+   `insegnaCurva` NON resta nel file. L'avevo lasciata «per quando servira'», e
+   il compilatore l'ha rifiutata: codice mai chiamato e' un errore, non un
+   deposito. Aveva ragione lui — un pezzo tenuto da parte senza chiamante non e'
+   disponibile, e' solo non compilato. Sta nella storia del progetto, che e' il
+   posto dove le cose tolte si ritrovano davvero, ed e' venti righe.
+   E la piega c'e' ancora dove serve, viva e usata: `scene/Vetrina3D.ts`, sulle
+   carte del carosello, che sono schermi ricurvi apposta. */
+function insegnaPiana(largo: number, alto: number) {
+  /* due segmenti in orizzontale e non uno: la caduta angolare qui sotto legge
+     la normale per vertice, e su un quadrilatero a quattro vertici il centro
+     della faccia lo ricava interpolando i quattro angoli — che su un piano e'
+     esatto, ma diventa sbagliato appena qualcuno rimette una piega. Costa due
+     triangoli. */
+  return new PlaneGeometry(largo, alto, 2, 1)
 }
+
 
 /**
  * LA CADUTA ANGOLARE — senza questa, curvare non si vede.
@@ -406,7 +426,7 @@ export class Insegne {
       t.magFilter = LinearFilter
 
       const m = new Mesh(
-        insegnaCurva(LARGO, LARGO / RAPPORTO, CURVA_INSEGNA),
+        insegnaPiana(LARGO, LARGO / RAPPORTO),
         /* PIU' SCURI DELLA LORO FOTOGRAFIA, e con un filo di notte addosso.
            Le copertine sono scatti di siti veri e alcune sono chiarissime:
            quella di EVERY INTERFACE e' quasi bianca. A piena forza, dentro una
@@ -470,7 +490,7 @@ export class Insegne {
          altro non puo' staccarsene piu' del suo stesso spessore. */
       const ALTA = 1.06
       const lama = new Mesh(
-        new PlaneGeometry(0.030, (LARGO / RAPPORTO) * ALTA),
+        new PlaneGeometry(0.042, (LARGO / RAPPORTO) * ALTA),
         new MeshBasicMaterial({ color: 0xd8a258, toneMapped: false, transparent: true, opacity: 0.92, depthWrite: false }),
       )
       lama.position.set(-LARGO / 2 - 0.018, 0, 0.010)
@@ -484,7 +504,7 @@ export class Insegne {
          emette», che una riga netta non puo' dire. */
       const alone = new Mesh(
         new PlaneGeometry(0.16, (LARGO / RAPPORTO) * ALTA * 1.04),
-        new MeshBasicMaterial({ color: 0xc98f45, toneMapped: false, transparent: true, opacity: 0.13, depthWrite: false }),
+        new MeshBasicMaterial({ color: 0xc98f45, toneMapped: false, transparent: true, opacity: 0.20, depthWrite: false }),
       )
       alone.position.set(-LARGO / 2 - 0.018, 0, 0.006)
       alone.renderOrder = 6
@@ -703,12 +723,35 @@ export class Insegne {
        Due fili come altrove: uno pieno sul bordo e uno appena dentro, molto
        piu' tenue — a un filo solo la cornice legge come un contorno
        disegnato, a due legge come uno spessore. */
-    c.strokeStyle = 'rgba(216,162,88,0.62)'
-    c.lineWidth = 2.5
-    c.strokeRect(1.25, 1.25, TL - 2.5, TA - 2.5)
-    c.strokeStyle = 'rgba(216,162,88,0.16)'
+/* PIU' MARCATA DI DUE GIRI, e il motivo e' che questa cornice compete con una
+       fotografia.
+       Al primo giro era un filo al 62% su due pixel e mezzo, cioe' la stessa
+       forza che ha la cornice di pagina — che pero' sta su fondo scuro e non ha
+       niente addosso. Qui dentro c'e' lo scatto di un sito, spesso chiaro, e un
+       filo tenue ci si perde: nel provino la prima insegna sembrava senza
+       cornice. Il committente: «definiscili meglio, piu' marcati come la foto».
+       Tre pixel e mezzo al 90%, la seconda riga al 30%, e in mezzo una fascia
+       di luce che scende verso l'interno: e' quella a dare lo SPESSORE. Un
+       bordo netto legge come un contorno disegnato; un bordo netto con un alone
+       che sfuma dentro legge come un profilo di metallo illuminato, che e'
+       quello che si vede nei mockup. */
+    const SP = 3.5
+    const alone = c.createLinearGradient(0, 0, 0, TA * 0.14)
+    alone.addColorStop(0, 'rgba(216,162,88,0.22)')
+    alone.addColorStop(1, 'rgba(216,162,88,0)')
+    c.fillStyle = alone
+    c.fillRect(0, 0, TL, TA * 0.14)
+    const aloneG = c.createLinearGradient(0, 0, TL * 0.10, 0)
+    aloneG.addColorStop(0, 'rgba(216,162,88,0.26)')
+    aloneG.addColorStop(1, 'rgba(216,162,88,0)')
+    c.fillStyle = aloneG
+    c.fillRect(0, 0, TL * 0.10, TA)
+    c.strokeStyle = 'rgba(228,176,102,0.90)'
+    c.lineWidth = SP
+    c.strokeRect(SP / 2, SP / 2, TL - SP, TA - SP)
+    c.strokeStyle = 'rgba(216,162,88,0.30)'
     c.lineWidth = 1
-    c.strokeRect(6.5, 6.5, TL - 13, TA - 13)
+    c.strokeRect(8.5, 8.5, TL - 17, TA - 17)
 
     /* IL VELO IN BASSO E' STATO TOLTO INSIEME AL NOME che ci stava sopra.
        Un velo scuro sul terzo inferiore di una fotografia si nota: e' un segno
