@@ -267,10 +267,54 @@ export function costruisciRuota(M: MaterialiRuota, verso: number): Group {
      LEZIONE: un dettaglio non si valuta in millimetri, si valuta in PIXEL alla
      distanza a cui la camera lo mostra. Il resto e' disegno di un oggetto che
      nessuno guardera' mai da li'. */
+  /* ============================================================ SCODELLATE
+
+     SEI BARRE COMPLANARI NON SONO UNA RUOTA, e la revisione l'ha misurato:
+     razze a luma 94-95 con quasi nessuna variazione interna, «leggono come un
+     ritaglio di carta argentata». Il rapporto con la gomma era giusto; dentro
+     il cerchio non succedeva niente.
+
+     La ragione e' che stavano tutte alla stessa quota lungo l'asse. Una ruota
+     vera ha le razze SCODELLATE: partono dal canale, che e' la parte piu'
+     esterna, e rientrano verso il mozzo, che sta dentro. E' quella pendenza a
+     fare la profondita' — su una superficie inclinata l'ambiente si riflette
+     con un angolo diverso lungo la razza, quindi la razza ha un GRADIENTE
+     invece di una tinta, ed e' il gradiente a dire che e' un solido.
+     Con sei barre piatte l'unico contrasto disponibile era razza-contro-buio,
+     cioe' una silhouette: si legge la FORMA e non il volume.
+
+     E LA PENDENZA SI COSTRUISCE NELLA GEOMETRIA, non con una rotazione.
+     Ruotare la mesh sarebbe la strada ovvia e qui e' sbagliata: la razza e'
+     gia' girata di `ang` attorno all'asse Z, e gli angoli di Eulero di three si
+     compongono nell'ordine XYZ — cioe' la rotazione su X verrebbe applicata
+     nel sistema del PADRE e non in quello della razza, quindi le sei razze si
+     inclinerebbero tutte verso lo stesso lato del mondo invece che ognuna
+     verso il proprio mozzo. Inclinandole nei vertici, la pendenza vive nel
+     sistema della razza e sopravvive a qualunque rotazione le si dia dopo.
+
+     RIENTRO 26 mm su 178 di lunghezza: circa otto gradi. E' la scodellatura di
+     un cerchio da vettura sportiva — abbastanza da avere un gradiente, non
+     tanto da sembrare una ventola. */
   const RAZZE = 6
   const lung = 0.230 - 0.052
+  const RIENTRO_RAZZA = 0.026
+  const formaRazza = new BoxGeometry(0.046, lung, 0.034)
+  {
+    const pos = formaRazza.attributes.position
+    for (let k = 0; k < pos.count; k++) {
+      // 0 all'estremo interno (verso il mozzo), 1 a quello esterno
+      const fuori = (pos.getY(k) + lung / 2) / lung
+      pos.setZ(k, pos.getZ(k) - RIENTRO_RAZZA * (1 - fuori) * verso)
+    }
+    pos.needsUpdate = true
+    formaRazza.computeVertexNormals()
+  }
   for (let i = 0; i < RAZZE; i++) {
-    const razza = new Mesh(new BoxGeometry(0.046, lung, 0.034), M.cerchio)
+    /* LA GEOMETRIA E' UNA SOLA, condivisa fra le sei razze e fra le quattro
+       ruote: sono ventiquattro mesh che puntano allo stesso buffer. Costruirne
+       una per razza sarebbe stato piu' semplice da scrivere e avrebbe messo in
+       memoria video ventiquattro copie della stessa scatola. */
+    const razza = new Mesh(formaRazza, M.cerchio)
     const ang = (i * Math.PI * 2) / RAZZE
     razza.position.set(
       Math.cos(ang + Math.PI / 2) * (0.052 + lung / 2),

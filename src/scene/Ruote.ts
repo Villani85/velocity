@@ -506,7 +506,23 @@ export class Ruote {
          geometria girerebbe con loro — si vedrebbe una gomma ovale che
          rotola. Affondando, il pavimento taglia il pneumatico e l'appoggio
          diventa una superficie, ferma o in moto che sia. */
-      perno.position.y = this.quotaPiano + RAGGIO_RUOTA - 0.011
+      /* 20 mm E NON 11, e la ragione e' che 11 erano sotto la soglia di
+         visibilita'.
+         La scelta di AFFONDARE invece di schiacciare resta giusta e va tenuta:
+         queste ruote girano, e un appiattimento cotto nella geometria
+         girerebbe con loro — si vedrebbe una gomma ovale che rotola. Ma il
+         valore era stato scelto sulla fisica senza fare il conto in pixel:
+         11 mm su un diametro di 708 sono l'1,5%, e a sessanta pixel di ruota
+         fanno UN pixel. La revisione l'ha detto guardando: «le gomme sono
+         cerchi perfetti dove toccano».
+         E' lo stesso errore delle dieci razze da 26 mm, sulla stessa ruota: un
+         dettaglio non si valuta in millimetri, si valuta in pixel alla distanza
+         a cui la camera lo mostra.
+         Venti millimetri restano onesti — un pneumatico ribassato sotto il peso
+         di una vettura flette fra i 15 e i 25 — e a schermo fanno due pixel e
+         mezzo di corda piatta, che e' quanto basta perche' l'appoggio si legga
+         come appoggio invece che come tangenza. */
+      perno.position.y = this.quotaPiano + RAGGIO_RUOTA - 0.020
       perno.add(costruisciRuota(M, verso))
       this.gruppo.add(perno)
       this.ruoteVere.push(perno)
