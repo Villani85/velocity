@@ -1,5 +1,15 @@
 # Piano fotorealismo — velocity
 
+> **QUESTO DOCUMENTO E' STORIA, NON IL PIANO IN VIGORE.**
+>
+> Il piano in vigore e' [`PIANO_MASSIMO.md`](PIANO_MASSIMO.md). Quello che segue
+> resta perche' contiene le MISURE e gli ERRORI — che non invecchiano — ma le sue
+> priorita' e le sue voci aperte sono state superate.
+>
+> Due piani attivi che si contraddicono sono lo stesso difetto delle due copie
+> della lista dei lavori: divergono al primo ritocco e nessuno se ne accorge.
+
+
 **Data:** 24 agosto 2026 · **Stato:** fasi 0–4 da eseguire, 1.1 già fatta
 
 Questo documento è scritto per essere **verificato**, non creduto. Ogni
