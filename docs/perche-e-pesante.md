@@ -125,3 +125,72 @@ l'**orologio** del cruscotto: 18:02 contro 18:05. `tappe.mjs` non usa il banco
 di prova, che l'orologio lo congela. E' lo stesso difetto di `raccordo.mjs`,
 che esce rosso una volta su tre: strumenti scritti prima del banco, che
 misurano anche cio' che il banco serve a spegnere.
+
+---
+
+# Seguito della stessa sera — chi e' il blocco da 8,7 secondi
+
+## 7. Quattro variabili che NON entrano nella chiave del programma
+
+Misurate una per una, disegnando lo stesso materiale in bersagli diversi e
+contando i programmi nuovi, con un controllo che rifa' il primo caso:
+
+```
+  numero di campioni (0 contro 4)     NON conta
+  tipo del bersaglio (1016 / 1009)    NON conta
+  spazio colore (lineare / sRGB)      NON conta
+```
+
+Serviva saperlo perche' il riscaldamento crea il suo bersaglio finto con
+`samples: 4` mentre il composer ne usa 4 solo al livello ALTO e 0 a medio,
+basso e minimo. Sembrava un difetto netto — scaldare una configurazione e
+disegnarne un'altra — e **non lo e'**. Il commento in `Riscalda.ts` che dice
+«nella chiave ci finiscono il TIPO del bersaglio e il suo campionamento
+multiplo» va corretto: su questa versione di three non e' cosi'.
+
+`Riflesso` e il fotogramma vero creano programmi diversi non perche' i loro
+bersagli differiscano, ma perche' **disegnano oggetti diversi**.
+
+## 8. La crescita a pagina ferma e' il riscaldamento, e fa il suo mestiere
+
+```
+                        programmi        mediana    peggiore
+con riscaldamento      225 -> 303 (+78)   47,3 ms    1592 ms
+senza riscaldamento    113 -> 113 (+0)    37,7 ms     603 ms
+```
+
+Precompilare in anticipo e' giusto — l'ablazione sull'intera corsa lo conferma
+(12,83 s bloccati con, 13,94 s senza). Ma lo fa **mentre si guarda la hero**, e
+un morso da 1592 ms non e' «corto abbastanza da stare dentro un fotogramma o
+poco piu'», che e' la regola dichiarata dal file stesso.
+
+## 9. Il proprietario del blocco
+
+Avvolgendo `compileAsync` e `render`:
+
+```
+  compileAsync   11000 ms in 3 chiamate    LA PEGGIORE 9894 ms
+```
+
+`compileAsync` non e' asincrona come sembra: fa una parte **sincrona** —
+attraversa il gruppo, crea i programmi, inizializza i materiali — e solo dopo
+aspetta il driver. Su un gruppo grosso quella parte e' dieci secondi di filo
+principale, ed e' il blocco da 8.674 ms trovato all'inizio.
+
+## 10. E una cura provata e TOLTA
+
+Spezzare i morsi piu' fini (scendere finche' un sottoalbero porta piu' di
+quattro materiali) e respirare in proporzione a quanto e' costato il morso:
+
+```
+  prima            mediana 47,3 ms   peggiore  1592 ms
+  dopo la cura     mediana 57,8 ms   peggiore 10607 ms
+```
+
+**Peggio, e di molto.** Ogni morso, dopo aver compilato, disegna l'INTERA scena
+nel bersaglio da quattro pixel: spezzare in tanti morsi non divide quel costo,
+lo moltiplica. Tolta.
+
+Resta come candidata la variante che quella misura suggerisce — disegnare solo
+il gruppo invece di tutta la scena — ma non e' stata scritta: prima va provata,
+e stasera le prove hanno gia' smentito cinque ipotesi su cinque.
