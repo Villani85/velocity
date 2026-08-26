@@ -2766,6 +2766,33 @@ export class Lastra {
   /** vero quando la strada scorre: e' il sostituto di `!video.paused` */
   get inMoto() { return this.andatura > 0.05 }
 
+  /* QUANTO VA DAVVERO, in due forme, e sono l'unica sorgente della cifra.
+   *
+   * Il quadro e le ruote avevano una loro formula per la velocita': partivano
+   * dallo scorrimento e ci applicavano `min(v * 9, 1) * 330`, mentre la strada
+   * parte dallo stesso scorrimento e applica `crociera + (punta - crociera) *
+   * (1 - e^(-v/scala))`. Due conversioni diverse della stessa grandezza, e
+   * quindi due velocita' diverse nello stesso fotogramma.
+   *
+   * Misurato: a dito fermo la carreggiata correva a 70 km/h e il tachimetro
+   * segnava 1; scorrendo, 113 contro 38. Il committente l'ha visto senza
+   * strumenti: «il luogo si muove e contachilometri fermo».
+   *
+   * La causa e' strutturale, non un numero da ritoccare: la crociera esiste
+   * solo nella formula della strada, quindi a scorrimento zero la strada ha un
+   * fondo e il quadro no. Nessuna taratura dei coefficienti puo' far
+   * coincidere due funzioni che hanno un termine costante diverso.
+   *
+   * Da qui in poi la velocita' e' UNA e nasce dove viene usata per muovere il
+   * mondo. Il quadro la legge, le ruote la leggono. E' la stessa regola che il
+   * commento delle ruote dichiarava gia': «girano sulla STESSA spinta del
+   * tachimetro, non su un numero loro: sono la prova visiva della cifra che il
+   * quadro mostra» — solo che nessuno dei due leggeva la strada. */
+  /** i chilometri orari veri: e' la cifra che il quadro deve mostrare */
+  get kmh() { return this.andatura * 3.6 }
+  /** e la stessa cosa da 0 a 1, per chi ragiona in frazione di fondoscala */
+  get quanto() { return this.andatura / ANDATURA.punta }
+
   private bersaglio = 0
   private ultimo = 0
   private u: Record<string, { value: unknown }>

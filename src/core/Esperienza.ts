@@ -2000,15 +2000,23 @@ export class Esperienza {
         CONFINI.map(([, f]) => f),
         this.regia.globale,
       )
-      this.quadro.aggiorna(avvio, spinta, dt)
+      this.quadro.aggiorna(avvio, spinta, dt, this.lastra.kmh)
       // le ruote girano sulla STESSA spinta del tachimetro, non su un
       // numero loro: sono la prova visiva della cifra che il quadro mostra
-      /* E CON IL MOVIMENTO RIDOTTO NON GIRANO. Anche loro sono un integrale
-         del tempo — `angolo += velocita * dt * 14` — quindi seguono la sorte
-         della strada: ferma la carreggiata, delle ruote che continuano a
-         girare sarebbero anche un errore di continuita'. Restano dove sono,
-         con i cerchi e le gomme al loro posto. */
-      if (!RIDOTTO) this.ruote?.aggiorna(spinta, dt)
+      /* E GIRANO SULLA VELOCITA' DELLA STRADA, per tutti.
+         C'erano due cose sbagliate in una riga. La prima: prendevano `spinta`,
+         cioe' lo scorrimento, invece di quanto la carreggiata sta davvero
+         correndo — quindi a dito fermo la strada scorreva e le ruote erano
+         immobili.
+         La seconda: `if (!RIDOTTO)` le fermava del tutto con la preferenza
+         accesa, e il commento che c'era lo argomentava bene — «sono un
+         integrale del tempo, quindi seguono la sorte della strada: ferma la
+         carreggiata, delle ruote che continuano a girare sarebbero un errore
+         di continuita'». Il ragionamento e' giusto e adesso porta alla
+         conclusione opposta, perche' la carreggiata non e' piu' ferma: sono le
+         ruote immobili sotto una strada che corre a essere l'errore di
+         continuita'. */
+      this.ruote?.aggiorna(this.lastra.quanto, dt)
       // LA PALPEBRA RESTA SPENTA finche' il quadro sta sul parabrezza: una
       // cornice in pelle intorno a una proiezione su un vetro e' un
       // controsenso — la palpebra esiste per incassare uno schermo dentro un

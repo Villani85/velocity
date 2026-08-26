@@ -539,7 +539,11 @@ export class Quadro {
 
   /**
    * @param avvio da 0 a 1: quanto e' avanzata l'accensione
-   * @param spinta da 0 a 1: quanto forte si sta scorrendo
+   * @param spinta da 0 a 1: quanto forte si sta scorrendo — l'INGRESSO, e
+   *   alimenta solo la barra omonima
+   * @param kmh la velocita' vera della carreggiata — l'USCITA, e alimenta il
+   *   tachimetro, la marcia e i giri. Le due cose non coincidono: la strada ha
+   *   una velocita' di crociera che lo scorrimento non ha.
    * @param dt secondi dal fotogramma prima
    */
   /**
@@ -713,7 +717,7 @@ export class Quadro {
     this.triangoli += (triangoli - this.triangoli) * 0.10
   }
 
-  aggiorna(avvio: number, spinta: number, dt: number) {
+  aggiorna(avvio: number, spinta: number, dt: number, kmh: number) {
     this.ingresso += (Math.min(Math.max(spinta, 0), 1) - this.ingresso) * rincorsa(Math.min(dt * 6, 1))
     /* L'OROLOGIO DEL QUADRO SI FERMA CON IL MOVIMENTO RIDOTTO.
        Non serve a leggere niente: serve al minimo irregolare — le due
@@ -759,7 +763,19 @@ export class Quadro {
       // la velocita' insegue la spinta con inerzia: un'automobile non cambia
       // velocita' in un fotogramma, e la parte che si vede di piu' e'
       // proprio il RITARDO fra il gesto e la risposta
-      const bersaglio = spinta * 330
+      /* IL BERSAGLIO ARRIVA DALLA STRADA, non da una seconda formula.
+         Qui c'era `spinta * 330`: la spinta e' lo scorrimento normalizzato, e
+         moltiplicarlo per un fondoscala dava una cifra plausibile e SLEGATA da
+         quanto la carreggiata stesse davvero correndo. A dito fermo la strada
+         andava a 70 km/h per via della crociera e questo numero diceva 1.
+         `spinta` resta, e resta giusta, per la barra dello SCORRIMENTO qui
+         sopra: quella misura l'ingresso — quanto forte si sta scorrendo — ed e'
+         un'altra grandezza. Il tachimetro misura l'uscita. Confonderle era il
+         difetto: un cruscotto che mostra il gesto invece del risultato.
+         E il fondoscala non e' piu' 330 ma la punta vera della strada, 295:
+         un numero tondo scelto per stare bene sul quadrante e' esattamente il
+         genere di cifra che questo progetto ha gia' pagato caro. */
+      const bersaglio = kmh
       /* E ANCHE QUI L'INERZIA SPARISCE CON IL MOVIMENTO RIDOTTO, e il
          commento qui sopra resta vero: il ritardo fra il gesto e la risposta
          E' la parte che si vede di piu', ed e' quello che rende il tachimetro
