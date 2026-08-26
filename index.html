@@ -61,15 +61,6 @@
   cui si legge la stessa preferenza e' il difetto che tutto il resto di questo
   capitolo esiste per togliere.
 -->
-<style>
-@media (prefers-reduced-motion: reduce) {
-  .voci[data-effetto] .mascherina i {
-    transform: none;
-    filter: none;
-    text-shadow: none;
-  }
-}
-</style>
 
 <!--
   LA PRIMA DECISIONE DEL SITO STA QUI DENTRO, IN UNO SCRIPT DI VENTI RIGHE,
@@ -146,6 +137,37 @@
   preannuncia()
 
   function preannuncia() {
+    /* IL PEZZO GROSSO SI PREANNUNCIA QUI, E SOLO QUI.
+     *
+     * `src/main.ts` chiede la scena con `await import('./avvio')`, e quel
+     * dinamico e' una scelta argomentata che resta: chi non passa i quattro
+     * controlli non deve scaricare un megabyte e due di libreria per poi non
+     * costruire niente. Un `<link rel="modulepreload">` scritto nel documento
+     * lo annullerebbe — lo scaricherebbero tutti, compresi quelli per cui
+     * esiste il ripiego.
+     *
+     * Ma quel dinamico ha un costo che `docs/carico.json` ha misurato: il
+     * pezzo grosso parte TRECENTOSETTANTACINQUE MILLISECONDI dopo gli altri,
+     * perche' il browser deve prima scaricare il modulo d'ingresso, compilarlo
+     * ed eseguirlo fino alla riga dell'import. E' il singolo guadagno piu'
+     * grande rimasto sul percorso critico.
+     *
+     * Qui si hanno tutte e due le cose. Questa funzione gira SOLO quando i
+     * quattro controlli hanno detto di si', cioe' esattamente quando quel
+     * codice servira' di sicuro: preannunciarlo qui non toglie niente a
+     * nessuno e lo fa partire subito.
+     *
+     * L'indirizzo con l'impronta lo scrive `strumenti/vite-documento.ts` in
+     * fase di compilazione. In sviluppo la variabile non c'e' e questa riga
+     * non fa niente: li' non c'e' nessun pezzo da preannunciare, i moduli
+     * arrivano uno per uno. */
+    if (window.__AVVIO) {
+      var pm = document.createElement('link')
+      pm.rel = 'modulepreload'
+      pm.href = window.__AVVIO
+      pm.crossOrigin = 'anonymous'
+      document.head.appendChild(pm)
+    }
     // l'ordine e' l'ordine in cui li chiede, e non e' indifferente: prima il
     // luogo, poi il soggetto. Sono cinquecento chilobyte contro due megabyte e
     // nove, e su una rete lenta quei cinquecento sono la differenza fra
@@ -427,8 +449,12 @@
          `Lingua.ts`. Il dizionario lo riscrive a runtime, ma chi legge SENZA
          JavaScript — un motore di ricerca, un lettore di schermo — vede
          questo. Sono due copie della stessa frase, ed e' la stessa famiglia
-         di difetto della lista dei lavori: qui non e' ancora generata,
-         quindi va tenuta allineata a mano finche' non lo sara'. -->
+         di difetto della lista dei lavori.
+         E LA LISTA ADESSO E' GENERATA: `strumenti/vite-documento.ts` sostituisce
+         l'`<ol>` qui sotto con i lavori veri letti da `Lavori.ts`, quindi la
+         pagina servita non mostra mai queste quattro righe. Restano come
+         ripiego per chi apre il file grezzo — e restano DICHIARATE tali, invece
+         che spacciate per vere. -->
     <p class="statica__forte" data-t="docLavoriForte">Ogni lavoro &egrave; una macchina diversa: la meccanica cambia con quello che deve raccontare.</p>
     <ol class="statica__ottiche">
       <li class="e-acceso">
@@ -440,7 +466,7 @@
       <li><span class="statica__codice">03</span><span class="statica__nome">—</span><span class="statica__stato" data-t="docInLavorazione">in lavorazione</span></li>
       <li><span class="statica__codice">04</span><span class="statica__nome">—</span><span class="statica__stato" data-t="docInLavorazione">in lavorazione</span></li>
     </ol>
-    <p data-t="docLavoriCoda">Le altre tre ottiche si accendono quando c'è qualcosa da attraversare.</p>
+    <p data-t="docLavoriCoda">Quasi tutti sono dimostrazioni, e lo dichiarano: mostrarli senza dirlo sarebbe l&rsquo;unica cosa non vera del sito.</p>
   </section>
 
   <section id="contatto" class="statica__blocco">

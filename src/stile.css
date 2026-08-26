@@ -717,6 +717,22 @@ body {
    E i dati avevano una transizione PROPRIA che la vecchia regola non
    toccava: era scritta solo su `.voci`, e i .3s di `.voci__fatti`
    sopravvivevano alla preferenza. */
+/* ARRIVATA DA `index.html`, DOVE NON DOVEVA STARE.
+   Il commento che l'accompagnava lo diceva gia': «va spostato li' appena si
+   puo', accanto al blocco del movimento ridotto a cui appartiene — un secondo
+   posto in cui si legge la stessa preferenza e' il difetto che tutto il resto
+   di questo capitolo esiste per togliere». La ragione per cui era rimasta era
+   di calendario — quel file era in mano a qualcun altro in quella passata —
+   non di progetto.
+   Sono otto righe e una regola sola, e adesso stanno con le altre. */
+@media (prefers-reduced-motion: reduce) {
+  .voci[data-effetto] .mascherina i {
+    transform: none;
+    filter: none;
+    text-shadow: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .voci { transition: none; transform: none; }
   .voci__fatti { transition: none; }

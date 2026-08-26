@@ -164,17 +164,78 @@ export function documento(): Plugin {
           `</li>`,
         ).join('\n')
 
-        return html
+        /* E SI DICE ALLO SCRIPT IN TESTA COME SI CHIAMA IL PEZZO GROSSO.
+         *
+         * `src/main.ts` lo chiede con un import dinamico — vedi il commento
+         * accanto — quindi Vite non gli mette nessun `modulepreload`: parte solo
+         * dopo che il modulo d'ingresso e' stato scaricato, compilato ed
+         * eseguito. `docs/carico.json` ha misurato trecentosettantacinque
+         * millisecondi di ritardo, il piu' grosso rimasto sul percorso critico.
+         *
+         * Un preannuncio scritto nel documento lo scaricherebbero TUTTI, e
+         * distruggerebbe la ragione per cui quell'import e' dinamico. Invece si
+         * passa il nome allo script in testa, che lo preannuncia solo dopo che
+         * i quattro controlli hanno detto di si'.
+         *
+         * Il nome si legge dal pacchetto, non si indovina: ha un'impronta che
+         * cambia a ogni compilazione, e scriverlo a mano vorrebbe dire un
+         * preannuncio che punta a un file inesistente — cioe' un difetto che si
+         * vede solo in produzione. */
+        let avviso = ''
+        const pacchetto = (ctx as { bundle?: Record<string, { type: string; facadeModuleId?: string | null; fileName: string }> }).bundle
+        if (pacchetto) {
+          const pezzo = Object.values(pacchetto).find(
+            (x) => x.type === 'chunk' && !!x.facadeModuleId && /[\\/]avvio\.ts$/.test(x.facadeModuleId),
+          )
+          if (pezzo) avviso = '<script>window.__AVVIO=' + JSON.stringify('/' + pezzo.fileName) + '</script>\n'
+          else console.warn('[documento] non trovo il pezzo di avvio: niente preannuncio')
+        }
+
+        /* E VA SCRITTO PRIMA DELLO SCRIPT CHE LO USA, non in fondo alla testa.
+           Alla prima stesura lo inserivo insieme ai metadati, cioe' subito prima
+           di </head> — che sta DOPO lo script dei quattro controlli. Il documento
+           costruito conteneva la riga giusta, il preannuncio non partiva mai, e
+           nessuno avrebbe dato errore: `window.__AVVIO` era semplicemente ancora
+           indefinito quando `preannuncia` lo leggeva.
+           Verificato confrontando la posizione dei due nel file costruito: 16775
+           contro 5327. E' il genere di difetto che non si vede mai, perche' la
+           cura c'e', e' scritta, e non fa niente. */
+        const fuori = html
           .replace('</head>', meta + '\n</head>')
           .replace(
             /<ol class="statica__ottiche">[\s\S]*?<\/ol>/,
             `<ol class="statica__ottiche">\n${lista}\n    </ol>`,
           )
 
-          .replace(
-            /<p data-t="docLavoriCoda">[\s\S]*?<\/p>/,
-            `<p>Ognuno e una macchina diversa: la meccanica cambia con quello che deve raccontare.</p>`,
-          )
+        /* E IL NOME DEL PEZZO SI INFILA PRIMA DEL PRIMO `<script`, non in fondo
+           alla testa.
+           Alla prima stesura lo mettevo insieme ai metadati, cioe' subito prima
+           di `</head>` — che sta DOPO lo script dei quattro controlli. Il
+           documento costruito conteneva la riga giusta, il preannuncio non
+           partiva mai, e non dava nessun errore: `window.__AVVIO` era
+           semplicemente ancora indefinito quando `preannuncia` lo leggeva.
+           Verificato confrontando la posizione dei due nel file costruito:
+           16775 contro 5327.
+           E' il genere di difetto che non si vede: la cura c'e', e' scritta, e
+           non fa niente. Si trova solo controllando l'ORDINE, non la presenza.
+           E si inserisce per posizione invece che sostituendo una stringa: a
+           valle il documento e' gia' stato lavorato da Vite, e l'ancora scritta
+           a mano non combaciava piu'. */
+        const primoScript = fuori.indexOf('<script')
+        if (!avviso || primoScript < 0) return fuori
+        return fuori.slice(0, primoScript) + avviso + fuori.slice(primoScript)
+
+          /* QUI IL GENERATORE RISCRIVEVA LA CODA DEI LAVORI, e faceva tre danni
+             in una riga sola:
+               - il `<p>` prodotto perdeva `data-t`, quindi quella frase restava
+                 in italiano anche in inglese, per sempre;
+               - «Ognuno e una macchina» — senza accento, in una pagina che
+                 qualcuno legge;
+               - e diceva quasi parola per parola cio' che il `<p>` cinque righe
+                 sopra dice gia', cioe' la stessa frase due volte nello stesso
+                 documento.
+             Non serviva riscriverla: serviva che la frase nella sorgente fosse
+             vera. Adesso lo e', e vive in `Lingua.ts` come tutte le altre. */
       },
     },
   }

@@ -458,9 +458,13 @@ export const D: Record<string, Voce> = {
   },
   docQuestoSito: { it: '2026 — questo sito', en: '2026 — this site' },
   docInLavorazione: { it: 'in lavorazione', en: 'in progress' },
+  /* LA CODA NON PARLA PIU' DI «TRE OTTICHE», che erano tre quando i lavori
+     erano uno. Adesso sono dieci e l'elenco sopra e' generato da `Lavori.ts`,
+     quindi una frase che conta le cose si rompe da sola al primo lavoro nuovo.
+     Questa non conta niente e dice la cosa che serve sapere. */
   docLavoriCoda: {
-    it: 'Le altre tre ottiche si accendono quando c\u2019\u00e8 qualcosa da attraversare.',
-    en: 'The other three headlights light up when there is something to drive through.',
+    it: 'Quasi tutti sono dimostrazioni, e lo dichiarano: mostrarli senza dirlo sarebbe l\u2019unica cosa non vera del sito.',
+    en: 'Almost all of them are demonstrations, and they say so: showing them without saying it would be the only untrue thing on this site.',
   },
   docContatto: { it: 'Contatto', en: 'Contact' },
   docDomanda: { it: 'Dove andiamo da qui?', en: 'Where do we go from here?' },
