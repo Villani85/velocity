@@ -45,7 +45,7 @@ const TUTTO = [
    giudicare — se lo scambio di mondo si vede — sta in mezzo a quei due. */
 const OTTICA = [
   ['o_56', 0.560], ['o_575', 0.575], ['o_59', 0.590], ['o_60', 0.600],
-  ['o_61', 0.610], ['o_62', 0.620], ['o_625', 0.625], ['o_63', 0.630],
+  ['o_61', 0.610], ['o_614', 0.614], ['o_616', 0.616], ['o_618', 0.618], ['o_62', 0.620], ['o_625', 0.625], ['o_63', 0.630],
   ['o_635', 0.635],
   /* QUI DENTRO CADE LO SCAMBIO DI MONDO, ed e' il punto per cui esiste tutto
      questo elenco. `Esperienza.ts` scambia quando `progressoIride(locale)`

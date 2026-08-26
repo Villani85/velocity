@@ -244,7 +244,7 @@ export class Attraversamento {
     /* LA CRESCITA RESTA AL QUADRATO — il buco si apre piano e poi di scatto,
        che e' come si apre un diaframma — ma adesso quello che cresce non e'
        una macchia di luce: e' la quantita' di mondo nuovo che si vede. */
-    const c = k * k
+    const c = Math.pow(k, 1.45)
     const scala = 0.1 + c * 5.4
     d.scale.set(scala, scala, 1)
 
@@ -276,12 +276,43 @@ export class Attraversamento {
        disco cresce, cioe' mentre quello che c'e' dentro comincia a bastare da
        solo. Il valore massimo resta 3,0 e la soglia (2,6) la supera sempre di
        poco: l'anello si accende e resta un anello. */
-    const g = 1 - Math.min(k, 1)
-    // 2,3 e non 3,0: sotto la soglia del bagliore (2,6) invece che sopra. Un
-    // orlo che fiorisce si stacca dallo sfondo e torna a essere un elemento;
-    // uno che resta sotto e' luce che c'e' e basta. La corona adesso e' larga,
-    // quindi la stessa quantita' di luce si distribuisce e non serve spingerla.
-    u.uBordo.value = 2.3 * g * g + 0.22
+    /* LA CORONA E' SPENTA, e sopra c'e' la storia di come ci si e' arrivati.
+     *
+     * IL VECCHIO COMMENTO AVEVA GIA' NOMINATO IL DIFETTO, e vale la pena
+     * rileggerlo perche' e' quasi la diagnosi giusta: «2,3 e non 3,0: sotto la
+     * soglia del bagliore invece che sopra. Un orlo che FIORISCE si stacca
+     * dallo sfondo e TORNA A ESSERE UN ELEMENTO; uno che resta sotto e' luce
+     * che c'e' e basta».
+     *
+     * La cosa temuta era esatta — un orlo che si stacca torna a essere un
+     * elemento — e la cura era della grandezza sbagliata. Il problema non era
+     * QUANTA luce: era che ci fosse un contorno perfettamente circolare, che
+     * dice all'occhio «qui comincia l'effetto» a qualunque intensita'. E c'era
+     * anche un `+ 0,22` che non si spegneva mai, nemmeno all'inizio: la corona
+     * era accesa per tutta la durata del passaggio.
+     *
+     * PROVATO A TRE VALORI, una variabile sola, sul banco di prova:
+     *
+     *   A  corona intera    un alone bianco spesso che domina il fotogramma
+     *   B  corona al 25%    piu' morbido, ma resta un anello che si guarda
+     *   C  corona spenta    l'apertura non ha piu' contorno proprio
+     *
+     * E l'argomento che decide non e' «C e' meno appariscente». E' che in C si
+     * LEGGONO il bordo alto del parabrezza e il montante che si stanno
+     * formando, cioe' la forma della cosa in cui si sta entrando. In A e in B
+     * quella informazione sta sepolta sotto il bagliore. La corona nascondeva
+     * esattamente cio' che rende leggibile il passaggio.
+     *
+     * E NON TOGLIE NIENTE ALLA COPERTURA, che era la vera ragione di esistere
+     * dell'iride: misurato sul banco, lo scambio di mondo fra 0,639 e 0,641
+     * cambia lo 0,00% dei pixel con la corona accesa e lo 0,00% senza. Il
+     * bordo non copriva: annunciava.
+     *
+     * Resta zero e non si cancella la macchina che lo disegna: il giorno in cui
+     * servisse un filo di luce sull'orlo, e' un numero. Cancellare lo shader
+     * vorrebbe dire che quella decisione costa mezza giornata invece di una
+     * riga. */
+    u.uBordo.value = 0
     /* E L'ORLO SI STRINGE MENTRE IL DISCO CRESCE.
        Allargarlo era la cura giusta per il difetto giusto — un cerchio netto
        racconta un buco che si apre — ma a larghezza fissa creava un difetto
