@@ -1,5 +1,4 @@
 import { LAVORI, datiLavoro, quantiInLinea, quantiRicerca } from './Lavori'
-import { t } from './Lingua'
 import { RIDOTTO, rincorsa } from '../core/Moto'
 import { fermo } from '../core/Banco'
 import {
@@ -292,9 +291,7 @@ const X_VELOCITA = L * 0.7475
    fotografata prima che la vedessi io.
    A 0,9045 la stessa parola arriva a 499,8 e restano dodici pixel di aria.
    Sotto c'e' anche una difesa che vale per qualunque parola futura. */
-const X_VIAGGIO = L * 0.9045
 /** l'aria che deve restare fra la fine di una parola e il bordo della tela */
-const ARIA_BORDO = 12
 
 /**
  * IL QUADRANTE, e i tre numeri da cui dipende tutto il resto del centro.
@@ -384,6 +381,9 @@ export class Quadro {
 
   /** stato continuo, cosi' il disegno non sa niente della regia */
   private giriDisegno = 0
+  /** la firma dello stato che si e' disegnato l'ultima volta: se non cambia,
+   *  non si ridisegna. Vuota all'inizio, cosi' il primo giro passa sempre. */
+  private firmaDisegnata = ''
   private velocita = 0
   private marcia = 0
   private spie = 0
@@ -673,9 +673,6 @@ export class Quadro {
   scenaTotale = 7
   scenaNome = ''
 
-  private ms = 0
-  private chiamate = 0
-  private triangoli = 0
   private ingresso = 0
 
   /**
@@ -705,17 +702,6 @@ export class Quadro {
     this.tempoIndice = indice
     this.tempoConfini = confini
     this.tempoGlobale = Math.min(Math.max(globale, 0), 1)
-  }
-
-  misura(ms: number, chiamate: number, triangoli: number) {
-    // LE MEDIE SONO GIA' FATTE A MONTE per il tempo, ma non per gli altri due,
-    // e senza smorzamento le cifre ballano di continuo — un numero che cambia
-    // sessanta volte al secondo non si legge, lampeggia. Un decimo per giro e'
-    // abbastanza lento da leggersi e abbastanza svelto da rispondere entrando
-    // e uscendo dalle scene.
-    this.ms += (ms - this.ms) * 0.10
-    this.chiamate += (chiamate - this.chiamate) * 0.10
-    this.triangoli += (triangoli - this.triangoli) * 0.10
   }
 
   aggiorna(avvio: number, spinta: number, dt: number, kmh: number) {
@@ -824,6 +810,44 @@ export class Quadro {
     this.daUltimo = 0
     this.giriDisegno = 0
 
+    /* E SI RIDISEGNA SOLO SE QUALCOSA E' CAMBIATO.
+     *
+     * Il freno qui sopra e' puramente TEMPORALE: trenta volte al secondo, che
+     * qualcosa sia cambiato o no. Non esisteva nessun confronto con lo stato
+     * del disegno precedente, quindi con la scena immobile — chi si ferma a
+     * leggere, chi ha il movimento ridotto, chiunque stia guardando invece di
+     * scorrere — si pagava comunque tutto: il disegno della tela E il
+     * `getImageData` di 1024 per 290, che nelle misure di questo file costa
+     * circa tre millisecondi. Trenta volte al secondo per non cambiare niente.
+     *
+     * LA FIRMA E' ARROTONDATA ALLA PRECISIONE CHE SI VEDE, e questo e' il
+     * punto delicato. Con i valori grezzi non due fotogrammi sarebbero mai
+     * uguali — la velocita' insegue il suo bersaglio con sei cifre decimali —
+     * e la cura non servirebbe a niente pur sembrando applicata. Si arrotonda a
+     * cio' che il disegno distingue davvero: un decimo di km/h non sposta un
+     * pixel, e nemmeno un giro su cento.
+     *
+     * E si include tutto cio' che il disegno legge, non solo cio' che sembra
+     * importante: dimenticare un termine qui vuol dire un pannello che smette
+     * di aggiornarsi in un caso raro, cioe' il difetto peggiore di tutti —
+     * quello che non si riproduce. */
+    const firma =
+      Math.round(this.velocita) + '|' +
+      Math.round(this.giri / 10) + '|' +
+      this.marcia + '|' +
+      Math.round(this.spie * 60) + '|' +
+      Math.round(this.ingresso * 120) + '|' +
+      Math.round(this.acceso * 120) + '|' +
+      Math.round(this.spegnimento * 120) + '|' +
+      Math.round(this.documenti * 120) + '|' +
+      this.tempoIndice + '|' +
+      Math.round(this.tempoGlobale * 400) + '|' +
+      Math.round(this.tempo * 30) + '|' +
+      this.scenaNome + '|' + this.scenaNumero + '|' + this.scenaTotale + '|' +
+      this.lavoroScelto + '|' + Math.round(this.velo * 120)
+    if (firma === this.firmaDisegnata) return
+    this.firmaDisegnata = firma
+
     // SI DISEGNA SU QUELLA LIBERA E POI SI SCAMBIA.
     //
     // L'ordine conta: prima si passa all'altra tela, poi ci si disegna sopra,
@@ -916,7 +940,13 @@ export class Quadro {
     c.clip()
 
     this.fondo()
+    /* LA STRISCIA E' STRUTTURA. E' la seconda sorgente luminosa del pannello e
+       l'unica larga quanto tutto il quadro: dichiara il formato, e per
+       dichiarare un formato non serve gridare. */
+    const pesoStriscia = c.globalAlpha
+    c.globalAlpha = pesoStriscia * 0.20
     this.strisciaAlta()
+    c.globalAlpha = pesoStriscia
 
     /* LE DUE FACCE DEL PANNELLO.
      *
@@ -930,6 +960,29 @@ export class Quadro {
     const guida = 1 - Math.min(this.spegnimento, 1)
     const carta = Math.min(Math.max(this.documenti, 0), 1)
     const base = c.globalAlpha
+
+    /* TRE LIVELLI DI PESO, e prima non ce n'era nessuno.
+     *
+     * Dentro il ramo della guida, quadrante, tachimetro, marcia, scorrimento,
+     * filetti e spie disegnavano TUTTI a `base * guida`. Il quadrante e il
+     * tachimetro sono luminosi perche' dentro di loro c'e' un alfa alto
+     * scritto a mano, non perche' qualcuno abbia deciso che contano di piu'.
+     * Il risultato e' che ogni cosa accesa pretende attenzione con la stessa
+     * voce: un pannello in cui tutto grida non ha una gerarchia, ha un volume.
+     *
+     * PRIMARIO e' cio' che si legge — quanto si va, a che regime.
+     * SECONDARIO e' cio' che si consulta — la marcia, lo scorrimento.
+     * STRUTTURALE e' cio' che tiene insieme il disegno e non si legge mai —
+     * i filetti, l'ora, la striscia sul bordo alto.
+     *
+     * I numeri non sono scientifici: sono un punto di partenza, e il cancello
+     * e' `strumenti/cruscotto.mjs`, che conta l'area luminosa sulla tela e la
+     * confronta con il riferimento. Il bersaglio non e' togliere superficie —
+     * e' togliere QUANTITA' DI INFORMAZIONE LUMINOSA CHE COMPETE PER L'OCCHIO,
+     * che e' un'altra cosa e si misura. */
+    const PRIMARIO = 1.00
+    const SECONDARIO = 0.45
+    const STRUTTURALE = 0.20
 
     if (guida > 0.002) {
       c.globalAlpha = base * guida
@@ -947,15 +1000,38 @@ export class Quadro {
          NIENTE — gli altri almeno dicono qualcosa di vero una volta sola.
          Il codice resta e la zona pure: la zona di sinistra e' adesso tutta
          dello scorrimento, che ci sta piu' comodo. */
-      this.scorrimento()
-        this.quadrante()
+      /* LA MARCIA STA CON IL SUO QUADRANTE, non un livello sotto.
+         Al primo giro l'avevo messa fra i secondari — si consulta, non si legge
+         — e nel provino il difetto si vedeva subito: la cifra grigia in mezzo a
+         un anello acceso fa leggere due oggetti dove ce n'e' uno. Il quadrante
+         e la marcia SONO lo strumento centrale, e uno strumento ha una voce
+         sola. La regola dei livelli vale per le famiglie, non per i pezzi di
+         una stessa famiglia. */
+      c.globalAlpha = base * guida * PRIMARIO
+      this.quadrante()
       this.marciaCentrale()
       this.tachimetro()
-      this.carico()
+
+      c.globalAlpha = base * guida * SECONDARIO
+      this.scorrimento()
+
+      /* E `carico()` NON C'E' PIU'.
+         Non leggeva nessun dato: le sue due righe erano testo fisso — RENDER /
+         REAL-TIME e INPUT / SCORRIMENTO — e la seconda scriveva la parola
+         SCORRIMENTO a destra del pannello, mentre a sinistra la colonna viva
+         porta la stessa parola sotto di se'. Due volte nello stesso fotogramma,
+         a trecento pixel di distanza.
+         E' la regola gia' applicata tre volte dentro questo file — la scena
+         quando ripeteva la rotaia, la spia dei fari, il marchio — e stavolta e'
+         piu' netta di tutte: li' erano due segni per un'informazione, qui c'e'
+         un dato vivo e accanto la sua didascalia stampata.
+         Con lei sono cadute `misura()` e i campi `ms`, `chiamate`, `triangoli`:
+         inseguiti con un filtro sessanta volte al secondo, e letti da nessuno. */
     }
     // l'ora e il marchio restano accesi anche durante il controllo: sono le
-    // due cose che un pannello vero non spegne mai
-    c.globalAlpha = base
+    // due cose che un pannello vero non spegne mai. Ma restano accesi PIANO:
+    // l'ora e' l'unica cosa del pannello che nessuno guarda apposta.
+    c.globalAlpha = base * STRUTTURALE
     this.orologio()
 
     if (carta > 0.002) {
@@ -968,8 +1044,13 @@ export class Quadro {
     }
 
     if (guida > 0.002) {
-      c.globalAlpha = base * guida
+      /* I FILETTI SONO STRUTTURA: separano le zone e non dicono niente.
+         Le spie restano al peso pieno perche' vivono solo nell'avviamento — in
+         guida normale `spieServizio()` esce alla prima riga — e li' sono il
+         rito dell'accensione, cioe' proprio la cosa da guardare. */
+      c.globalAlpha = base * guida * STRUTTURALE
       this.filetti()
+      c.globalAlpha = base * guida
       this.spieServizio()
       c.globalAlpha = base
     }
@@ -1862,105 +1943,6 @@ export class Quadro {
      I sette centesimi che occupava sono andati al quadrante, che e' il
      protagonista e ne aveva bisogno. */
 
-
-  /**
-   * IL CARICO, all'estrema destra: quante volte si chiama la scheda e quanti
-   * triangoli le si danno.
-   *
-   * Sono `renderer.info.render`, cioe' esattamente cio' che un altro
-   * sviluppatore andrebbe a guardare per capire se la scena e' fatta bene. E
-   * sono la ragione per cui stanno qui e non in una barra di diagnostica: chi
-   * legge questo pannello sta guardando la scena mentre la scena dichiara
-   * quanto costa. Nessun filmato puo' farlo.
-   *
-   * A DIFFERENZA DEL TEMPO PER FOTOGRAMMA, QUESTI DUE SI POSSONO MOSTRARE.
-   * Non dipendono dalla macchina di chi guarda: duecentoquarantuno chiamate e
-   * due milioni e mezzo di triangoli sono duecentoquarantuno e due milioni e
-   * mezzo su qualunque scheda video esista. Sono una proprieta' della scena,
-   * non una prestazione — ed e' quella la differenza che decide cosa si
-   * scrive su un pannello e cosa no.
-   */
-  private carico() {
-    const c = this.c
-    const x = X_VIAGGIO
-    c.textAlign = 'center'
-    c.textBaseline = 'middle'
-
-    /**
-     * DUE DICHIARAZIONI, NON PIU' DUE NUMERI.
-     *
-     * Qui c'erano «DISEGNO 41» e «TRIANGOLI 1k». Erano veri e misurati, e il
-     * committente ha visto il difetto che li accomuna: nessuno dei due ha una
-     * lettura univoca. «Disegno 41» non vuol dire niente per chi guarda un
-     * portfolio; e a un tecnico dice «chiamate di disegno» solo se indovina,
-     * perche' quello e' il nome che ha in inglese. «Triangoli 1k» dentro
-     * l'abitacolo e' un numero minuscolo — la scena li' e' una fotografia e un
-     * quadrilatero — e senza contesto sembra poco, non leggero.
-     *
-     * E' la terza applicazione della stessa regola, e ormai vale come regola:
-     * un dato vero non e' automaticamente un dato da mostrare. Prima i
-     * millisecondi, poi i quattrocentosessantamila triangoli, adesso questi.
-     *
-     * Al loro posto due frasi che dicono la stessa cosa senza chiedere di
-     * essere interpretate, e rispondono alla domanda che un direttore tecnico
-     * fa davvero: perche' WebGL e non una sequenza di fotogrammi?
-     *
-     *   RENDER / REAL-TIME   la scena si calcola mentre la si guarda
-     *   INPUT / SCORRIMENTO  e quello che la comanda e' la mano di chi guarda
-     *
-     * Sono tutte e due verificabili in un secondo: si scorre e si vede.
-     */
-    const righe: Array<[string, string, number]> = [
-      ['RENDER', 'REAL-TIME', 0.320],
-      ['INPUT', t('inputScorrimento'), 0.660],
-    ]
-    for (const [nome, valore, y] of righe) {
-      this.etichetta(nome, x, A * y, A * 0.042, 'rgba(232,234,238,0.58)')
-      /* E LA PAROLA RIENTRA SE NON CI STA, invece di uscire dal pannello.
-         E' lo stesso rimedio gia' usato per il nome del lavoro qui sopra, ed
-         e' la difesa vera: spostare la colonna sistema «SCORRIMENTO» oggi, ma
-         il giorno in cui qualcuno traduce in tedesco, o scrive una parola piu'
-         lunga, il difetto tornerebbe identico e nessuno se ne accorgerebbe
-         finche' non lo fotografa un estraneo.
-         Il limite e' la distanza dal bordo piu' vicino: il testo e' centrato,
-         quindi cio' che sborda a destra sborda anche a sinistra. */
-      let corpo = A * 0.070
-      c.font = '700 ' + corpo.toFixed(1) + 'px Switzer, system-ui, sans-serif'
-      const largoMax = (L - ARIA_BORDO - x) * 2
-      while (c.measureText(valore).width > largoMax && corpo > A * 0.045) {
-        corpo *= 0.95
-        c.font = '700 ' + corpo.toFixed(1) + 'px Switzer, system-ui, sans-serif'
-      }
-      c.fillStyle = 'rgba(212,234,255,0.88)'
-      c.fillText(valore, x, A * (y + 0.115))
-    }
-
-    /**
-     * IL FILETTO AMBRA — l'unico punto caldo di tutto il pannello.
-     *
-     * Sta fra i due perche' li' serve un separatore comunque: due coppie
-     * etichetta-valore incolonnate alla stessa distanza si leggono come quattro
-     * righe, non come due blocchi.
-     *
-     * MA IL COLORE NON E' PER LORO. E' l'ambra della rotaia e della spina del
-     * resto del sito. Un quadro strumenti disegnato tutto in azzurro sarebbe
-     * uno strumento credibile e un pezzo estraneo alla pagina che lo contiene:
-     * basta un tratto della tinta di casa — uno solo, e nel posto piu'
-     * tranquillo che c'e' — perche' lo strumento diventi parte del sito.
-     */
-    const ya = Math.round(A * 0.545) + 0.5
-    const semi = L * 0.048
-    const g = c.createLinearGradient(x - semi, 0, x + semi, 0)
-    g.addColorStop(0, 'rgba(216,162,88,0)')
-    g.addColorStop(0.5, 'rgba(216,162,88,0.75)')
-    g.addColorStop(1, 'rgba(216,162,88,0)')
-    c.strokeStyle = g
-    c.lineWidth = 1
-    c.beginPath()
-    c.moveTo(x - semi, ya)
-    c.lineTo(x + semi, ya)
-    c.stroke()
-  }
 
   /**
    * IL MARCHIO, in alto a destra e piccolissimo.

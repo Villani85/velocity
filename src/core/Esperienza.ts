@@ -1965,14 +1965,14 @@ export class Esperienza {
        * visivo perche' la misura apparente non dipenda dalla finestra — e'
        * corretto e il giorno che serva un testo nello spazio e' gia' fatto.
        */
-      /* I NUMERI VERI ARRIVANO DA QUI, e vanno passati PRIMA di `aggiorna`
-         perche' e' li' dentro che si decide se ridisegnare.
-         `renderer.info.render` si azzera a ogni fotogramma e va letto DOPO
-         l'ultima passata: qui siamo all'inizio del giro successivo, quindi
-         i conteggi sono quelli del fotogramma appena finito — che e'
-         esattamente quello che va mostrato. */
-      const inf = this.renderer.info.render
-      this.quadro.misura(this.qualita.tempoMedio, inf.calls, inf.triangles)
+      /* QUI SI LEGGEVANO I NUMERI DEL MOTORE — millisecondi, chiamate di
+         disegno, triangoli — per passarli al pannello. Il ragionamento sul
+         COME leggerli era giusto e vale la pena ricordarlo: `renderer.info.render`
+         si azzera a ogni fotogramma e va letto all'inizio del giro dopo, cosi'
+         i conteggi sono quelli del fotogramma appena finito.
+         Ma il pannello non li disegna piu' da tempo: `carico()` scriveva due
+         righe di testo fisso, non quei numeri. Erano tre valori inseguiti con
+         un filtro sessanta volte al secondo e letti da nessuno. */
       // dove si e' nel percorso: lo sa la regia, e il pannello lo mostra al
       // posto dei fotogrammi al secondo — vedi il commento in testa a `scena()`
       const iBeat = CONFINI.findIndex(([b]) => b === this.regia.beat)

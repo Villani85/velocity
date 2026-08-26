@@ -332,7 +332,6 @@ export const D: Record<string, Voce> = {
   tappaContatto: { it: 'CONTATTO', en: 'CONTACT' },
 
   // ----------------------------------------------------------------- comandi
-  inputScorrimento: { it: 'SCORRIMENTO', en: 'SCROLL' },
 
   vociFinitura: { it: 'FINITURA', en: 'FINISH' },
   vociLuogo: { it: 'LUOGO', en: 'PLACE' },
