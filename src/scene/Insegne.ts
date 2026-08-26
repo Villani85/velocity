@@ -8,6 +8,7 @@ import { quantoDiLato } from '../transizioni/Camera'
 import { LAVORI } from '../ui/Lavori'
 import { t } from '../ui/Lingua'
 import type { Regia } from '../core/Regia'
+import { immagine } from '../core/Immagini'
 
 /**
  * LE INSEGNE — tre siti veri, in piedi sul piazzale, nel primo fotogramma.
@@ -749,9 +750,14 @@ export class Insegne {
       this.gruppo.add(m)
 
       if (lavoro.copertina) {
-        const im = new Image()
-        im.decoding = 'async'
-        im.onload = () => {
+        /* LA COPERTINA SI CHIEDE A `core/Immagini.ts`, non con una `Image` di
+           qui. La stessa immagine serve anche alle carte del carosello, che la
+           chiedono DOPO l'automobile: due `new Image()` sullo stesso indirizzo
+           a nove secondi di distanza si appoggiano alla cache del browser per
+           non duplicare, e in sviluppo quella cache non c'e'.
+           Misurato in `docs/carico.json`: tre copertine scaricate due volte,
+           41 kB e circa 197 millisecondi. */
+        void immagine(lavoro.copertina).then((im) => {
           this.disegna(tela, lavoro.nome, im)
           t.needsUpdate = true
           this.pareggia(tela, m.material as MeshBasicMaterial)
@@ -759,8 +765,7 @@ export class Insegne {
           // la pagina e' ferma, invece che nel fotogramma che la disegna:
           // vedi «core/Salita.ts»
           inCoda(t)
-        }
-        im.src = lavoro.copertina
+        }).catch(() => {})
       }
     })
   }

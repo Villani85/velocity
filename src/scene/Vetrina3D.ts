@@ -16,6 +16,7 @@ import { inCoda } from '../core/Salita'
 import { LAVORI } from '../ui/Lavori'
 import { t } from '../ui/Lingua'
 import { scritto } from '../ui/Contatto'
+import { immagine } from '../core/Immagini'
 
 /**
  * LA VETRINA — i lavori su un arco, in tre dimensioni.
@@ -354,30 +355,40 @@ export class Vetrina3D {
          volta sola. */
       const src = LAVORI[i]?.copertina
       if (src) {
-        const im = new Image()
-        im.decoding = 'async'
-        im.onload = () => {
-          this.disegna(tela, i, im)
-          t.needsUpdate = true
-          // la stessa immagine serve due volte: dentro il riquadro alla sua
-          // risoluzione, e dietro tutta la scena a centosessanta pixel
-          this.fondo(i, im)
-          if (i === this.fondoQuale || this.fondoQuale < 0) {
-            this.fondoQuale = -1
-            this.scegli(i)
-          }
-          // e in fila per la scheda, come le insegne: vedi «core/Salita.ts»
-          inCoda(t)
-        }
         /* E ASPETTANO L'AUTOMOBILE. Sono dieci file per centotrentadue
            kilobyte: poco per volta, ma sono dieci CONNESSIONI aperte in
            parallelo con il GLB della vettura proprio mentre sta scendendo, e
            su una rete lenta il numero di richieste conta quanto i byte.
            Il pannello nel frattempo e' gia' completo — fondo, cornice, codice,
-           nome, soggetto — quindi non c'e' niente da aspettare, come dice il
-           commento qui sopra: adesso e' vero anche per il momento in cui
-           partono. */
-        void dopoAuto.then(() => { im.src = src })
+           nome, soggetto — quindi non c'e' niente da aspettare.
+
+           E SI CHIEDE A `core/Immagini.ts`, non con una `Image` di qui: la
+           stessa copertina la usano anche i tre schermi della hero, che la
+           chiedono SUBITO. Fra le due richieste passavano nove secondi, e il
+           browser le trattava come due scaricamenti — 41 kB e 197 ms buttati su
+           tre file, misurati in `docs/carico.json`. Adesso chi arriva secondo
+           riceve la stessa immagine, gia' scaricata.
+
+           E l'attesa dell'automobile RESTA, perche' e' un'altra cosa: quella
+           non serve a evitare un doppione, serve a non aprire dieci connessioni
+           mentre scende il GLB. Se le insegne l'hanno gia' chiesta, questa
+           `then` costa zero e si risolve subito. */
+        void dopoAuto
+          .then(() => immagine(src))
+          .then((im) => {
+            this.disegna(tela, i, im)
+            t.needsUpdate = true
+            // la stessa immagine serve due volte: dentro il riquadro alla sua
+            // risoluzione, e dietro tutta la scena a centosessanta pixel
+            this.fondo(i, im)
+            if (i === this.fondoQuale || this.fondoQuale < 0) {
+              this.fondoQuale = -1
+              this.scegli(i)
+            }
+            // e in fila per la scheda, come le insegne: vedi «core/Salita.ts»
+            inCoda(t)
+          })
+          .catch(() => {})
       }
 
       /* E PER LA CARTA DEL METODO ARRIVANO ANCHE LE DUE PROVE.
