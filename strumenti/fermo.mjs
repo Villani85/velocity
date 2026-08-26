@@ -129,6 +129,59 @@ await p.waitForFunction(
 ).catch(() => console.log('  (ATTENZIONE: le ruote vere non sono arrivate)'))
 await p.evaluate(() => window.fissaQualita('alto'))
 
+/* E LA STRADA LA CONGELA QUESTO STRUMENTO, non piu' il sito.
+ *
+ * Fino a ieri `Esperienza` spegneva l'avanzamento della carreggiata quando la
+ * preferenza era accesa, e questo cancello lo verificava. Il committente ha
+ * deciso il contrario, tre volte, con una riga che chiude la questione: «deve
+ * funzionare sempre, altrimenti chi ce l'ha acceso non lo vede». Il
+ * ragionamento per esteso, costo per l'accessibilita' compreso, sta accanto al
+ * codice che decide, in `scene/Lastra.ts`.
+ *
+ * A quel punto questo strumento aveva due strade, e una sola e' onesta.
+ * Bocciare: il fotogramma cambierebbe del tredici per cento e uscirebbe rosso a
+ * ogni esecuzione, per una scelta presa apposta. Un cancello che suona contro
+ * una decisione non protegge niente — insegna a ignorarlo, e da quel momento
+ * non prende piu' nemmeno i difetti veri.
+ * Oppure misurare cio' che gli resta da misurare, che e' quasi tutto: la grana
+ * della pellicola, la lancetta dei giri, la vibrazione della camera, le code
+ * dello scorrimento, i pannelli che respirano. Sono animazioni SOPRA il
+ * contenuto, restano spente, e se una si riaccende va presa.
+ *
+ * Quindi si avvolge `lastra.aggiorna` e si riporta l'andatura a zero dopo che
+ * ha fatto i suoi conti: la strada sta ferma DENTRO LA MISURA e solo li'. Il
+ * sito non lo sa, e il resto della scena viene confrontato come sempre.
+ * Un cancello che boccia una decisione presa fa politica, non misura. */
+const congelata = await p.evaluate(() => {
+  const L = window.esperienza?.lastra
+  if (!L || typeof L.aggiorna !== 'function') return false
+  const orig = L.aggiorna.bind(L)
+  /* SI CONGELA ANCHE LE UNIFORM, e il primo tentativo non lo faceva.
+     Azzerare `andatura` DOPO `aggiorna` non basta: dentro `aggiorna` le
+     uniform sono gia' state scritte con il valore vero, e il fotogramma dopo
+     l'andatura riparte da zero e risale. Il risultato e' un dente di sega —
+     l'avanzamento resta quasi fermo ma le scie dello shader sfarfallano — e la
+     misura leggeva l'otto per cento dello schermo in movimento. Un
+     congelamento a meta' e' peggio di nessun congelamento: sembra funzionare. */
+  const fermo = L.avanzamento
+  L.aggiorna = (...a) => {
+    const v = orig(...a)
+    L.andatura = 0
+    L.avanzamento = fermo
+    if (L.u) {
+      if (L.u.uAvanzamento) L.u.uAvanzamento.value = fermo
+      if (L.u.uAndatura) L.u.uAndatura.value = 0
+      if (L.u.uSpinta) L.u.uSpinta.value = 0
+    }
+    return v
+  }
+  return !!L.u
+})
+console.log(congelata
+  ? "  la strada e' congelata dentro la misura (e' una scelta del sito, non un difetto)"
+  : '  ATTENZIONE: non sono riuscito a congelare la strada, i numeri qui sotto la contengono')
+
+
 /* LA PRIMA COSA CHE SI VERIFICA E' CHE LA PREFERENZA SIA ARRIVATA.
    Senza questo controllo, uno strumento che non trova movimento non sa
    distinguere «la preferenza e' arrivata e ha funzionato» da «la preferenza

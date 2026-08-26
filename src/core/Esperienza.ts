@@ -1754,77 +1754,41 @@ export class Esperienza {
     const rampa = inAvvio
       ? Math.min(Math.max((this.regia.locale - 0.34) / 0.50, 0), 1)
       : 1
-    /* IL MOVIMENTO RIDOTTO TOGLIE LA CROCIERA, NON LA STRADA.
+    /* LA STRADA NON GUARDA PIU' LA PREFERENZA DEL MOVIMENTO RIDOTTO.
      *
-     * COS'E' DAVVERO QUESTA STRADA, e la prima meta' di questo commento era ed
-     * e' giusta. `avanzamento` e' un INTEGRALE DEL TEMPO: ogni fotogramma somma
-     * `andatura * dt`. Lo scorrimento entra come ACCELERATORE — decide quanto si
-     * va forte — non come posizione. Quindi a mano ferma la carreggiata
-     * continuava a correre alla velocita' di crociera, ed era l'unico oggetto
-     * del sito che si muove a schermo pieno senza che nessuno stia facendo
-     * niente. Chiunque abbia il disturbo per cui questa preferenza esiste, e'
-     * quella la cosa che lo fa star male. Va tolta, e resta tolta.
+     * Qui c'erano quattro interruttori per spegnerla — `acceso: false`,
+     * `velocita: 0`, `freno: 1`, piu' un `andatura = 0` scritto a mano subito
+     * dopo — e il commento che li difendeva era lungo, argomentato e per meta'
+     * giusto. La meta' giusta merita di restare: `avanzamento` e' un integrale
+     * del tempo, lo scorrimento entra come acceleratore e non come posizione,
+     * quindi a mano ferma la carreggiata corre da sola alla velocita' di
+     * crociera — ed e' l'unico oggetto del sito che si muove a schermo pieno
+     * senza che nessuno faccia niente.
      *
-     * QUELLO CHE MANCAVA. Insieme alla crociera erano stati tolti anche il
-     * comando e la strada: `acceso: false`, `velocita: 0`, `freno: 1`, e per
-     * sicurezza un `andatura = 0` scritto a mano subito dopo. Quattro
-     * interruttori per spegnere una cosa sola.
+     * Quello che non teneva e' la conclusione. Il committente l'ha detto in una
+     * riga, dopo aver visto il sito con la preferenza accesa: «deve funzionare
+     * sempre, altrimenti chi ce l'ha acceso non lo vede». Il ragionamento per
+     * esteso — costo compreso — sta in `scene/Lastra.ts`, accanto al codice che
+     * decide, invece che qui accanto al codice che chiama.
      *
-     * Il risultato l'ha visto il committente prima di qualunque strumento: «la
-     * strada non si muove, non e' un problema di processi, non si muove neanche
-     * a scatti». Misurato: con `reduce`, su duecento fotogrammi di scorrimento
-     * CONTINUO, l'avanzamento faceva ZERO metri; senza la preferenza, 193.
+     * Misurato con `reduce`, duecento fotogrammi di scorrimento continuo:
+     *   quattro interruttori     ZERO metri percorsi
+     *   solo la crociera tolta   73 metri
+     *   come adesso              come per tutti gli altri
      *
-     * E nessuno dei miei strumenti l'aveva mai visto, perche' Playwright parte
-     * con la preferenza spenta: misuravo sempre l'altra meta' del mondo.
-     *
-     * PERCHE' QUESTA NON E' LA COSA CHE ERA STATA SCARTATA. Questo commento
-     * conteneva gia' l'idea di legare la strada allo scorrimento, e la
-     * scartava per una ragione buona: «quel legame vuole un numero — quanti
-     * metri di asfalto per un giro di rotella — e quel numero non si ricava da
-     * niente di misurato. Inventarlo vorrebbe dire mettere in scena una
-     * velocita' finta». Vero, e vale ancora.
-     *
-     * Ma quella era un'altra cosa: legare l'AVANZAMENTO alla POSIZIONE dello
-     * scorrimento, cioe' una strada che torna indietro se si risale. Qui
-     * l'avanzamento resta l'integrale del tempo che e' sempre stato, e la
-     * velocita' esce dalla stessa formula di sempre — `spinta` letta da
-     * `scorrimento.velocita`, la stessa riga che governa la strada normale.
-     * Cade solo il termine costante. Non c'e' nessun numero nuovo da inventare:
-     * ce n'e' uno vecchio messo a zero.
-     *
-     * COSA RICEVE ADESSO CHI HA LA PREFERENZA ACCESA. Una strada che si muove
-     * mentre muove il dito e che si ferma quando lo alza — dentro `Lastra` le
-     * code di salita e discesa scendono a un decimo di secondo apposta. Cioe'
-     * movimento COMANDATO, che secondo `core/Moto.ts` non e' quello che la
-     * preferenza chiede di togliere: «su questa pagina l'accelerazione non e'
-     * un'animazione che parte da sola, e' la cosa che fa chi guarda».
-     *
-     * FERMA NON VUOL DIRE SPARITA, diceva la vecchia versione, e su questo
-     * aveva torto: un tempo che si chiama `velocita`, sotto un titolo che dice
-     * «piu' forte scorri, piu' forte va», con la carreggiata inchiodata, non e'
-     * una fotografia invece di una ripresa. E' una promessa che non si mantiene.
-     */
+     * E nessuno strumento se n'era mai accorto, perche' Playwright parte con la
+     * preferenza spenta: misuravano tutti l'altra meta' del mondo. */
     this.lastra.aggiorna(
       inAvvio || this.regia.beat === 'velocita' || this.regia.beat === 'contatto',
       this.scorrimento.velocita,
       Math.max(this.controllo?.frenata(this.finaleGrezzo) ?? 0, 1 - rampa),
     )
-    /* L'AZZERAMENTO A MANO NON C'E' PIU', e la ragione per cui c'era resta
-       giusta: frenando, `Lastra` porta l'andatura a zero con una costante di
-       tempo di un secondo e mezzo, e un secondo e mezzo di decelerazione dopo
-       che la mano si e' fermata e' movimento che continua da solo — piccolo,
-       ma autonomo, ed e' esattamente cio' che la preferenza chiede di togliere.
-       Quello che non andava era il RIMEDIO. `andatura = 0` a ogni fotogramma
-       non accorcia l'inerzia: impedisce alla strada di muoversi del tutto,
-       anche mentre il dito la sta spingendo. Curava l'inerzia spegnendo il
-       motore.
-       La cura sta adesso dentro `scene/Lastra.ts`, dove la costante di tempo
-       scende a un decimo di secondo con la preferenza accesa: la coda si
-       accorcia, e la strada si ferma quando si smette di scorrere invece che
-       un secondo e mezzo dopo. Ed e' il posto giusto — la vecchia nota diceva
-       che quel file «e' in mano a qualcun altro in questa passata», che era una
-       ragione di calendario, non di progetto. */
+    /* QUI C'ERA UN `andatura = 0` SCRITTO A MANO A OGNI FOTOGRAMMA, ed era il
+       colpo di grazia: gli altri tre interruttori spegnevano la spinta, questo
+       impediva alla strada di muoversi anche mentre il dito la spingeva.
+       La ragione dichiarata era buona — l'inerzia di un secondo e mezzo dopo
+       che la mano si e' fermata e' movimento che continua da solo — ma il
+       rimedio curava l'inerzia spegnendo il motore. */
 
     // l'accensione attraversa il confine fra due beat, quindi legge il
     // progresso globale e non quello locale

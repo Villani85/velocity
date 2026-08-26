@@ -12,7 +12,6 @@ import { anisotropiaMassima } from '../core/Anisotropia'
 
 import { dopoAuto } from '../core/Ordine'
 import { AUTO } from './Esterno'
-import { RIDOTTO } from '../core/Moto'
 
 /**
  * LA STRADA OLTRE IL PARABREZZA — costruita, non filmata.
@@ -3019,37 +3018,51 @@ export class Lastra {
 
     const fermo = Math.min(Math.max(freno, 0), 1)
 
-    /* CON IL MOVIMENTO RIDOTTO CADE LA CROCIERA, E SOLO QUELLA.
+    /* LA STRADA CORRE UGUALE PER TUTTI, ANCHE CON IL MOVIMENTO RIDOTTO.
      *
-     * `core/Moto.ts` fa la distinzione che decide tutto: AUTONOMO e' cio' che
-     * si muove senza che nessuno tocchi niente, COMANDATO e' cio' che risponde
-     * al gesto. E fra gli esempi di autonomo elenca, con queste parole, «la
-     * strada che scorre a mano ferma».
+     * E' una decisione del committente, presa tre volte, e va scritta qui
+     * perche' e' controintuitiva e perche' contraddice una regola che questo
+     * progetto applica dappertutto: «AUTONOMO si toglie, COMANDATO resta»
+     * (`core/Moto.ts`). La crociera e' autonoma — diciassette metri al secondo
+     * che corrono senza che nessuno tocchi niente — quindi per quella regola
+     * andrebbe tolta con la preferenza accesa.
      *
-     * La crociera e' esattamente quella: diciassette metri al secondo che
-     * corrono da soli, per scelta — il commento sopra ANDATURA lo dice, «sotto
-     * sta un'andatura di crociera che regge da sola, e lo scorrimento ci si
-     * SOMMA sopra». Con la preferenza accesa quel fondo va a zero: resta solo
-     * la somma, cioe' solo cio' che fa chi guarda.
+     * E' stata tolta, in due versioni diverse, e tutte e due erano sbagliate
+     * dal punto di vista di chi guarda:
      *
-     * E CADONO ANCHE LE CODE. Salita e discesa valgono 0,55 e 1,6 secondi
-     * perche' la strada debba comportarsi come un motore, e un secondo e mezzo
-     * di decelerazione dopo che la mano si e' fermata e' un movimento che
-     * continua da solo — piccolo, ma autonomo. Portandole a un decimo, la
-     * strada si ferma quando si smette di scorrere. E' la stessa cura che
-     * `core/Scorrimento.ts` fa alla propria coda, e per la stessa ragione.
+     *   la prima spegneva TUTTA la strada — quattro interruttori per una cosa
+     *   sola — e il committente ha visto un tempo intero in cui non succede
+     *   niente: «la strada non si muove, non si muove neanche a scatti»;
      *
-     * Il risultato: chi ha la preferenza accesa guida la strada col dito e la
-     * vede stare ferma appena lo alza. Non riceve meno sito — riceve lo stesso
-     * sito senza il movimento che non ha chiesto. */
-    const crociera = RIDOTTO ? 0 : ANDATURA.crociera
+     *   la seconda toglieva solo la crociera e teneva il comando. Misurata,
+     *   funzionava: 73 metri percorsi scorrendo, zero pixel di movimento a dito
+     *   fermo. Ma resta un sito diverso per chi ha quella preferenza, e il
+     *   committente l'ha rifiutata con una frase che chiude la questione:
+     *   «deve funzionare sempre, altrimenti chi ce l'ha acceso non lo vede».
+     *
+     * LA RAGIONE PER CUI LA REGOLA NON SI APPLICA QUI. `core/Moto.ts` dice che
+     * chi chiede `reduce` non deve ricevere MENO SITO, deve ricevere lo stesso
+     * sito senza il movimento che gli fa male. Su questa pagina il moto della
+     * strada non e' un ornamento sopra il contenuto: e' il contenuto. Toglierlo
+     * non lascia lo stesso sito piu' quieto, lascia una fotografia di un sito.
+     *
+     * E IL COSTO VA SCRITTO, non nascosto: chi accende quella preferenza spesso
+     * lo fa per un disturbo vestibolare, e una carreggiata che corre a schermo
+     * pieno e' precisamente il caso per cui la preferenza esiste. Questa scelta
+     * lo accetta. Tutto il resto del capitolo del movimento ridotto resta in
+     * piedi e non e' in discussione — la grana della pellicola, la lancetta dei
+     * giri, la vibrazione della camera, le code dello scorrimento: quelle sono
+     * animazioni sopra il contenuto, e restano spente.
+     *
+     * `strumenti/fermo.mjs` e' stato aggiornato di conseguenza: congela lui la
+     * strada e continua a verificare che tutto il resto stia fermo. Un cancello
+     * che boccia una decisione presa fa politica, non misura. */
     this.bersaglio = acceso
-      ? (crociera + (ANDATURA.punta - crociera) * spinta) * (1 - fermo)
+      ? (ANDATURA.crociera + (ANDATURA.punta - ANDATURA.crociera) * spinta) * (1 - fermo)
       : 0
 
     // salita e discesa hanno costanti di tempo diverse: vedi ANDATURA
-    const tau = RIDOTTO ? 0.1
-      : this.bersaglio > this.andatura ? ANDATURA.salita : ANDATURA.discesa
+    const tau = this.bersaglio > this.andatura ? ANDATURA.salita : ANDATURA.discesa
     const k = 1 - Math.exp(-dt / tau)
     this.andatura += (this.bersaglio - this.andatura) * k
 
