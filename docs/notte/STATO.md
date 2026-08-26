@@ -95,13 +95,67 @@ che lo controlla da solo a ogni giro.
 
 ---
 
+## Quello che e' successo davvero alla notte
+
+**Il PC si e' riavviato intorno all'01:45.** Ho lavorato circa due ore, non otto.
+La guardia era ferma dalle 00:20 — l'avevo spenta io mentre il committente
+guardava il sito, e non l'ho riaccesa: e' un mio errore, non un guasto.
+
+Cosa ha retto e cosa no, perche' e' la cosa utile da sapere:
+
+- **Ha retto tutto il lavoro.** Albero pulito, quattro commit spinti. La regola
+  «un commit per cura, subito» ha fatto esattamente il suo mestiere.
+- **Ha retto la ripresa.** I risultati della caccia erano in cache: quattro
+  cacciatori e trentadue voti di verifica non sono stati rifatti.
+- **NON ha retto niente contro il riavvio.** Il piano non aveva difese: la
+  guardia si accorge che la scena si e' rotta, non che la sessione e' morta, e
+  nessuno riaccendeva il server di sviluppo. Se il processo muore, niente di
+  cio' che scrivo puo' resuscitarlo — l'unica difesa vera e' committare spesso e
+  tenere questo diario, e quelle due hanno funzionato.
+
+---
+
+## Tornata 1 — la caccia: 28 difetti trovati
+
+Quattro cacciatori sui sette tempi a 1200x750, otto fotogrammi, 121 ritagli.
+La verifica adversariale sta smentendo molto (29 voti su 32 al momento del
+riavvio), che e' come dev'essere: nel dubbio si smentisce.
+
+### Confermato da me, indipendentemente
+
+**La ruota posteriore non appoggia.** Nel fotogramma `n1_hero`, misurando
+quattro fasce alla stessa quota:
+
+| dove | luminanza |
+|---|---|
+| **punto di contatto della ruota posteriore** | **67,3** |
+| pedana 60 px a sinistra | 52,7 |
+| pedana 60 px a destra | 40,3 |
+| pedana lontano a destra | 30,7 |
+
+Esattamente dove la ruota tocca, la pedana e' la cosa PIU' CHIARA del gruppo, e
+dovrebbe essere la piu' scura. E' rovesciato, ed e' il pezzo su cui ho lavorato
+ieri (`Appoggio.ts` + la pianta condivisa). Da diagnosticare col catasto dei
+pixel prima di curare: chi possiede quei pixel? Il riflesso della pedana a
+specchio e' il sospettato numero uno, ma il sospettato numero uno oggi si e'
+gia' sbagliato tre volte.
+
+---
+
 ## Coperto finora
 
 | | |
 |---|---|
-| tempi | nessuno ancora, per la caccia |
-| finestre | nessuna |
-| qualita' | nessuna |
+| tempi | **tutti e sette**, piu' il carosello |
+| finestre | 1200x750 soltanto |
+| qualita' | quella che sceglie l'applicazione |
+| finiture | solo NERO LIQUIDO |
+| luoghi | solo VILLA |
+| lingua | solo IT |
+
+**Non coperto:** mobile 390x844 (dove Usability e' piu' severa), qualita' media
+e bassa, le altre tre finiture, gli altri tre luoghi, l'inglese, tastiera e
+lettore di schermo. Cioe' la maggior parte della matrice.
 
 ## Corsia B — in attesa del tuo occhio
 
