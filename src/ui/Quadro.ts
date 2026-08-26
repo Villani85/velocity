@@ -984,6 +984,25 @@ export class Quadro {
     const SECONDARIO = 0.45
     const STRUTTURALE = 0.20
 
+    /* E IL SECONDARIO NON SCENDE ANCORA ALL'ARRIVO DELLA PATTUGLIA.
+       Nel piano c'era scritto di abbassarlo di un altro quarto quando arriva
+       il controllo, perche' «la scena deve rubare il fuoco all'interfaccia».
+       L'intenzione e' giusta e vale gia': solo, la ottiene qualcos'altro, e in
+       modo piu' netto.
+
+       `guida` sopra e' `1 - spegnimento`, e moltiplica tutti e tre i livelli.
+       `spegnimento` e' `lisc(q, 0,30, 0,48)` sul tempo finale — vedi
+       «ui/Controllo.ts» — mentre la parola DOCUMENTI comincia a 0,44. Li'
+       `lisc` vale 0,874, quindi `guida` vale 0,126: quando la pattuglia entra
+       in campo il pannello INTERO e' al dodici per cento e sta andando a zero.
+
+       Non esiste nessuna finestra in cui la pattuglia c'e' e il cruscotto e'
+       acceso. Un meno venticinque per cento sul solo secondario, dentro un
+       pannello gia' moltiplicato per 0,126, non sposta un pixel che qualcuno
+       possa vedere — sarebbe una manopola che non comanda niente, e una
+       manopola morta e' peggio di una mancante: la prossima persona che legge
+       questo file crede che serva a qualcosa e la gira. */
+
     if (guida > 0.002) {
       c.globalAlpha = base * guida
       /* LA SCENA NON SI DISEGNA PIU' QUI, E LA RAGIONE E' UN DUPLICATO.
