@@ -1,3 +1,37 @@
+/** LEVIGA — smorzamento di Taubin sulla mesh di una vettura.
+ *
+ *  !! PROVATO IL 26 AGOSTO 2026, E PEGGIORA IL NUMERO. Non usarlo senza aver
+ *  prima letto questo.
+ *
+ *  Scansione su `auto2.glb`, misurando `strumenti/fairness.mjs` a R=25 mm:
+ *
+ *    originale   mediana 0,424 mm   p95 1,510   620 kB
+ *    K = 4               0,482          1,675   1,4 MB
+ *    K = 8               0,514          1,463   1,4 MB
+ *    K = 16              0,534          1,639   1,3 MB
+ *    K = 28              0,566          1,737   1,3 MB
+ *
+ *  Peggiora in modo MONOTONO, e gia' a quattro iterazioni. Quindi non e' un
+ *  problema di taratura — troppe iterazioni smorzano via la forma — e' un
+ *  difetto strutturale.
+ *
+ *  L'IPOTESI CHE REGGE: la mesh ha 60.137 vertici con le cuciture delle UV
+ *  DUPLICATE. Smorzare ogni copia per conto suo le allontana invece di
+ *  avvicinarle: la superficie si strappa lungo le isole di texture, e il
+ *  residuo dal fit quadrico locale sale proprio li'. Smorzare una mesh non
+ *  saldata non e' levigare, e' scucire.
+ *
+ *  Perche' funzioni servirebbe: saldare i vertici per posizione, smorzare,
+ *  e ricucire le UV al loro posto. Non e' impossibile — e' un'altra cosa da
+ *  quella che fa questo file oggi.
+ *
+ *  E l'asset passa da 620 kB a 1,4 MB, perche' riesportando si perde la
+ *  quantizzazione. Su un percorso critico gia' da 2,2 MB, da solo basterebbe.
+ *
+ *  Che la superficie sia davvero il collo di bottiglia lo dice la prova zebra
+ *  (`strumenti/zebra_render.mjs`): le bande ondeggiano e si strozzano su quasi
+ *  tutta la fiancata. Il difetto c'e'; questa non e' la sua cura.
+ */
 import { NodeIO } from '@gltf-transform/core'
 import { KHRMeshQuantization, EXTMeshoptCompression } from '@gltf-transform/extensions'
 import { dequantize, weld } from '@gltf-transform/functions'

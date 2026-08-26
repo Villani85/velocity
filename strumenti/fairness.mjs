@@ -3,7 +3,17 @@
  *  costruisce un piano tangente e si adatta w = a+bu+cv+du²+euv+fv². Il RMS dei
  *  residui dice quanto la superficie si scosta da una forma liscia ALLA SCALA R.
  *  Sottrae la curvatura legittima (la assorbe la quadrica) e non ha il pavimento
- *  di rumore dei conteggi sulle normali. Bersaglio "product film": < ~0.1 mm a R=25mm. */
+ *  di rumore dei conteggi sulle normali. Bersaglio "product film": < ~0.1 mm a R=25mm.
+ *
+ *  ATTENZIONE A QUEL BERSAGLIO: e' un'aspirazione scritta qui, non una soglia di
+ *  visibilita' misurata. Il 26 agosto 2026 e' stato messo in dubbio proprio per
+ *  questo — 0,424 mm su una vettura di 4,5 metri sono lo 0,0076% della lunghezza
+ *  — e la prova zebra ha dato ragione al bersaglio: le bande di un riflesso
+ *  lungo ondeggiano e si strozzano su quasi tutta la fiancata.
+ *  La lezione non e' «il numero aveva ragione». E': quello che si vede non e'
+ *  lo scostamento, e' la sua DERIVATA lungo una banda lunga. Un residuo piccolo
+ *  ma che cambia in fretta rompe un riflesso; uno grande e costante no. Quando
+ *  questo numero e un provino non concordano, si guarda il provino a bande. */
 import { readFileSync } from 'fs'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
