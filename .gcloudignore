@@ -1,0 +1,17 @@
+# ATTENZIONE, QUESTO FILE E' NECESSARIO E LA SUA ASSENZA NON DA' UN ERRORE UTILE.
+#
+# `gcloud run deploy --source .` NON legge `.dockerignore`: legge questo file, e
+# se questo file non c'e' ricade su `.gitignore`. In `.gitignore` c'e' `dist/`,
+# perche' e' un artefatto di build e non si versiona — quindi la prima
+# pubblicazione ha caricato trecento megabyte di sorgenti e node_modules, e poi
+# e' morta con «COPY failed: stat dist: file does not exist».
+#
+# L'errore non nomina mai `.gitignore`, e la cartella sul disco c'era: dal
+# messaggio sembrava un difetto del Dockerfile.
+#
+# Qui si dichiara il contrario di `.gitignore`: si esclude tutto e si lascia
+# passare SOLO cio' che serve a costruire l'immagine.
+*
+!dist
+!Dockerfile
+!nginx.conf

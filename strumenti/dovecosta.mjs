@@ -33,7 +33,15 @@ await p.route('**/@vite/client', (r) => r.fulfill({ body: 'export {}', contentTy
    ciclo non ha girato nemmeno una volta e lo strumento ha stampato «0 su 0»
    invece di dire che l'avevo rotto. Anche gli strumenti sanno mentire. */
 const coda = process.argv[3] ? '?' + process.argv[3] : ''
-await p.goto('http://localhost:5174/' + coda, { waitUntil: 'domcontentloaded' })
+/* E L'INDIRIZZO SI PUO' CAMBIARE DA FUORI, che prima non si poteva.
+   Stava scritto qui dentro come `localhost:5174`, cioe' il server di sviluppo:
+   moduli non impacchettati, niente minificazione, il client di Vite attaccato.
+   Il committente ha guardato la build vera pubblicata e ha detto «sembra
+   pesantissimo» — e questo strumento non poteva rispondere, perche' l'unica
+   cosa che sapeva guardare era un'altra pagina.
+     BASE_URL=https://... node strumenti/dovecosta.mjs 420 */
+const BASE = process.env.BASE_URL || 'http://localhost:5174/'
+await p.goto(BASE + coda, { waitUntil: 'domcontentloaded' })
 await p.waitForFunction(() => !!window.esperienza)
 await p.waitForFunction(() => window.esperienza.autoPronta && window.esperienza.ambientePronto, null, { timeout: 120000 }).catch(() => {})
 await p.evaluate(() => window.fissaQualita('alto'))

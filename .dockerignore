@@ -1,0 +1,7 @@
+# NELL'IMMAGINE ENTRA SOLO `dist/`.
+# Senza questo file il contesto di build sarebbe l'intera cartella: node_modules,
+# i sorgenti dei modelli, i provini in docs/ e la storia di git — centinaia di
+# megabyte spediti a Cloud Build per servire otto megabyte di sito.
+*
+!dist
+!nginx.conf
