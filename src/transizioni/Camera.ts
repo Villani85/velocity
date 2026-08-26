@@ -4,6 +4,7 @@ import { RIDOTTO } from '../core/Moto'
 import { morbido, type Regia } from '../core/Regia'
 import { AUTO } from '../scene/Esterno'
 import { Attraversamento, SOGLIA } from './Attraversamento'
+import { fermo } from '../core/Banco'
 
 /**
  * LA COREOGRAFIA.
@@ -645,7 +646,7 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
          esattamente il moto non richiesto per cui la preferenza esiste.
          Toglierla non toglie nessuna informazione: la lastra fuori resta la
          stessa, l'abitacolo resta lo stesso, sparisce il tremolio. */
-      const s = RIDOTTO ? 0 : 0.0016 * t * (0.3 + 0.7 * spinta)
+      const s = fermo(RIDOTTO) ? 0 : 0.0016 * t * (0.3 + 0.7 * spinta)
       camera.position.x += (Math.random() - 0.5) * s
       camera.position.y += (Math.random() - 0.5) * s
       break
@@ -707,7 +708,7 @@ export function inquadra(camera: PerspectiveCamera, regia: Regia, velocita: numb
          guarda. Cio' che mancava e' che la conclusione valeva solo per gli
          ultimi trentacinque centesimi di un beat su sette. Con `RIDOTTO` vale
          subito e dappertutto. */
-      const s2 = RIDOTTO ? 0 : 0.0016 * (1 - Math.min(q / 0.35, 1))
+      const s2 = fermo(RIDOTTO) ? 0 : 0.0016 * (1 - Math.min(q / 0.35, 1))
       camera.position.x += (Math.random() - 0.5) * s2
       camera.position.y += (Math.random() - 0.5) * s2
       break

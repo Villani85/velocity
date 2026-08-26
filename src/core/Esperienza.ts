@@ -78,6 +78,7 @@ import {
 } from '../transizioni/Camera'
 import { Attraversamento, SCALA } from '../transizioni/Attraversamento'
 import { apriLaCoda } from './Ordine'
+import { fermo, BLOOM } from './Banco'
 
 /**
  * IL MOTORE.
@@ -905,7 +906,10 @@ export class Esperienza {
       }
     }
 
-    if (this.bloom) this.bloom.enabled = q.bloom
+    /* E `?bloom=0` lo spegne comunque. Serve alla prova piu' severa che
+       esista su una carrozzeria: se senza post sembra plastica, accendere il
+       bagliore non la rende fotografica — rende luminosa la plastica. */
+    if (this.bloom) this.bloom.enabled = q.bloom && BLOOM
     if (this.ao) {
       this.ao.enabled = q.occlusione
       // cambiare i campioni ricompila UN materiale a schermo intero, non la
@@ -2054,7 +2058,7 @@ export class Esperienza {
          identica, con la stessa densita' e lo stesso peso sulle basse luci —
          diventa una texture invece di uno sfarfallio. Cioe' esattamente cio'
          che la preferenza chiede: la stessa immagine, senza il movimento. */
-      this.grado.uniforms.tempo.value = RIDOTTO ? 0 : ora * 0.001
+      this.grado.uniforms.tempo.value = fermo(RIDOTTO) ? 0 : ora * 0.001
       // IL FONDO SOTTO IL TESTO: quattro numeri gia' misurati da `ui/Voci.ts`,
       // nessuna lettura di impaginazione dentro il ciclo di disegno
       const r = RIQUADRO_TESTO

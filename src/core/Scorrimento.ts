@@ -1,4 +1,5 @@
 import { RIDOTTO } from './Moto'
+import { fermo } from './Banco'
 
 /**
  * IL PROGRESSO DELLO SCORRIMENTO.
@@ -90,7 +91,11 @@ export class Scorrimento {
        si e' fermati: il campo visivo che si richiude da solo, la strada che
        decelera da sola. Cioe' esattamente il difetto, spostato di un file. */
     const grezza = delta / Math.max(dt, 1 / 240)
-    if (RIDOTTO) this.velocita = grezza
+    /* Lo smorzamento a 0,12 impiega circa un secondo a scendere a zero, e
+       quel secondo e' un'altra coda che il banco non puo' aspettare: e' lei ad
+       alimentare la spinta della strada, quindi finche' non arriva a zero la
+       carreggiata continua a decelerare fra un fotogramma e l'altro. */
+    if (fermo(RIDOTTO)) this.velocita = grezza
     else this.velocita += (grezza - this.velocita) * 0.12
   }
 }

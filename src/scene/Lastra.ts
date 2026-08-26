@@ -12,6 +12,7 @@ import { anisotropiaMassima } from '../core/Anisotropia'
 
 import { dopoAuto } from '../core/Ordine'
 import { AUTO } from './Esterno'
+import { QA } from '../core/Banco'
 
 /**
  * LA STRADA OLTRE IL PARABREZZA — costruita, non filmata.
@@ -2959,7 +2960,15 @@ export class Lastra {
      * Anzi soprattutto se ci si ferma.
      */
     this.u.uPolizia.value = Math.min(Math.max((f - 0.30) / 0.35, 0), 1)
-    const t = (performance.now() / 1000) % 1.05
+    /* SUL BANCO DI PROVA LA FASE SI FISSA, e questa e' l'unica cosa del sito
+       che ne aveva davvero bisogno: il commento qui sopra lo dichiara — il
+       tempo arriva dall'orologio e non dallo scorrimento. Due rese dello stesso
+       stato a due secondi di distanza colgono il lampeggiante in due battute
+       diverse, e nella misura erano il 26% dello schermo.
+       Si sceglie 0,03 e non zero: cade DENTRO la prima battuta blu, quindi sul
+       banco il lampeggiante si vede acceso. Fissarlo su una fase spenta
+       renderebbe ripetibile anche un lampeggiante rotto. */
+    const t = QA ? 0.03 : (performance.now() / 1000) % 1.05
     const battuta = (a: number) => (t > a && t < a + 0.07) || (t > a + 0.14 && t < a + 0.21)
     this.u.uLampo.value = battuta(0.0) ? -1 : battuta(0.52) ? 1 : 0
 
@@ -3084,12 +3093,32 @@ export class Lastra {
      * `strumenti/fermo.mjs` e' stato aggiornato di conseguenza: congela lui la
      * strada e continua a verificare che tutto il resto stia fermo. Un cancello
      * che boccia una decisione presa fa politica, non misura. */
+    /* E SUL BANCO DI PROVA CADE LA CROCIERA — non nel sito, dentro la misura.
+       La crociera e' l'unica cosa di questa scena che avanza senza che nessuno
+       tocchi niente, quindi due rese dello stesso stato a due secondi di
+       distanza mostrano due tratti di strada diversi. Misurato: le tre tappe
+       dentro l'abitacolo cambiavano del 7, del 15 e del 45 per cento fra due
+       fotogrammi che dovevano essere identici.
+       Si azzera solo il termine costante: la spinta dello scorrimento resta, e
+       quindi il banco non mente sul meccanismo — se si scorre, la strada corre.
+       E non c'entra con la preferenza del movimento ridotto: li' la crociera
+       resta accesa, perche' e' una decisione del committente presa tre volte.
+       Qui e' uno strumento che congela cio' che deve confrontare. */
+    const crociera = QA ? 0 : ANDATURA.crociera
     this.bersaglio = acceso
-      ? (ANDATURA.crociera + (ANDATURA.punta - ANDATURA.crociera) * spinta) * (1 - fermo)
+      ? (crociera + (ANDATURA.punta - crociera) * spinta) * (1 - fermo)
       : 0
 
     // salita e discesa hanno costanti di tempo diverse: vedi ANDATURA
-    const tau = this.bersaglio > this.andatura ? ANDATURA.salita : ANDATURA.discesa
+    /* E SUL BANCO LE DUE COSTANTI DI TEMPO CROLLANO. Salita e discesa valgono
+       0,55 e 1,6 secondi perche' la strada si comporti come un motore, ed e'
+       giusto: ma un secondo e mezzo di decelerazione dopo un salto di
+       scorrimento vuol dire che due rese a due secondi di distanza mostrano due
+       tratti di strada diversi. Azzerare la crociera non bastava — e infatti la
+       misura restava rossa: la strada non correva piu' da sola, stava ancora
+       rallentando. */
+    const tau = QA ? 0.03
+      : this.bersaglio > this.andatura ? ANDATURA.salita : ANDATURA.discesa
     const k = 1 - Math.exp(-dt / tau)
     this.andatura += (this.bersaglio - this.andatura) * k
 

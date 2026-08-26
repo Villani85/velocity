@@ -32,6 +32,7 @@ import { applicaLuogo, giraPanorama } from './scene/Panorama'
 import { POSE } from './transizioni/Camera'
 import { SCALA } from './core/Qualita'
 import * as THREE from 'three'
+import { QA, descriviBanco } from './core/Banco'
 
 /** costruisce la scena, la avvia, e le mette intorno l'interfaccia */
 export function avvia(tela: HTMLCanvasElement): Esperienza {
@@ -249,6 +250,17 @@ function avviaInterfaccia(esp: Esperienza) {
 
     // si espone per gli strumenti di misura, come nel progetto precedente
     ;(window as any).esperienza = esp
+
+    /* SUL BANCO LA QUALITA' SI FISSA E NON SI ADATTA PIU'.
+       Il gestore reagisce al carico della macchina, quindi la stessa pagina
+       rende con impostazioni diverse a seconda di che cosa sta girando accanto.
+       Misurando sotto carico ho attribuito alla scena quarantasette programmi
+       shader che a macchina scarica erano due, e ho quasi curato il pezzo
+       sbagliato. Un banco che si adatta non e' un banco. */
+    if (QA) {
+      esp.qualita.forza('alto')
+      console.log('[banco]', descriviBanco(), '- qualita fissata, niente rumore casuale, orologio fermo')
+    }
     // le pose si espongono perche' `strumenti/scandaglio.mjs` possa provarle
     // una per una. Tarare a mano un punto in tre dimensioni significa fare
     // venti prove a occhio e tenerne a mente i risultati: e' il tipo di cosa

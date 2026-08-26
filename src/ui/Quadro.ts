@@ -1,6 +1,7 @@
 import { LAVORI, datiLavoro, quantiInLinea, quantiRicerca } from './Lavori'
 import { t } from './Lingua'
 import { RIDOTTO, rincorsa } from '../core/Moto'
+import { fermo } from '../core/Banco'
 import {
   DataTexture,
   LinearFilter,
@@ -728,7 +729,11 @@ export class Quadro {
        Congelato, il minimo resta irregolare come prima — la lancetta sta a un
        punto qualunque della modulazione, non su un valore tondo — semplicemente
        non ci ondeggia sopra. */
-    if (!RIDOTTO) this.tempo += dt
+    /* L'OROLOGIO SI FERMA ANCHE SUL BANCO DI PROVA, per un'altra ragione dalla
+       preferenza: li' mostra l'ora vera, e l'ora vera cambia fra due rese che
+       dovrebbero essere identiche. Una cifra diversa in mezzo allo schermo
+       basta a far fallire qualunque confronto fra due fotogrammi. */
+    if (!fermo(RIDOTTO)) this.tempo += dt
     this.acceso = Math.min(Math.max(avvio, 0), 1)
     if (this.acceso <= 0.001) { this.mesh.visible = false; return }
     this.mesh.visible = true

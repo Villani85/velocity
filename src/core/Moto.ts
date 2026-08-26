@@ -61,6 +61,9 @@
  * ascolto.
  */
 
+import { RIDOTTO_FORZATO } from './Banco'
+import { QA } from './Banco'
+
 const DOMANDA = '(prefers-reduced-motion: reduce)'
 
 /**
@@ -88,6 +91,16 @@ function leggi(): boolean {
      progetto fuori dalla pagina: senza guardia un banco che gira in Node
      morirebbe qui, e morirebbe con un messaggio che non parla di movimento —
      cioe' nel modo piu' lento possibile da capire. */
+  /* E SI PUO' FORZARE DA FUORI, con `?ridotto=1` o `?ridotto=0`.
+     Non e' una comodita': e' l'unico modo di MISURARE questo mondo. Per
+     settimane nessuno strumento ha acceso questa preferenza — Playwright parte
+     con la preferenza spenta — e li' dentro e' vissuto indisturbato il difetto
+     peggiore del progetto, la strada che non si muoveva. Meta' del sito non
+     l'aveva mai vista nessuno.
+     La forzatura vince sul sistema operativo perche' serve a chiedere «fammi
+     vedere l'altra meta'», e una forzatura che il sistema puo' scavalcare non
+     serve a niente. */
+  if (RIDOTTO_FORZATO !== null) return RIDOTTO_FORZATO
   return typeof matchMedia === 'function' && matchMedia(DOMANDA).matches
 }
 
@@ -121,5 +134,15 @@ if (typeof matchMedia === 'function') {
  * in un posto e vale dappertutto.
  */
 export function rincorsa(k: number): number {
-  return RIDOTTO ? 1 : k
+  /* E ANCHE SUL BANCO DI PROVA, per un'altra ragione dalla preferenza.
+     Una coda di inerzia non e' rumore: e' il ritardo fra il gesto e la
+     risposta, ed e' quello che rende un tachimetro un tachimetro. Ma dopo un
+     salto di scorrimento ci mette SECONDI ad assestarsi, e due rese dello
+     stesso stato prese a due secondi di distanza colgono la stessa lancetta in
+     due punti diversi del suo tragitto.
+     Misurato prima di questa riga: la cifra del tachimetro e l'arco del
+     contagiri erano fra i pixel che cambiavano nelle tre tappe non ripetibili.
+     Con `rincorsa` a uno il valore finale e' identico: sparisce solo il
+     tragitto, che e' esattamente cio' che il banco non deve inseguire. */
+  return RIDOTTO || QA ? 1 : k
 }
